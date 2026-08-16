@@ -8,16 +8,17 @@ use Illuminate\Http\Request;
 class StudentController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display all students.
      */
     public function index()
     {
         $students = Student::all();
-        return view('students.index',compact('students'));
+
+        return view('students.index', compact('students'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new student.
      */
     public function create()
     {
@@ -25,68 +26,145 @@ class StudentController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created student.
      */
     public function store(Request $request)
     {
-       $request->validate([
-            'name' => 'required',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:students,email',
-            'phone' => 'required'
+            'phone' => 'required|string|max:20',
         ]);
-        Student::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone
-        ]);
+
+        Student::create($validated);
+
         return redirect()
-    ->route('students.index')
-    ->with('success', 'Student created successfully!');
+            ->route('students.index')
+            ->with('success', 'Student created successfully.');
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified student.
      */
-    public function show(string $id)
+    public function show(Student $student)
     {
-       //
+        return view('students.show', compact('student'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing a student.
      */
-    public function edit(string $id)
+    public function edit(Student $student)
     {
-        $student= Student::findOrFail($id);
         return view('students.edit', compact('student'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update a single student.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Student $student)
     {
-        request()->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'phone' => 'nullable'
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:students,email,' . $student->id,
+            'phone' => 'required|string|max:20',
         ]);
-        $student=student::findOrFail($id);
-        $student->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone
-        ]);
-        return redirect()->route('students.index');
+
+        $student->update($validated);
+
+        return redirect()
+            ->route('students.index')
+            ->with('success', 'Student updated successfully.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete a single student.
      */
-    public function destroy(string $id)
+    public function destroy(Student $student)
     {
-        $student=student::findOrFail($id);
         $student->delete();
-        return redirect()->route('students.index');
+
+        return redirect()
+            ->route('students.index')
+            ->with('success', 'Student deleted successfully.');
+    }
+
+    /**
+     * Show the bulk edit page for selected students.
+     */
+    public function bulkEdit(Request $request)
+    {
+        // Get selected student IDs
+        $selectedIds = $request->input('students', []);
+
+        // Check if at least one student is selected
+        if (empty($selectedIds)) {
+            return redirect()
+                ->route('students.index')
+                ->with('error', 'Please select at least one student.');
+        }
+
+        // Get selected students
+        $students = Student::whereIn('id', $selectedIds)->get();
+
+        // Show bulk edit page
+        return view('students.bulk-edit', compact('students'));
+    }
+
+    /**
+     * Update multiple selected students.
+     */
+    public function bulkUpdate(Request $request)
+    {
+        $students = $request->input('students', []);
+
+        // Check if students were submitted
+        if (empty($students)) {
+            return redirect()
+                ->route('students.index')
+                ->with('error', 'No students were selected.');
+        }
+
+        // Update each selected student
+        foreach ($students as $id => $data) {
+
+            $student = Student::find($id);
+
+            if ($student) {
+
+                $student->update([
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'],
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('students.index')
+            ->with('success', 'Selected students updated successfully.');
+    }
+
+    /**
+     * Delete multiple selected students.
+     */
+    public function bulkDelete(Request $request)
+    {
+        // Get selected student IDs
+        $selectedIds = $request->input('students', []);
+
+        // Check if at least one student is selected
+        if (empty($selectedIds)) {
+            return redirect()
+                ->route('students.index')
+                ->with('error', 'Please select at least one student.');
+        }
+
+        // Delete selected students
+        Student::whereIn('id', $selectedIds)->delete();
+
+        return redirect()
+            ->route('students.index')
+            ->with('success', 'Selected students deleted successfully.');
     }
 }

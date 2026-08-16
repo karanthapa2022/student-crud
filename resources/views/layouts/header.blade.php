@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between">
 
             <!-- Logo -->
-            <div>
+            <div>   
 
                 <h1 class="text-xl font-bold text-gray-800">
                     Student CRUD
