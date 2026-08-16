@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,16 @@
 </head>
 
 <body class="bg-gray-100 min-h-screen">
+
+    <!-- Success Message -->
+    @if(session('success'))
+        <div class="max-w-6xl mx-auto px-6 pt-6">
+            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+                {{ session('success') }}
+            </div>
+        </div>
+    @endif
+
 
     <div class="max-w-6xl mx-auto px-6 py-10">
 
@@ -48,6 +59,7 @@
                         <thead class="bg-gray-50 border-b border-gray-200">
 
                             <tr>
+
                                 <th class="px-6 py-4 text-sm font-semibold text-gray-600">
                                     ID
                                 </th>
@@ -67,6 +79,7 @@
                                 <th class="px-6 py-4 text-sm font-semibold text-gray-600 text-right">
                                     Actions
                                 </th>
+
                             </tr>
 
                         </thead>
@@ -112,6 +125,7 @@
                                                 action="{{ route('students.destroy', $student->id) }}"
                                                 method="POST"
                                             >
+
                                                 @csrf
                                                 @method('DELETE')
 
@@ -129,10 +143,8 @@
                                     </td>
 
                                 </tr>
-                                
 
                             @endforeach
-                            
 
                         </tbody>
 
@@ -169,4 +181,5 @@
     </div>
 
 </body>
+
 </html>

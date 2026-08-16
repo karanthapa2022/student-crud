@@ -39,7 +39,9 @@ class StudentController extends Controller
             'email' => $request->email,
             'phone' => $request->phone
         ]);
-        return redirect()->route('students.index');
+        return redirect()
+    ->route('students.index')
+    ->with('success', 'Student created successfully!');
     }
 
     /**
