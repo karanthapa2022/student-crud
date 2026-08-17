@@ -111,6 +111,8 @@
         @if(session('success'))
 
         <div
+
+            id="successMessage"
             class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 px-5 py-4 rounded-xl">
 
             <div
@@ -336,7 +338,7 @@
 
                                     <span
                                         class="text-sm font-medium text-gray-500">
-                                        #{{ $student->id }}
+                                        #{{ $loop->iteration }}
                                     </span>
 
                                 </td>
@@ -509,216 +511,7 @@
     <!-- ================================================= -->
 
     <script>
-        const checkboxes =
-            document.querySelectorAll('.student-checkbox');
-
-        const selectAll =
-            document.getElementById('selectAll');
-
-        const selectedCount =
-            document.getElementById('selectedCount');
-
-        const editSelectedBtn =
-            document.getElementById('editSelectedBtn');
-
-        const deleteSelectedBtn =
-            document.getElementById('deleteSelectedBtn');
-
-        const bulkDeleteForm =
-            document.getElementById('bulkDeleteForm');
-
-
-        // ==========================================
-        // UPDATE SELECTION
-        // ==========================================
-
-        function updateSelection() {
-
-            const selected =
-                document.querySelectorAll(
-                    '.student-checkbox:checked'
-                );
-
-            const count = selected.length;
-
-
-            if (count === 0) {
-
-                selectedCount.classList.add('hidden');
-
-                editSelectedBtn.classList.add('hidden');
-
-                deleteSelectedBtn.classList.add('hidden');
-
-            } else {
-
-                selectedCount.classList.remove('hidden');
-
-                editSelectedBtn.classList.remove('hidden');
-
-                deleteSelectedBtn.classList.remove('hidden');
-
-                selectedCount.textContent =
-                    `${count} selected`;
-
-            }
-
-
-            // Highlight selected rows
-
-            checkboxes.forEach((checkbox) => {
-
-                const row =
-                    checkbox.closest('.student-row');
-
-                if (checkbox.checked) {
-
-                    row.classList.add('bg-blue-50');
-
-                } else {
-
-                    row.classList.remove('bg-blue-50');
-
-                }
-
-            });
-
-
-            // Select All
-
-            selectAll.checked =
-                count === checkboxes.length &&
-                count > 0;
-
-        }
-
-
-        // ==========================================
-        // INDIVIDUAL CHECKBOX
-        // ==========================================
-
-        checkboxes.forEach((checkbox) => {
-
-            checkbox.addEventListener(
-                'change',
-                updateSelection
-            );
-
-        });
-
-
-        // ==========================================
-        // SELECT ALL
-        // ==========================================
-
-        selectAll.addEventListener(
-            'change',
-            function() {
-
-                checkboxes.forEach((checkbox) => {
-
-                    checkbox.checked =
-                        this.checked;
-
-                });
-
-                updateSelection();
-
-            }
-        );
-
-
-        // ==========================================
-        // DELETE SELECTED
-        // ==========================================
-
-        deleteSelectedBtn.addEventListener(
-            'click',
-            function() {
-
-                const selected =
-                    document.querySelectorAll(
-                        '.student-checkbox:checked'
-                    );
-
-                const count =
-                    selected.length;
-
-
-                if (count === 0) {
-                    return;
-                }
-
-
-                const confirmed =
-                    confirm(
-                        `Are you sure you want to delete ${count} selected student(s)? This action cannot be undone.`
-                    );
-
-
-                if (!confirmed) {
-                    return;
-                }
-
-
-                selected.forEach((checkbox) => {
-
-                    const input =
-                        document.createElement('input');
-
-                    input.type = 'hidden';
-
-                    input.name = 'students[]';
-
-                    input.value = checkbox.value;
-
-                    bulkDeleteForm.appendChild(input);
-
-                });
-
-
-                bulkDeleteForm.submit();
-
-            }
-        );
-
-
-        // ==========================================
-        // INDIVIDUAL DELETE
-        // ==========================================
-
-        function deleteStudent(id) {
-
-            const confirmed =
-                confirm(
-                    'Are you sure you want to delete this student?'
-                );
-
-
-            if (!confirmed) {
-                return;
-            }
-
-
-            const form =
-                document.getElementById(
-                    'individualDeleteForm'
-                );
-
-
-            form.action =
-                `/students/${id}`;
-
-            form.submit();
-
-        }
-
-
-        // ==========================================
-        // INITIAL STATE
-        // ==========================================
-
-        updateSelection();
+        
     </script>
 
 </body>
