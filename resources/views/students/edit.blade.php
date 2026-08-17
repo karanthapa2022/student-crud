@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Edit Student</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -11,114 +10,107 @@
 
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-2xl mx-auto px-6 py-10">
+    <div class="max-w-2xl mx-auto py-10 px-6">
 
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">
+        <div class="bg-white shadow-md rounded-lg p-8">
+
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">
                 Edit Student
             </h1>
 
-            <p class="text-gray-500 mt-1">
-                Update the student's information
-            </p>
-        </div>
-
-
-        <!-- Form Card -->
-        <div class="bg-white rounded-xl shadow-sm p-8">
+            {{-- Validation Errors --}}
+            @if ($errors->any())
+                <div class="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+                    <ul class="list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <form action="{{ route('students.update', $student->id) }}" method="POST">
 
                 @csrf
                 @method('PUT')
-                @if ($errors->any())
-    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-        <ul class="list-disc list-inside text-sm">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
 
-
-                <!-- Name -->
-                <div class="mb-6">
-
-                    <label
-                        for="name"
-                        class="block text-sm font-medium text-gray-700 mb-2"
-                    >
+                {{-- Name --}}
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">
                         Name
                     </label>
 
                     <input
                         type="text"
-                        id="name"
                         name="name"
-                        value="{{ $student->name }}"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value="{{ old('name', $student->name) }}"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                        required
                     >
-
                 </div>
 
-
-                <!-- Email -->
-                <div class="mb-6">
-
-                    <label
-                        for="email"
-                        class="block text-sm font-medium text-gray-700 mb-2"
-                    >
+                {{-- Email --}}
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">
                         Email
                     </label>
 
                     <input
                         type="email"
-                        id="email"
                         name="email"
-                        value="{{ $student->email }}"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value="{{ old('email', $student->email) }}"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                        required
                     >
-
                 </div>
 
-
-                <!-- Phone -->
-                <div class="mb-8">
-
-                    <label
-                        for="phone"
-                        class="block text-sm font-medium text-gray-700 mb-2"
-                    >
+                {{-- Phone --}}
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">
                         Phone
                     </label>
 
                     <input
                         type="text"
-                        id="phone"
                         name="phone"
-                        value="{{ $student->phone }}"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value="{{ old('phone', $student->phone) }}"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                        required
                     >
-
                 </div>
 
+                {{-- Status --}}
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        Status
+                    </label>
 
-                <!-- Buttons -->
-                <div class="flex items-center gap-4">
+                    <select name="status" required>
+    <option value="active"
+        {{ old('status', $student->status) == 'active' ? 'selected' : '' }}>
+        Active
+    </option>
+
+    <option value="inactive"
+        {{ old('status', $student->status) == 'inactive' ? 'selected' : '' }}>
+        Inactive
+    </option>
+</select>
+                </div>
+
+                {{-- Buttons --}}
+                <div class="flex gap-3">
 
                     <button
                         type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg"
                     >
                         Update Student
                     </button>
 
                     <a
                         href="{{ route('students.index') }}"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium transition"
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg"
                     >
                         Cancel
                     </a>

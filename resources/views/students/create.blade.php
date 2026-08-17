@@ -105,6 +105,10 @@
                     >
 
                 </div>
+                <select name="status">
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+</select>
 
 
                 <!-- Buttons -->
