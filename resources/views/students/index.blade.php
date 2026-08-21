@@ -362,10 +362,10 @@
                                             </p>
 
                                             <span class="inline-block mt-1 text-xs px-2 py-0.5 rounded-full
-    {{ $student->status === 'active'
-        ? 'text-green-600 bg-green-50'
-        : 'text-red-600 bg-red-50' }}">
-
+                                                    {{ $student->status === 'active'
+                                                        ? 'text-green-600 bg-green-50'
+                                                        : 'text-red-600 bg-red-50' }}">
+ 
                                                 {{ ucfirst($student->status) }}
 
                                             </span>
@@ -511,7 +511,7 @@
     <!-- ================================================= -->
 
     <script>
-        
+
     </script>
 
 </body>

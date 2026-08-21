@@ -56,25 +56,26 @@ class StudentController extends Controller
      * Update a student.
      */
     public function update(Request $request, Student $student)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255|unique:students,email,' . $student->id,
-        'phone' => 'required|string|max:20',
-        'status' => 'required|in:active,inactive',
-    ]);
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:students,email,' . $student->id,
+            'phone' => 'required|string|max:20',
+            'status' => 'required|in:active,inactive',
+        ]);
 
-    $student->name = $validated['name'];
-    $student->email = $validated['email'];
-    $student->phone = $validated['phone'];
-    $student->status = $validated['status'];
+        $student->name = $validated['name'];
+        $student->email = $validated['email'];
+        $student->phone = $validated['phone'];
+        $student->status = $validated['status'];
 
-    $student->save();
+        $student->save();
 
-    return redirect()
-        ->route('students.index')
-        ->with('success', 'Student updated successfully.');
-}
+        return redirect()
+            ->route('students.index')
+            ->with('success', 'Student updated successfully.');
+    }
+
     /**
      * Delete a student.
      */
