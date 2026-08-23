@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\Hash;
 
 class ApiAuthController extends Controller
 {
-    // Register
+    // =========================================================
+    // REGISTER
+    // =========================================================
+
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -33,7 +36,11 @@ class ApiAuthController extends Controller
         ], 201);
     }
 
-    // Login
+
+    // =========================================================
+    // LOGIN
+    // =========================================================
+
     public function login(Request $request)
     {
         $validated = $request->validate([
@@ -41,15 +48,26 @@ class ApiAuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::where(
+            'email',
+            $validated['email']
+        )->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (
+            !$user ||
+            !Hash::check(
+                $validated['password'],
+                $user->password
+            )
+        ) {
             return response()->json([
                 'message' => 'Invalid email or password.',
             ], 401);
         }
 
-        $token = $user->createToken('vue-app')->plainTextToken;
+        $token = $user
+            ->createToken('vue-app')
+            ->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful.',
@@ -58,13 +76,113 @@ class ApiAuthController extends Controller
         ]);
     }
 
-    // Logout
+
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $request
+            ->user()
+            ->currentAccessToken()
+            ->delete();
 
         return response()->json([
             'message' => 'Logout successful.',
+        ]);
+    }
+
+
+    // =========================================================
+    // UPDATE PROFILE
+    // =========================================================
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+
+            'email' => [
+                'required',
+                'email',
+                'unique:users,email,' . $user->id,
+            ],
+        ]);
+
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        return response()->json([
+            'message' => 'Profile updated successfully.',
+            'user' => $user,
+        ]);
+    }
+
+
+    // =========================================================
+    // UPLOAD PROFILE PHOTO
+    // =========================================================
+
+    public function updateProfilePhoto(Request $request)
+    {
+        $request->validate([
+            'profile_photo' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
+        ]);
+
+        $user = $request->user();
+
+
+        // -----------------------------------------------------
+        // Delete old profile photo
+        // -----------------------------------------------------
+
+        if ($user->profile_photo) {
+
+            $oldPhoto = public_path(
+                'storage/' . $user->profile_photo
+            );
+
+            if (file_exists($oldPhoto)) {
+                unlink($oldPhoto);
+            }
+        }
+
+
+        // -----------------------------------------------------
+        // Store new profile photo
+        // -----------------------------------------------------
+
+        $path = $request
+            ->file('profile_photo')
+            ->store('profile-photos', 'public');
+
+
+        // -----------------------------------------------------
+        // Save photo path
+        // -----------------------------------------------------
+
+        $user->update([
+            'profile_photo' => $path,
+        ]);
+
+
+        // Refresh user data
+        $user->refresh();
+
+
+        return response()->json([
+            'message' => 'Profile photo updated successfully.',
+            'user' => $user,
         ]);
     }
 }

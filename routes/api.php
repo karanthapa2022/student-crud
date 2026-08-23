@@ -20,6 +20,9 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
+    Route::put('/profile',[ApiAuthController::class,'updateProfile']);
+    Route::post('/profile/photo',[ApiAuthController::class,'updateProfilePhoto']);
+
     // Student API
     Route::post('/students/bulk-delete', [StudentController::class, 'bulkDelete']);
     Route::put('/students/bulk-update', [StudentController::class, 'bulkUpdate']);
