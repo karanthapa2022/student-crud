@@ -130,6 +130,7 @@ class ApiAuthController extends Controller
 
     public function updateProfilePhoto(Request $request)
     {
+        
         $request->validate([
             'profile_photo' => [
                 'required',
@@ -185,4 +186,81 @@ class ApiAuthController extends Controller
             'user' => $user,
         ]);
     }
+
+    // =========================================================
+// UPLOAD PDF DOCUMENT
+// =========================================================
+
+public function updateDocument(Request $request)
+{
+    $request->validate([
+        'document' => 'required|file|mimes:pdf|max:5120',
+    ]);
+
+    $user = $request->user();
+
+    // Delete old document
+    if ($user->document) {
+
+        $oldDocument = public_path(
+            'storage/' . $user->document
+        );
+
+        if (file_exists($oldDocument)) {
+            unlink($oldDocument);
+        }
+    }
+
+    // Store new PDF
+    $path = $request
+        ->file('document')
+        ->store('documents', 'public');
+
+    // Save document path
+    $user->update([
+        'document' => $path,
+    ]);
+
+    $user->refresh();
+
+    return response()->json([
+        'message' => 'Document uploaded successfully.',
+        'user' => $user,
+    ]);
+}
+// =========================================================
+// DELETE PDF DOCUMENT
+// =========================================================
+
+public function deleteDocument(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user->document) {
+        return response()->json([
+            'message' => 'No document found.'
+        ], 404);
+    }
+
+    $filePath = storage_path(
+        'app/public/' . $user->document
+    );
+
+    // Delete the actual file
+    if (file_exists($filePath)) {
+        unlink($filePath);
+    }
+
+    // Remove document path from database
+    $user->update([
+        'document' => null,
+    ]);
+
+    $user->refresh();
+
+    return response()->json([
+        'message' => 'Document deleted successfully.',
+        'user' => $user,
+    ]);
+}
 }

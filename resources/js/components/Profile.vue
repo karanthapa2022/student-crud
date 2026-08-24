@@ -6,7 +6,9 @@ import { useRouter } from 'vue-router'
 import {
     getUser,
     updateProfile,
-    updateProfilePhoto
+    updateProfilePhoto,
+    updateDocument,
+    deleteDocument
 } from '../services/authApi'
 
 
@@ -50,6 +52,140 @@ const editEmail = ref('')
 
 const photoInput = ref(null)
 
+// =========================================================
+// DOCUMENT
+// =========================================================
+
+const handleDocumentChange = async (event) => {
+
+    const file = event.target.files?.[0]
+
+    if (!file) return
+
+    console.log('Selected file:', file)
+    console.log('Is File:', file instanceof File)
+
+    // Check PDF
+    if (file.type !== 'application/pdf') {
+        error.value = 'Please select a PDF file.'
+        event.target.value = ''
+        return
+    }
+
+    // Check size - 5MB
+    if (file.size > 5 * 1024 * 1024) {
+        error.value = 'PDF must be smaller than 5MB.'
+        event.target.value = ''
+        return
+    }
+
+    try {
+
+        const token = localStorage.getItem('token')
+
+        if (!token) {
+            error.value = 'You are not logged in.'
+            return
+        }
+
+        const formData = new FormData()
+
+        formData.append('document', file)
+
+        console.log(
+            'FormData document:',
+            formData.get('document')
+        )
+
+        const response = await updateDocument(
+            token,
+            formData
+        )
+
+        user.value = response.data.user
+
+        localStorage.setItem(
+            'user',
+            JSON.stringify(response.data.user)
+        )
+
+        successMessage.value =
+            'Document uploaded successfully.'
+
+        setTimeout(() => {
+            successMessage.value = ''
+        }, 3000)
+
+    } catch (err) {
+
+        console.error(
+            'Document upload error:',
+            err
+        )
+
+        error.value =
+            err.response?.data?.message ||
+            'Failed to upload document.'
+
+    } finally {
+
+        event.target.value = ''
+
+    }
+}
+const deleteDocumentFile = async () => {
+
+    if (!user.value?.document) {
+        return
+    }
+
+    const confirmed = confirm(
+        'Are you sure you want to delete this document?'
+    )
+
+    if (!confirmed) {
+        return
+    }
+
+    try {
+
+        const token = localStorage.getItem('token')
+
+        if (!token) {
+            error.value = 'You are not logged in.'
+            return
+        }
+
+        const response = await deleteDocument(token)
+
+        // Update user data
+        user.value = response.data.user
+
+        // Update localStorage
+        localStorage.setItem(
+            'user',
+            JSON.stringify(response.data.user)
+        )
+
+        successMessage.value =
+            'Document deleted successfully.'
+
+        setTimeout(() => {
+            successMessage.value = ''
+        }, 3000)
+
+    } catch (err) {
+
+        console.error(
+            'Document delete error:',
+            err
+        )
+
+        error.value =
+            err.response?.data?.message ||
+            'Failed to delete document.'
+    }
+}
 
 // =========================================================
 // GET USER
@@ -380,6 +516,15 @@ const profilePhotoUrl = () => {
 
 }
 
+const documentUrl = () => {
+
+    if (!user.value?.document) {
+        return null
+    }
+
+    return `http://127.0.0.1:8000/storage/${user.value.document}`
+}
+
 
 // =========================================================
 // FORMAT DATE
@@ -659,6 +804,15 @@ onMounted(() => {
                         />
 
                     </div>
+                    <div>
+  <label>Upload PDF Document</label>
+
+  <input
+    type="file"
+    accept=".pdf,application/pdf"
+    @change="handleDocumentChange"
+  >
+</div>
 
                 </div>
 
@@ -994,6 +1148,116 @@ onMounted(() => {
                     </div>
 
                 </div>
+                <!-- ================================================= -->
+<!-- DOCUMENT -->
+<!-- ================================================= -->
+
+<div
+    class="border-t border-gray-200 py-8"
+>
+
+    <h3
+        class="text-xl font-semibold text-gray-900 mb-6"
+    >
+        Documents
+    </h3>
+
+    <!-- Document exists -->
+
+    <div
+        v-if="user.document"
+        class="border border-gray-200 rounded-xl p-5"
+    >
+
+        <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
+
+            <!-- FILE INFO -->
+
+            <div class="flex items-center gap-4">
+
+                <div
+                    class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center"
+                >
+                    <span class="text-2xl">
+                        📄
+                    </span>
+                </div>
+
+                <div>
+
+                    <p class="font-semibold text-gray-900">
+                        PDF Document
+                    </p>
+
+                    <p class="text-sm text-gray-500">
+                        Uploaded document
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- BUTTONS -->
+
+            <div class="flex flex-wrap gap-2">
+
+                <!-- VIEW -->
+
+                <a
+                    :href="documentUrl()"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                >
+                    View
+                </a>
+
+
+                <!-- DOWNLOAD -->
+
+                <a
+                    :href="documentUrl()"
+                    download
+                    class="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition"
+                >
+                    Download
+                </a>
+
+
+                <!-- DELETE -->
+
+                <button
+                    type="button"
+                    @click="deleteDocumentFile"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
+                >
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- No document -->
+
+    <div
+        v-else
+        class="border border-dashed border-gray-300 rounded-xl p-6 text-center"
+    >
+
+        <p class="text-gray-500">
+            No document uploaded.
+        </p>
+
+    </div>
+
+</div>
 
 
             </div>

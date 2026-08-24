@@ -33,7 +33,7 @@ export const useStudentStore = defineStore('student', {
                 this.loading=false
             }
         },
-        //====================
+            //====================
     //Add students
     //====================
         async addStudent(studentData){

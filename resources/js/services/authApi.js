@@ -44,14 +44,38 @@ export const updateProfile = (token, user) => {
     },
   })
 }
-// Update profilephoto
-export const updateProfilePhoto=(token,file)=>{
-  const formData=new formData()
-  formData.append('profile_photo',file)
-  return api.post('/profile/photo',formData,{
-    headers:{
-      Authorization:`Bearer ${token}`,
-      'Content-Type':'multipart/form-data',
+
+// Update profile photo
+export const updateProfilePhoto = (token, formData) => {
+
+  return api.post(
+    '/profile/photo',
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+}
+// Upload PDF document
+export const updateDocument = (token, formData) => {
+
+  return api.post('/profile/document', formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
   })
+
+}
+
+export const deleteDocument = (token) => {
+
+  return api.delete('/profile/document', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
 }

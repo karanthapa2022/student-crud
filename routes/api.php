@@ -23,6 +23,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile',[ApiAuthController::class,'updateProfile']);
     Route::post('/profile/photo',[ApiAuthController::class,'updateProfilePhoto']);
 
+    Route::post('/profile/document',[ApiAuthController::class,'updateDocument']);
+    Route::delete('/profile/document',[ApiAuthController::class,'deleteDocument']);
+
     // Student API
     Route::post('/students/bulk-delete', [StudentController::class, 'bulkDelete']);
     Route::put('/students/bulk-update', [StudentController::class, 'bulkUpdate']);
