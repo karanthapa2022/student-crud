@@ -270,13 +270,13 @@ const bulkDelete = async () => {
       selectedStudents.value
     )
 
-    students.value =
-      students.value.filter(
-        student =>
-          !selectedStudents.value.includes(
-            student.id
-          )
+    studentStore.students =
+  studentStore.students.filter(
+    student =>
+      !selectedStudents.value.includes(
+        student.id
       )
+  )
 
     selectedStudents.value = []
 

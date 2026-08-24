@@ -1,6 +1,7 @@
 <script setup>
 
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 import {
     getUser,
@@ -8,6 +9,11 @@ import {
     updateProfilePhoto
 } from '../services/authApi'
 
+
+const router=useRouter()
+const goToStudents=()=>{
+    router.push('/students')
+}
 
 // =========================================================
 // USER
@@ -473,19 +479,27 @@ onMounted(() => {
         <!-- PAGE HEADER -->
         <!-- ================================================= -->
 
-        <div class="mb-8">
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-            <h1
-                class="text-3xl font-bold text-gray-900"
-            >
-                Profile
-            </h1>
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">
+            Profile
+        </h1>
 
-            <p class="mt-1 text-gray-500">
-                View and manage your account information
-            </p>
+        <p class="mt-1 text-gray-500">
+            View and manage your account information
+        </p>
+    </div>
 
-        </div>
+    <button
+        @click="goToStudents"
+        class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition shadow-sm"
+    >
+        <span>←</span>
+        Back to Students
+    </button>
+
+</div>
 
 
         <!-- ================================================= -->
