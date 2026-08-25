@@ -5,7 +5,7 @@ import BaseCard from './BaseCard.vue'
 import BaseButton from './BaseButton.vue'
 import StudentCard from './StudentCard.vue'
 import StudentRow from './StudentRow.vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useStudentStore } from '../stores/student'
@@ -100,6 +100,13 @@ const selectedStudents = ref([])
  const searchQuery= ref('')
  const statusFilter= ref('all')
 
+ // =========================================================
+// Pagination
+// =========================================================
+
+const currentPage= ref(1)
+const itemsPerPage=10
+
  const filteredStudents = computed(() => {
 
     return studentStore.students.filter(student => {
@@ -121,7 +128,44 @@ const selectedStudents = ref([])
 
     })
 
+
 })
+const totalPages = computed(() => {
+
+    return Math.ceil(
+        filteredStudents.value.length /
+        itemsPerPage
+    )
+
+})
+
+
+const paginatedStudents = computed(() => {
+
+    const start =
+        (currentPage.value - 1) *
+        itemsPerPage
+
+    const end =
+        start + itemsPerPage
+
+    return filteredStudents.value.slice(
+        start,
+        end
+    )
+
+})
+
+// =========================================================
+// RESET PAGE WHEN SEARCH OR FILTER CHANGES
+// =========================================================
+
+watch(
+    [searchQuery, statusFilter],
+    () => {
+        currentPage.value = 1
+    }
+)
 
 
 // =========================================================
@@ -1149,7 +1193,7 @@ onMounted(() => {
             <!-- STUDENT ROWS -->
 
             <tr
-                v-for="(student, index) in filteredStudents"
+                v-for="(student, index) in paginatedStudents"
                 :key="student.id"
                 class="border-b hover:bg-gray-50"
             >
@@ -1174,7 +1218,7 @@ onMounted(() => {
                 <td
                     class="px-5 py-4 text-sm text-gray-700"
                 >
-                    {{ index + 1 }}
+                    {{ (currentPage - 1)* itemsPerPage + index + 1 }}
                 </td>
 
 
@@ -1316,6 +1360,97 @@ onMounted(() => {
 
         </BaseTable>
 
+      <!-- ================================================= -->
+<!-- PAGINATION -->
+<!-- ================================================= -->
+
+<div
+    v-if="totalPages > 1"
+    class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+>
+
+    <!-- RESULTS INFO -->
+
+    <div class="text-sm text-gray-500">
+
+        Showing
+        <span class="font-semibold text-gray-700">
+            {{ (currentPage - 1) * itemsPerPage + 1 }}
+        </span>
+
+        -
+        <span class="font-semibold text-gray-700">
+            {{
+                Math.min(
+                    currentPage * itemsPerPage,
+                    filteredStudents.length
+                )
+            }}
+        </span>
+
+        of
+
+        <span class="font-semibold text-gray-700">
+            {{ filteredStudents.length }}
+        </span>
+
+        students
+
+    </div>
+
+
+    <!-- PAGINATION -->
+
+    <div class="flex items-center gap-2">
+
+        <!-- PREVIOUS -->
+
+        <button
+            type="button"
+            @click="currentPage--"
+            :disabled="currentPage === 1"
+            class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            ← Previous
+        </button>
+
+
+        <!-- PAGE NUMBERS -->
+
+        <div class="flex items-center gap-1">
+
+            <button
+                v-for="page in totalPages"
+                :key="page"
+                type="button"
+                @click="currentPage = page"
+                class="w-9 h-9 rounded-lg text-sm font-medium"
+                :class="
+                    currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
+                "
+            >
+                {{ page }}
+            </button>
+
+        </div>
+
+
+        <!-- NEXT -->
+
+        <button
+            type="button"
+            @click="currentPage++"
+            :disabled="currentPage === totalPages"
+            class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            Next →
+        </button>
+
+    </div>
+
+</div>
 
         <!-- ================================================= -->
         <!-- STUDENT CARDS -->
