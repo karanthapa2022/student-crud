@@ -5,7 +5,7 @@ import BaseCard from './BaseCard.vue'
 import BaseButton from './BaseButton.vue'
 import StudentCard from './StudentCard.vue'
 import StudentRow from './StudentRow.vue'
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useStudentStore } from '../stores/student'
@@ -93,6 +93,35 @@ const viewStudent = (student) => {
 // =========================================================
 
 const selectedStudents = ref([])
+
+// =========================================================
+// SEARCH + FILTER
+// =========================================================
+ const searchQuery= ref('')
+ const statusFilter= ref('all')
+
+ const filteredStudents = computed(() => {
+
+    return studentStore.students.filter(student => {
+
+        const search = searchQuery.value
+            .toLowerCase()
+            .trim()
+
+        const matchesSearch =
+            student.name.toLowerCase().includes(search) ||
+            student.email.toLowerCase().includes(search) ||
+            student.phone.toLowerCase().includes(search)
+
+        const matchesStatus =
+            statusFilter.value === 'all' ||
+            student.status === statusFilter.value
+
+        return matchesSearch && matchesStatus
+
+    })
+
+})
 
 
 // =========================================================
@@ -555,33 +584,96 @@ onMounted(() => {
         </div>
 
 
-        <!-- ================================================= -->
-        <!-- ACTION BUTTONS -->
-        <!-- ================================================= -->
+       <!-- ================================================= -->
+<!-- ACTION BUTTONS + SEARCH -->
+<!-- ================================================= -->
 
-        <div
-            class="mt-6 flex flex-col sm:flex-row gap-3"
+<div
+    class="mt-6 flex flex-col gap-4"
+>
+
+    <!-- BUTTONS -->
+
+    <div
+        class="flex flex-col sm:flex-row gap-3"
+    >
+
+        <BaseButton
+            variant="success"
+            @click="showAddForm = true"
+            class="w-full sm:w-auto"
         >
-
-            <BaseButton
-                variant="success"
-                @click="showAddForm = true"
-                class="w-full sm:w-auto"
-            >
-                + Add Student
-            </BaseButton>
+            + Add Student
+        </BaseButton>
 
 
-            <BaseButton
-                variant="danger"
-                @click="bulkDelete"
-                class="w-full sm:w-auto"
-            >
-                Delete Selected
-            </BaseButton>
+        <BaseButton
+            variant="danger"
+            @click="bulkDelete"
+            class="w-full sm:w-auto"
+        >
+            Delete Selected
+        </BaseButton>
 
-        </div>
+    </div>
 
+
+    <!-- SEARCH + FILTER -->
+
+    <div
+    class="flex flex-col md:flex-row gap-3"
+>
+
+    <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search by name, email or phone..."
+        class="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+
+    <select
+        v-model="statusFilter"
+        class="w-full md:w-48 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+
+        <option value="all">
+            All Students
+        </option>
+
+        <option value="active">
+            Active
+        </option>
+
+        <option value="inactive">
+            Inactive
+        </option>
+
+    </select>
+
+</div>
+
+
+<!-- STUDENT COUNT -->
+
+<div
+    class="text-sm text-gray-500"
+>
+    Showing
+    <span class="font-semibold text-gray-700">
+        {{ filteredStudents.length }}
+    </span>
+
+    of
+
+    <span class="font-semibold text-gray-700">
+        {{ studentStore.students.length }}
+    </span>
+
+    students
+</div>
+
+</div>
 
         <!-- ================================================= -->
         <!-- ADD STUDENT MODAL -->
@@ -1057,7 +1149,7 @@ onMounted(() => {
             <!-- STUDENT ROWS -->
 
             <tr
-                v-for="(student, index) in studentStore.students"
+                v-for="(student, index) in filteredStudents"
                 :key="student.id"
                 class="border-b hover:bg-gray-50"
             >
@@ -1210,7 +1302,7 @@ onMounted(() => {
             <!-- EMPTY -->
 
             <tr
-                v-if="studentStore.students.length === 0"
+                v-if="filteredStudents.length === 0"
             >
 
                 <td
