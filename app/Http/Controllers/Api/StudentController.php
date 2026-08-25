@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Student;
 
 class StudentController extends Controller
@@ -28,7 +29,16 @@ class StudentController extends Controller
             'email' => 'required|email|max:255|unique:students,email',
             'phone' => 'required|string|max:20',
             'status' => 'required|in:active,inactive',
+
+            // Student photo
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        // Upload photo
+        if ($request->hasFile('photo')) {
+            $validated['photo'] =
+                $request->file('photo')->store('students', 'public');
+        }
 
         $student = Student::create($validated);
 
@@ -56,7 +66,21 @@ class StudentController extends Controller
             'email' => 'required|email|max:255|unique:students,email,' . $student->id,
             'phone' => 'required|string|max:20',
             'status' => 'required|in:active,inactive',
+
+            // Student photo
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        // Replace old photo if a new one is uploaded
+        if ($request->hasFile('photo')) {
+
+            if ($student->photo) {
+                Storage::disk('public')->delete($student->photo);
+            }
+
+            $validated['photo'] =
+                $request->file('photo')->store('students', 'public');
+        }
 
         $student->update($validated);
 
@@ -71,6 +95,11 @@ class StudentController extends Controller
      */
     public function destroy(Student $student)
     {
+        // Delete student's photo
+        if ($student->photo) {
+            Storage::disk('public')->delete($student->photo);
+        }
+
         $student->delete();
 
         return response()->json([
@@ -88,7 +117,25 @@ class StudentController extends Controller
             'ids.*' => 'integer|exists:students,id',
         ]);
 
-        Student::whereIn('id', $request->ids)->delete();
+        $students = Student::whereIn(
+            'id',
+            $request->ids
+        )->get();
+
+        // Delete photos
+        foreach ($students as $student) {
+
+            if ($student->photo) {
+                Storage::disk('public')->delete(
+                    $student->photo
+                );
+            }
+        }
+
+        Student::whereIn(
+            'id',
+            $request->ids
+        )->delete();
 
         return response()->json([
             'message' => 'Students deleted successfully.',

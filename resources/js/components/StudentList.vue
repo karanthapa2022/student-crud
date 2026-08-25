@@ -11,7 +11,7 @@ import axios from 'axios'
 import { useStudentStore } from '../stores/student'
 
 import {
-    updateStudent as updateStudentApi,
+    updateStudentWithPhoto,
     deleteStudent as deleteStudentApi,
     bulkDeleteStudents
 } from '../services/studentApi'
@@ -32,22 +32,32 @@ const newStudent = ref({
     name: '',
     email: '',
     phone: '',
-    status: 'active'
+    status: 'active',
+    photo: null
 })
 
-// =========================
+const handlePhotoChange = (event) => {
+
+    newStudent.value.photo =
+        event.target.files[0] || null
+
+}
+
+
+// =========================================================
 // TABLE HEADERS
-// =========================
+// =========================================================
 
 const tableHeaders = [
-  { key: 'select', label: '' },
-  { key: 'sn', label: 'S.N.' },
-  { key: 'id', label: 'ID' },
-  { key: 'name', label: 'Name' },
-  { key: 'email', label: 'Email' },
-  { key: 'phone', label: 'Phone' },
-  { key: 'status', label: 'Status' },
-  { key: 'actions', label: 'Actions' }
+    { key: 'select', label: '' },
+    { key: 'sn', label: 'S.N.' },
+    { key: 'id', label: 'ID' },
+    { key: 'photo', label: 'Photo' },
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'status', label: 'Status' },
+    { key: 'actions', label: 'Actions' }
 ]
 
 
@@ -56,6 +66,26 @@ const tableHeaders = [
 // =========================================================
 
 const editingStudent = ref(null)
+const viewingStudent= ref(null)
+
+const editStudent = (student) => {
+
+    console.log('Edit clicked:', student)
+
+    editingStudent.value = {
+        ...student,
+        newPhoto: null
+    }
+
+}
+
+const viewStudent = (student) => {
+
+    viewingStudent.value = {
+        ...student
+    }
+
+}
 
 
 // =========================================================
@@ -128,8 +158,39 @@ const addStudent = async () => {
 
     try {
 
+        const formData = new FormData()
+
+        formData.append(
+            'name',
+            newStudent.value.name
+        )
+
+        formData.append(
+            'email',
+            newStudent.value.email
+        )
+
+        formData.append(
+            'phone',
+            newStudent.value.phone
+        )
+
+        formData.append(
+            'status',
+            newStudent.value.status
+        )
+
+        if (newStudent.value.photo) {
+
+            formData.append(
+                'photo',
+                newStudent.value.photo
+            )
+
+        }
+
         await studentStore.addStudent(
-            newStudent.value
+            formData
         )
 
         showAddForm.value = false
@@ -138,10 +199,13 @@ const addStudent = async () => {
             name: '',
             email: '',
             phone: '',
-            status: 'active'
+            status: 'active',
+            photo: null
         }
 
-        alert('Student added successfully!')
+        alert(
+            'Student added successfully!'
+        )
 
     } catch (error) {
 
@@ -150,19 +214,11 @@ const addStudent = async () => {
             error
         )
 
-    }
+        alert(
+            error.response?.data?.message ||
+            'Error adding student.'
+        )
 
-}
-
-
-// =========================================================
-// EDIT STUDENT
-// =========================================================
-
-const editStudent = (student) => {
-
-    editingStudent.value = {
-        ...student
     }
 
 }
@@ -180,10 +236,42 @@ const updateStudent = async () => {
 
     try {
 
+        const formData = new FormData()
+
+        formData.append(
+            'name',
+            editingStudent.value.name
+        )
+
+        formData.append(
+            'email',
+            editingStudent.value.email
+        )
+
+        formData.append(
+            'phone',
+            editingStudent.value.phone
+        )
+
+        formData.append(
+            'status',
+            editingStudent.value.status
+        )
+
+        // Add new photo only if user selected one
+        if (editingStudent.value.newPhoto) {
+
+            formData.append(
+                'photo',
+                editingStudent.value.newPhoto
+            )
+
+        }
+
         const response =
-            await updateStudentApi(
+            await updateStudentWithPhoto(
                 editingStudent.value.id,
-                editingStudent.value
+                formData
             )
 
         const updatedStudent =
@@ -476,154 +564,171 @@ onMounted(() => {
         >
 
             <BaseButton
-    variant="success"
-    @click="showAddForm = true"
-    class="w-full sm:w-auto"
->
-    + Add Student
-</BaseButton>
+                variant="success"
+                @click="showAddForm = true"
+                class="w-full sm:w-auto"
+            >
+                + Add Student
+            </BaseButton>
 
 
             <BaseButton
-            variant="danger"
-            @click="bulkDelete"
-            class="w-full sm:w-auto"
+                variant="danger"
+                @click="bulkDelete"
+                class="w-full sm:w-auto"
             >
-            Delete Selected
-          </BaseButton>
+                Delete Selected
+            </BaseButton>
 
         </div>
 
 
         <!-- ================================================= -->
-        <!-- ADD FORM -->
+        <!-- ADD STUDENT MODAL -->
         <!-- ================================================= -->
 
         <Teleport to="body">
 
+            <div
+                v-if="showAddForm"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            >
+
+                <div
+                    class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6"
+                >
+
+                    <!-- HEADER -->
+
+                    <div
+                        class="flex items-center justify-between mb-6"
+                    >
+
+                        <h2
+                            class="text-xl font-semibold text-gray-800"
+                        >
+                            Add New Student
+                        </h2>
+
+
+                        <button
+                            type="button"
+                            @click="showAddForm = false"
+                            class="text-gray-500 hover:text-gray-800 text-2xl"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <!-- FORM -->
+
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    >
+
+                        <!-- NAME -->
+
+                        <input
+                            v-model="newStudent.name"
+                            type="text"
+                            placeholder="Name"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                        />
+
+
+                        <!-- EMAIL -->
+
+                        <input
+                            v-model="newStudent.email"
+                            type="email"
+                            placeholder="Email"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                        />
+
+
+                        <!-- PHONE -->
+
+                        <input
+                            v-model="newStudent.phone"
+                            type="text"
+                            placeholder="Phone"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                        />
+
+
+                        <!-- STATUS -->
+
+                        <select
+                            v-model="newStudent.status"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                        >
+
+                            <option value="active">
+                                Active
+                            </option>
+
+                            <option value="inactive">
+                                Inactive
+                            </option>
+
+                        </select>
+
+
+                        <!-- PHOTO -->
+
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            @change="handlePhotoChange"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 md:col-span-2"
+                        />
+
+                    </div>
+
+
+                    <!-- BUTTONS -->
+
+                    <div
+                        class="flex flex-col sm:flex-row gap-3 mt-6"
+                    >
+
+                        <button
+                            type="button"
+                            @click="addStudent"
+                            class="w-full sm:w-auto bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700"
+                        >
+                            Add Student
+                        </button>
+
+
+                        <button
+                            type="button"
+                            @click="showAddForm = false"
+                            class="w-full sm:w-auto border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-50"
+                        >
+                            Cancel
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </Teleport>
+          <!--viewing Student-->
+
+        <Teleport to="body">
+
     <div
-        v-if="showAddForm"
+        v-if="viewingStudent"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
     >
 
-        <!-- MODAL -->
-
         <div
-            class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6"
-        >
-
-            <div
-                class="flex items-center justify-between mb-6"
-            >
-
-                <h2 class="text-xl font-semibold text-gray-800">
-                    Add New Student
-                </h2>
-
-                <button
-                    @click="showAddForm = false"
-                    class="text-gray-500 hover:text-gray-800 text-2xl"
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            <!-- FORM -->
-
-            <div
-                class="grid grid-cols-1 md:grid-cols-2 gap-4"
-            >
-
-                <input
-                    v-model="newStudent.name"
-                    type="text"
-                    placeholder="Name"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                />
-
-
-                <input
-                    v-model="newStudent.email"
-                    type="email"
-                    placeholder="Email"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                />
-
-
-                <input
-                    v-model="newStudent.phone"
-                    type="text"
-                    placeholder="Phone"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                />
-
-
-                <select
-                    v-model="newStudent.status"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                >
-
-                    <option value="active">
-                        Active
-                    </option>
-
-                    <option value="inactive">
-                        Inactive
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- BUTTONS -->
-
-            <div
-                class="flex flex-col sm:flex-row gap-3 mt-6"
-            >
-
-                <button
-                    @click="addStudent"
-                    class="w-full sm:w-auto bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700"
-                >
-                    Add Student
-                </button>
-
-
-                <button
-                    @click="showAddForm = false"
-                    class="w-full sm:w-auto border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-50"
-                >
-                    Cancel
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</Teleport>
-
-
-        <!-- ================================================= -->
-        <!-- EDIT FORM -->
-        <!-- ================================================= -->
-
-        
-<Teleport to="body">
-
-    <div
-        v-if="editingStudent"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-    >
-
-        <!-- MODAL -->
-
-        <div
-            class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6"
+            class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6"
         >
 
             <!-- HEADER -->
@@ -635,13 +740,12 @@ onMounted(() => {
                 <h2
                     class="text-xl font-semibold text-gray-800"
                 >
-                    Edit Student
+                    Student Details
                 </h2>
-
 
                 <button
                     type="button"
-                    @click="editingStudent = null"
+                    @click="viewingStudent = null"
                     class="text-gray-500 hover:text-gray-800 text-2xl"
                 >
                     ×
@@ -650,82 +754,115 @@ onMounted(() => {
             </div>
 
 
-            <!-- FORM -->
+            <!-- PHOTO -->
 
-            <div
-                class="grid grid-cols-1 md:grid-cols-2 gap-4"
-            >
+            <div class="flex justify-center mb-6">
 
-                <!-- NAME -->
-
-                <input
-                    v-model="editingStudent.name"
-                    type="text"
-                    placeholder="Name"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                <img
+                    v-if="viewingStudent.photo"
+                    :src="`http://127.0.0.1:8000/storage/${viewingStudent.photo}`"
+                    :alt="viewingStudent.name"
+                    class="w-28 h-28 rounded-full object-cover border-4 border-gray-200"
                 />
 
-
-                <!-- EMAIL -->
-
-                <input
-                    v-model="editingStudent.email"
-                    type="email"
-                    placeholder="Email"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                />
-
-
-                <!-- PHONE -->
-
-                <input
-                    v-model="editingStudent.phone"
-                    type="text"
-                    placeholder="Phone"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                />
-
-
-                <!-- STATUS -->
-
-                <select
-                    v-model="editingStudent.status"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                <div
+                    v-else
+                    class="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-gray-500"
                 >
-
-                    <option value="active">
-                        Active
-                    </option>
-
-                    <option value="inactive">
-                        Inactive
-                    </option>
-
-                </select>
+                    No Photo
+                </div>
 
             </div>
 
 
-            <!-- BUTTONS -->
+            <!-- DETAILS -->
 
-            <div
-                class="flex flex-col sm:flex-row gap-3 mt-6"
-            >
+            <div class="space-y-4">
 
-                <button
-                    @click="updateStudent"
-                    class="w-full sm:w-auto bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700"
+                <div
+                    class="flex justify-between border-b pb-3"
                 >
-                    Update
-                </button>
+                    <span class="font-medium text-gray-500">
+                        Student ID
+                    </span>
 
+                    <span class="text-gray-800">
+                        {{ viewingStudent.id }}
+                    </span>
+                </div>
+
+
+                <div
+                    class="flex justify-between border-b pb-3"
+                >
+                    <span class="font-medium text-gray-500">
+                        Name
+                    </span>
+
+                    <span class="text-gray-800">
+                        {{ viewingStudent.name }}
+                    </span>
+                </div>
+
+
+                <div
+                    class="flex justify-between border-b pb-3"
+                >
+                    <span class="font-medium text-gray-500">
+                        Email
+                    </span>
+
+                    <span class="text-gray-800">
+                        {{ viewingStudent.email }}
+                    </span>
+                </div>
+
+
+                <div
+                    class="flex justify-between border-b pb-3"
+                >
+                    <span class="font-medium text-gray-500">
+                        Phone
+                    </span>
+
+                    <span class="text-gray-800">
+                        {{ viewingStudent.phone }}
+                    </span>
+                </div>
+
+
+                <div
+                    class="flex justify-between items-center"
+                >
+                    <span class="font-medium text-gray-500">
+                        Status
+                    </span>
+
+                    <span
+                        class="px-3 py-1 rounded-full text-xs font-semibold"
+                        :class="
+                            viewingStudent.status === 'active'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
+                        "
+                    >
+                        {{ viewingStudent.status }}
+                    </span>
+                </div>
+
+            </div>
+
+
+            <!-- CLOSE -->
+
+            <div class="mt-6">
 
                 <button
                     type="button"
-                    @click="editingStudent = null"
-                    class="w-full sm:w-auto border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-50"
+                    @click="viewingStudent = null"
+                    class="w-full bg-gray-800 text-white px-5 py-2.5 rounded-lg hover:bg-gray-900"
                 >
-                    Cancel
+                    Close
                 </button>
 
             </div>
@@ -737,6 +874,163 @@ onMounted(() => {
 </Teleport>
 
 
+        <!-- ================================================= -->
+        <!-- EDIT STUDENT MODAL -->
+        <!-- ================================================= -->
+
+        <Teleport to="body">
+
+            <div
+                v-if="editingStudent"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            >
+
+                <div
+                    class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6"
+                >
+
+                    <!-- HEADER -->
+
+                    <div
+                        class="flex items-center justify-between mb-6"
+                    >
+
+                        <h2
+                            class="text-xl font-semibold text-gray-800"
+                        >
+                            Edit Student
+                        </h2>
+
+
+                        <button
+                            type="button"
+                            @click="editingStudent = null"
+                            class="text-gray-500 hover:text-gray-800 text-2xl"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <!-- FORM -->
+
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    >
+
+                        <!-- NAME -->
+
+                        <input
+                            v-model="editingStudent.name"
+                            type="text"
+                            placeholder="Name"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                        />
+
+
+                        <!-- EMAIL -->
+
+                        <input
+                            v-model="editingStudent.email"
+                            type="email"
+                            placeholder="Email"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                        />
+
+
+                        <!-- PHONE -->
+
+                        <input
+                            v-model="editingStudent.phone"
+                            type="text"
+                            placeholder="Phone"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                        />
+
+
+                        <!-- STATUS -->
+
+                        <select
+                            v-model="editingStudent.status"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                        >
+
+                            <option value="active">
+                                Active
+                            </option>
+
+                            <option value="inactive">
+                                Inactive
+                            </option>
+
+                        </select>
+
+
+                        <!-- CURRENT PHOTO -->
+
+                        <div
+                            v-if="editingStudent.photo"
+                            class="flex items-center gap-4 md:col-span-2"
+                        >
+
+                            <img
+                                :src="`http://127.0.0.1:8000/storage/${editingStudent.photo}`"
+                                :alt="editingStudent.name"
+                                class="w-16 h-16 rounded-full object-cover border"
+                            />
+
+                            <div
+                                class="text-sm text-gray-500"
+                            >
+                                Current Photo
+                            </div>
+
+                        </div>
+
+
+                        <!-- NEW PHOTO -->
+
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            @change="editingStudent.newPhoto = $event.target.files[0] || null"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 md:col-span-2"
+                        />
+
+                    </div>
+
+
+                    <!-- BUTTONS -->
+
+                    <div
+                        class="flex flex-col sm:flex-row gap-3 mt-6"
+                    >
+
+                        <button
+                            type="button"
+                            @click="updateStudent"
+                            class="w-full sm:w-auto bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700"
+                        >
+                            Update
+                        </button>
+
+
+                        <button
+                            type="button"
+                            @click="editingStudent = null"
+                            class="w-full sm:w-auto border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-50"
+                        >
+                            Cancel
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </Teleport>
 
 
         <!-- ================================================= -->
@@ -756,135 +1050,183 @@ onMounted(() => {
         <!-- ================================================= -->
 
         <BaseTable
-    v-else
-    :headers="tableHeaders"
->
-
-    <!-- ================================================= -->
-    <!-- STUDENT ROWS -->
-    <!-- ================================================= -->
-
-    <tr
-        v-for="(student, index) in studentStore.students"
-        :key="student.id"
-        class="border-b hover:bg-gray-50"
-    >
-
-        <!-- CHECKBOX -->
-
-        <td class="px-5 py-4 text-center">
-
-            <input
-                type="checkbox"
-                :checked="selectedStudents.includes(student.id)"
-                @change="toggleStudent(student.id)"
-            />
-
-        </td>
-
-
-        <!-- S.N. -->
-
-        <td class="px-5 py-4 text-sm text-gray-700">
-            {{ index + 1 }}
-        </td>
-
-
-        <!-- ID -->
-
-        <td class="px-5 py-4 text-sm text-gray-700">
-            {{ student.id }}
-        </td>
-
-
-        <!-- NAME -->
-
-        <td class="px-5 py-4 text-sm text-gray-700 font-medium">
-            {{ student.name }}
-        </td>
-
-
-        <!-- EMAIL -->
-
-        <td class="px-5 py-4 text-sm text-gray-700">
-            {{ student.email }}
-        </td>
-
-
-        <!-- PHONE -->
-
-        <td class="px-5 py-4 text-sm text-gray-700">
-            {{ student.phone }}
-        </td>
-
-
-        <!-- STATUS -->
-
-        <td class="px-5 py-4">
-
-            <span
-                class="px-3 py-1 rounded-full text-xs font-semibold"
-                :class="
-                    student.status === 'active'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                "
-            >
-                {{ student.status }}
-            </span>
-
-        </td>
-
-
-        <!-- ACTIONS -->
-
-        <td class="px-5 py-4">
-
-            <div class="flex gap-4">
-
-                <button
-                    @click="editStudent(student)"
-                    class="text-blue-600 hover:text-blue-800 font-medium"
-                >
-                    Edit
-                </button>
-
-
-                <button
-                    @click="deleteStudent(student)"
-                    class="text-red-600 hover:text-red-800 font-medium"
-                >
-                    Delete
-                </button>
-
-            </div>
-
-        </td>
-
-    </tr>
-
-
-    <!-- EMPTY -->
-
-    <tr
-        v-if="studentStore.students.length === 0"
-    >
-
-        <td
-            colspan="8"
-            class="text-center py-10 text-gray-500"
+            v-else
+            :headers="tableHeaders"
         >
-            No students found.
-        </td>
 
-    </tr>
+            <!-- STUDENT ROWS -->
 
-</BaseTable>
+            <tr
+                v-for="(student, index) in studentStore.students"
+                :key="student.id"
+                class="border-b hover:bg-gray-50"
+            >
+
+                <!-- CHECKBOX -->
+
+                <td
+                    class="px-5 py-4 text-center"
+                >
+
+                    <input
+                        type="checkbox"
+                        :checked="selectedStudents.includes(student.id)"
+                        @change="toggleStudent(student.id)"
+                    />
+
+                </td>
+
+
+                <!-- S.N. -->
+
+                <td
+                    class="px-5 py-4 text-sm text-gray-700"
+                >
+                    {{ index + 1 }}
+                </td>
+
+
+                <!-- ID -->
+
+                <td
+                    class="px-5 py-4 text-sm text-gray-700"
+                >
+                    {{ student.id }}
+                </td>
+
+
+                <!-- PHOTO -->
+
+                <td
+                    class="px-5 py-4"
+                >
+
+                    <img
+                        v-if="student.photo"
+                        :src="`http://127.0.0.1:8000/storage/${student.photo}`"
+                        :alt="student.name"
+                        class="w-12 h-12 rounded-full object-cover border"
+                    />
+
+                    <div
+                        v-else
+                        class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs"
+                    >
+                        No Photo
+                    </div>
+
+                </td>
+
+
+                <!-- NAME -->
+
+                <td
+                    class="px-5 py-4 text-sm text-gray-700 font-medium"
+                >
+                    {{ student.name }}
+                </td>
+
+
+                <!-- EMAIL -->
+
+                <td
+                    class="px-5 py-4 text-sm text-gray-700"
+                >
+                    {{ student.email }}
+                </td>
+
+
+                <!-- PHONE -->
+
+                <td
+                    class="px-5 py-4 text-sm text-gray-700"
+                >
+                    {{ student.phone }}
+                </td>
+
+
+                <!-- STATUS -->
+
+                <td
+                    class="px-5 py-4"
+                >
+
+                    <span
+                        class="px-3 py-1 rounded-full text-xs font-semibold"
+                        :class="
+                            student.status === 'active'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
+                        "
+                    >
+                        {{ student.status }}
+                    </span>
+
+                </td>
+
+
+                <!-- ACTIONS -->
+
+                <td
+                    class="px-5 py-4"
+                >
+
+                    <div
+                        class="flex gap-4"
+                    >
+
+                    <button
+    type="button"
+    @click="viewStudent(student)"
+    class="text-green-600 hover:text-green-800 font-medium"
+>
+    View
+</button>
+
+                        <button
+                            type="button"
+                            @click="editStudent(student)"
+                            class="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                            Edit
+                        </button>
+
+
+                        <button
+                            type="button"
+                            @click="deleteStudent(student)"
+                            class="text-red-600 hover:text-red-800 font-medium"
+                        >
+                            Delete
+                        </button>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+
+            <!-- EMPTY -->
+
+            <tr
+                v-if="studentStore.students.length === 0"
+            >
+
+                <td
+                    colspan="9"
+                    class="text-center py-10 text-gray-500"
+                >
+                    No students found.
+                </td>
+
+            </tr>
+
+        </BaseTable>
 
 
         <!-- ================================================= -->
         <!-- STUDENT CARDS -->
-        <!-- PROPS + EMITS + SLOTS -->
         <!-- ================================================= -->
 
         <div
@@ -892,13 +1234,11 @@ onMounted(() => {
             class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
         >
 
-            
         </div>
 
 
     </div>
 
 </div>
-
 
 </template>
