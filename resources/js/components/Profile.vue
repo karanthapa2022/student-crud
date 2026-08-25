@@ -8,14 +8,17 @@ import {
     updateProfile,
     updateProfilePhoto,
     updateDocument,
-    deleteDocument
+    deleteDocument,
+    changePassword
 } from '../services/authApi'
 
 
-const router=useRouter()
-const goToStudents=()=>{
+const router = useRouter()
+
+const goToStudents = () => {
     router.push('/students')
 }
+
 
 // =========================================================
 // USER
@@ -31,6 +34,7 @@ const user = ref(null)
 const loading = ref(true)
 const saving = ref(false)
 const uploadingPhoto = ref(false)
+const passwordLoading = ref(false)
 
 const error = ref('')
 const successMessage = ref('')
@@ -47,10 +51,22 @@ const editEmail = ref('')
 
 
 // =========================================================
+// CHANGE PASSWORD
+// =========================================================
+
+const changingPassword = ref(false)
+
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+
+
+// =========================================================
 // PHOTO
 // =========================================================
 
 const photoInput = ref(null)
+
 
 // =========================================================
 // DOCUMENT
@@ -62,59 +78,111 @@ const handleDocumentChange = async (event) => {
 
     if (!file) return
 
+
     console.log('Selected file:', file)
     console.log('Is File:', file instanceof File)
 
-    // Check PDF
+
+    // =====================================================
+    // CHECK PDF
+    // =====================================================
+
     if (file.type !== 'application/pdf') {
-        error.value = 'Please select a PDF file.'
+
+        error.value =
+            'Please select a PDF file.'
+
         event.target.value = ''
+
         return
     }
 
-    // Check size - 5MB
+
+    // =====================================================
+    // CHECK SIZE
+    // =====================================================
+
     if (file.size > 5 * 1024 * 1024) {
-        error.value = 'PDF must be smaller than 5MB.'
+
+        error.value =
+            'PDF must be smaller than 5MB.'
+
         event.target.value = ''
+
         return
     }
+
 
     try {
 
         const token = localStorage.getItem('token')
 
+
         if (!token) {
-            error.value = 'You are not logged in.'
+
+            error.value =
+                'You are not logged in.'
+
             return
         }
 
+
+        // =================================================
+        // FORM DATA
+        // =================================================
+
         const formData = new FormData()
 
-        formData.append('document', file)
+        formData.append(
+            'document',
+            file
+        )
+
 
         console.log(
             'FormData document:',
             formData.get('document')
         )
 
+
+        // =================================================
+        // UPLOAD
+        // =================================================
+
         const response = await updateDocument(
             token,
             formData
         )
 
-        user.value = response.data.user
+
+        // =================================================
+        // UPDATE USER
+        // =================================================
+
+        user.value =
+            response.data.user
+
+
+        // =================================================
+        // UPDATE LOCAL STORAGE
+        // =================================================
 
         localStorage.setItem(
             'user',
             JSON.stringify(response.data.user)
         )
 
+
         successMessage.value =
             'Document uploaded successfully.'
 
+
         setTimeout(() => {
+
             successMessage.value = ''
+
         }, 3000)
+
 
     } catch (err) {
 
@@ -132,47 +200,77 @@ const handleDocumentChange = async (event) => {
         event.target.value = ''
 
     }
+
 }
+
+
+// =========================================================
+// DELETE DOCUMENT
+// =========================================================
+
 const deleteDocumentFile = async () => {
 
     if (!user.value?.document) {
         return
     }
 
+
     const confirmed = confirm(
         'Are you sure you want to delete this document?'
     )
+
 
     if (!confirmed) {
         return
     }
 
+
     try {
 
         const token = localStorage.getItem('token')
 
+
         if (!token) {
-            error.value = 'You are not logged in.'
+
+            error.value =
+                'You are not logged in.'
+
             return
         }
 
-        const response = await deleteDocument(token)
 
-        // Update user data
-        user.value = response.data.user
+        const response =
+            await deleteDocument(token)
 
-        // Update localStorage
+
+        // =================================================
+        // UPDATE USER
+        // =================================================
+
+        user.value =
+            response.data.user
+
+
+        // =================================================
+        // UPDATE LOCAL STORAGE
+        // =================================================
+
         localStorage.setItem(
             'user',
             JSON.stringify(response.data.user)
         )
 
+
         successMessage.value =
             'Document deleted successfully.'
 
+
         setTimeout(() => {
+
             successMessage.value = ''
+
         }, 3000)
+
 
     } catch (err) {
 
@@ -184,8 +282,11 @@ const deleteDocumentFile = async () => {
         error.value =
             err.response?.data?.message ||
             'Failed to delete document.'
+
     }
+
 }
+
 
 // =========================================================
 // GET USER
@@ -197,24 +298,40 @@ const fetchUser = async () => {
 
         const token = localStorage.getItem('token')
 
+
         if (!token) {
-            error.value = 'You are not logged in.'
+
+            error.value =
+                'You are not logged in.'
+
             return
         }
 
-        const response = await getUser(token)
 
-        user.value = response.data
+        const response =
+            await getUser(token)
 
-        // Keep localStorage updated
+
+        user.value =
+            response.data
+
+
+        // =================================================
+        // UPDATE LOCAL STORAGE
+        // =================================================
+
         localStorage.setItem(
             'user',
             JSON.stringify(response.data)
         )
 
+
     } catch (err) {
 
-        console.error('Profile error:', err)
+        console.error(
+            'Profile error:',
+            err
+        )
 
         error.value =
             err.response?.data?.message ||
@@ -237,8 +354,13 @@ const editProfile = () => {
 
     if (!user.value) return
 
-    editName.value = user.value.name
-    editEmail.value = user.value.email
+
+    editName.value =
+        user.value.name
+
+    editEmail.value =
+        user.value.email
+
 
     editing.value = true
 
@@ -270,14 +392,17 @@ const cancelEdit = () => {
 
 const saveProfile = async () => {
 
-    if (!editName.value.trim() || !editEmail.value.trim()) {
+    if (
+        !editName.value.trim() ||
+        !editEmail.value.trim()
+    ) {
 
         error.value =
             'Name and email are required.'
 
         return
-
     }
+
 
     saving.value = true
 
@@ -287,29 +412,54 @@ const saveProfile = async () => {
 
     try {
 
-        const token = localStorage.getItem('token')
-
-        const response = await updateProfile(
-            token,
-            {
-                name: editName.value.trim(),
-                email: editEmail.value.trim(),
-            }
-        )
+        const token =
+            localStorage.getItem('token')
 
 
-        // Update user
-        user.value = response.data.user
+        if (!token) {
+
+            error.value =
+                'You are not logged in.'
+
+            return
+        }
 
 
-        // Update localStorage
+        const response =
+            await updateProfile(
+                token,
+                {
+                    name:
+                        editName.value.trim(),
+
+                    email:
+                        editEmail.value.trim(),
+                }
+            )
+
+
+        // =================================================
+        // UPDATE USER
+        // =================================================
+
+        user.value =
+            response.data.user
+
+
+        // =================================================
+        // UPDATE LOCAL STORAGE
+        // =================================================
+
         localStorage.setItem(
             'user',
             JSON.stringify(response.data.user)
         )
 
 
-        // Close edit mode
+        // =================================================
+        // CLOSE EDIT MODE
+        // =================================================
+
         editing.value = false
 
 
@@ -317,7 +467,6 @@ const saveProfile = async () => {
             'Profile updated successfully.'
 
 
-        // Hide success message after 3 seconds
         setTimeout(() => {
 
             successMessage.value = ''
@@ -327,7 +476,10 @@ const saveProfile = async () => {
 
     } catch (err) {
 
-        console.error('Update profile error:', err)
+        console.error(
+            'Update profile error:',
+            err
+        )
 
         error.value =
             err.response?.data?.message ||
@@ -343,12 +495,186 @@ const saveProfile = async () => {
 
 
 // =========================================================
+// OPEN CHANGE PASSWORD
+// =========================================================
+
+const openChangePassword = () => {
+
+    changingPassword.value = true
+
+    error.value = ''
+    successMessage.value = ''
+
+}
+
+
+// =========================================================
+// CANCEL CHANGE PASSWORD
+// =========================================================
+
+const cancelChangePassword = () => {
+
+    changingPassword.value = false
+
+    currentPassword.value = ''
+    newPassword.value = ''
+    confirmPassword.value = ''
+
+    error.value = ''
+
+}
+
+
+// =========================================================
+// CHANGE PASSWORD
+// =========================================================
+
+const savePassword = async () => {
+
+    // =====================================================
+    // REQUIRED FIELDS
+    // =====================================================
+
+    if (
+        !currentPassword.value ||
+        !newPassword.value ||
+        !confirmPassword.value
+    ) {
+
+        error.value =
+            'All password fields are required.'
+
+        return
+    }
+
+
+    // =====================================================
+    // PASSWORD LENGTH
+    // =====================================================
+
+    if (
+        newPassword.value.length < 8
+    ) {
+
+        error.value =
+            'New password must be at least 8 characters.'
+
+        return
+    }
+
+
+    // =====================================================
+    // PASSWORD CONFIRMATION
+    // =====================================================
+
+    if (
+        newPassword.value !==
+        confirmPassword.value
+    ) {
+
+        error.value =
+            'New passwords do not match.'
+
+        return
+    }
+
+
+    passwordLoading.value = true
+
+    error.value = ''
+    successMessage.value = ''
+
+
+    try {
+
+        const token =
+            localStorage.getItem('token')
+
+
+        if (!token) {
+
+            error.value =
+                'You are not logged in.'
+
+            return
+        }
+
+
+        // =================================================
+        // CHANGE PASSWORD API
+        // =================================================
+
+        await changePassword(
+            token,
+            {
+                current_password:
+                    currentPassword.value,
+
+                new_password:
+                    newPassword.value,
+
+                new_password_confirmation:
+                    confirmPassword.value,
+            }
+        )
+
+
+        // =================================================
+        // CLEAR PASSWORD FIELDS
+        // =================================================
+
+        currentPassword.value = ''
+        newPassword.value = ''
+        confirmPassword.value = ''
+
+
+        // =================================================
+        // CLOSE FORM
+        // =================================================
+
+        changingPassword.value = false
+
+
+        successMessage.value =
+            'Password changed successfully.'
+
+
+        setTimeout(() => {
+
+            successMessage.value = ''
+
+        }, 3000)
+
+
+    } catch (err) {
+
+        console.error(
+            'Change password error:',
+            err
+        )
+
+        error.value =
+            err.response?.data?.message ||
+            'Failed to change password.'
+
+    } finally {
+
+        passwordLoading.value = false
+
+    }
+
+}
+
+
+// =========================================================
 // OPEN PHOTO SELECTOR
 // =========================================================
 
 const selectPhoto = () => {
 
-    if (uploadingPhoto.value) return
+    if (uploadingPhoto.value) {
+        return
+    }
 
     photoInput.value?.click()
 
@@ -361,13 +687,15 @@ const selectPhoto = () => {
 
 const handlePhotoUpload = async (event) => {
 
-    const file = event.target.files?.[0]
+    const file =
+        event.target.files?.[0]
+
 
     if (!file) return
 
 
     // =====================================================
-    // CHECK FILE TYPE
+    // ALLOWED TYPES
     // =====================================================
 
     const allowedTypes = [
@@ -375,6 +703,7 @@ const handlePhotoUpload = async (event) => {
         'image/png',
         'image/webp'
     ]
+
 
     if (!allowedTypes.includes(file.type)) {
 
@@ -384,15 +713,17 @@ const handlePhotoUpload = async (event) => {
         event.target.value = ''
 
         return
-
     }
 
 
     // =====================================================
-    // CHECK FILE SIZE
+    // FILE SIZE
     // =====================================================
 
-    if (file.size > 2 * 1024 * 1024) {
+    if (
+        file.size >
+        2 * 1024 * 1024
+    ) {
 
         error.value =
             'Photo must be smaller than 2MB.'
@@ -400,7 +731,6 @@ const handlePhotoUpload = async (event) => {
         event.target.value = ''
 
         return
-
     }
 
 
@@ -412,7 +742,8 @@ const handlePhotoUpload = async (event) => {
 
     try {
 
-        const token = localStorage.getItem('token')
+        const token =
+            localStorage.getItem('token')
 
 
         if (!token) {
@@ -421,15 +752,16 @@ const handlePhotoUpload = async (event) => {
                 'You are not logged in.'
 
             return
-
         }
 
 
         // =================================================
-        // CREATE FORM DATA
+        // FORM DATA
         // =================================================
 
-        const formData = new FormData()
+        const formData =
+            new FormData()
+
 
         formData.append(
             'profile_photo',
@@ -438,8 +770,7 @@ const handlePhotoUpload = async (event) => {
 
 
         // =================================================
-        // SEND PHOTO TO LARAVEL
-        // IMPORTANT: authApi.js MUST USE POST
+        // UPLOAD PHOTO
         // =================================================
 
         const response =
@@ -471,7 +802,6 @@ const handlePhotoUpload = async (event) => {
             'Profile photo updated successfully.'
 
 
-        // Hide success message
         setTimeout(() => {
 
             successMessage.value = ''
@@ -494,7 +824,6 @@ const handlePhotoUpload = async (event) => {
 
         uploadingPhoto.value = false
 
-        // Reset input
         event.target.value = ''
 
     }
@@ -512,9 +841,15 @@ const profilePhotoUrl = () => {
         return null
     }
 
+
     return `http://127.0.0.1:8000/storage/${user.value.profile_photo}`
 
 }
+
+
+// =========================================================
+// DOCUMENT URL
+// =========================================================
 
 const documentUrl = () => {
 
@@ -522,7 +857,9 @@ const documentUrl = () => {
         return null
     }
 
+
     return `http://127.0.0.1:8000/storage/${user.value.document}`
+
 }
 
 
@@ -535,6 +872,7 @@ const formatDate = (date) => {
     if (!date) {
         return 'N/A'
     }
+
 
     return new Date(date).toLocaleDateString(
         'en-US',
@@ -624,27 +962,39 @@ onMounted(() => {
         <!-- PAGE HEADER -->
         <!-- ================================================= -->
 
-        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div
+            class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
 
-    <div>
-        <h1 class="text-3xl font-bold text-gray-900">
-            Profile
-        </h1>
+            <div>
 
-        <p class="mt-1 text-gray-500">
-            View and manage your account information
-        </p>
-    </div>
+                <h1
+                    class="text-3xl font-bold text-gray-900"
+                >
+                    Profile
+                </h1>
 
-    <button
-        @click="goToStudents"
-        class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition shadow-sm"
-    >
-        <span>←</span>
-        Back to Students
-    </button>
+                <p
+                    class="mt-1 text-gray-500"
+                >
+                    View and manage your account information
+                </p>
 
-</div>
+            </div>
+
+
+            <button
+                @click="goToStudents"
+                class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition shadow-sm"
+            >
+
+                <span>←</span>
+
+                Back to Students
+
+            </button>
+
+        </div>
 
 
         <!-- ================================================= -->
@@ -705,28 +1055,31 @@ onMounted(() => {
             <!-- USER SECTION -->
             <!-- ================================================= -->
 
-            <div class="px-6 sm:px-10">
+            <div
+                class="px-6 sm:px-10"
+            >
 
 
                 <!-- ================================================= -->
                 <!-- AVATAR -->
                 <!-- ================================================= -->
 
-                <div class="-mt-14">
+                <div
+                    class="-mt-14"
+                >
 
-                    <div class="relative w-28 h-28">
+                    <div
+                        class="relative w-28 h-28"
+                    >
 
 
-                        <!-- WHITE AVATAR BORDER -->
+                        <!-- AVATAR -->
 
                         <div
                             class="w-28 h-28 rounded-full bg-white p-2 shadow-lg"
                         >
 
-
-                            <!-- ================================================= -->
                             <!-- UPLOADED PHOTO -->
-                            <!-- ================================================= -->
 
                             <img
                                 v-if="profilePhotoUrl()"
@@ -736,9 +1089,7 @@ onMounted(() => {
                             />
 
 
-                            <!-- ================================================= -->
                             <!-- DEFAULT AVATAR -->
-                            <!-- ================================================= -->
 
                             <div
                                 v-else
@@ -762,9 +1113,7 @@ onMounted(() => {
                         </div>
 
 
-                        <!-- ================================================= -->
                         <!-- CAMERA BUTTON -->
-                        <!-- ================================================= -->
 
                         <button
                             type="button"
@@ -791,9 +1140,7 @@ onMounted(() => {
                         </button>
 
 
-                        <!-- ================================================= -->
-                        <!-- HIDDEN FILE INPUT -->
-                        <!-- ================================================= -->
+                        <!-- HIDDEN INPUT -->
 
                         <input
                             ref="photoInput"
@@ -804,15 +1151,34 @@ onMounted(() => {
                         />
 
                     </div>
-                    <div>
-  <label>Upload PDF Document</label>
 
-  <input
-    type="file"
-    accept=".pdf,application/pdf"
-    @change="handleDocumentChange"
-  >
-</div>
+
+                    <!-- DOCUMENT UPLOAD -->
+
+                    <div
+                        class="mt-6"
+                    >
+
+                        <label
+                            class="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                            Upload PDF Document
+                        </label>
+
+                        <input
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            @change="handleDocumentChange"
+                            class="block w-full text-sm text-gray-500"
+                        />
+
+                        <p
+                            class="text-xs text-gray-400 mt-2"
+                        >
+                            PDF only, maximum 5MB.
+                        </p>
+
+                    </div>
 
                 </div>
 
@@ -825,8 +1191,9 @@ onMounted(() => {
                     class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 pt-5 pb-7"
                 >
 
-
-                    <div class="min-w-0">
+                    <div
+                        class="min-w-0"
+                    >
 
                         <h2
                             class="text-3xl font-bold text-gray-900 leading-tight break-words"
@@ -840,8 +1207,6 @@ onMounted(() => {
                             {{ user.email }}
                         </p>
 
-                        <!-- Photo helper -->
-
                         <p
                             class="text-xs text-gray-400 mt-2"
                         >
@@ -851,18 +1216,14 @@ onMounted(() => {
                     </div>
 
 
-                    <!-- ================================================= -->
-                    <!-- EDIT PROFILE BUTTON -->
-                    <!-- ================================================= -->
+                    <!-- EDIT BUTTON -->
 
                     <button
                         v-if="!editing"
                         @click="editProfile"
                         class="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition shadow-sm"
                     >
-
                         Edit Profile
-
                     </button>
 
                 </div>
@@ -887,7 +1248,6 @@ onMounted(() => {
                     <div
                         class="grid grid-cols-1 md:grid-cols-2 gap-5"
                     >
-
 
                         <!-- NAME -->
 
@@ -968,19 +1328,12 @@ onMounted(() => {
 
 
                 <!-- ================================================= -->
-                <!-- DIVIDER -->
-                <!-- ================================================= -->
-
-                <div
-                    class="border-t border-gray-200"
-                ></div>
-
-
-                <!-- ================================================= -->
                 <!-- ACCOUNT INFORMATION -->
                 <!-- ================================================= -->
 
-                <div class="py-8">
+                <div
+                    class="border-t border-gray-200 py-8"
+                >
 
                     <h3
                         class="text-xl font-semibold text-gray-900 mb-6"
@@ -992,7 +1345,6 @@ onMounted(() => {
                     <div
                         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
                     >
-
 
                         <!-- USER ID -->
 
@@ -1086,8 +1438,9 @@ onMounted(() => {
                     </h3>
 
 
-                    <div class="space-y-6">
-
+                    <div
+                        class="space-y-6"
+                    >
 
                         <!-- NAME -->
 
@@ -1148,117 +1501,294 @@ onMounted(() => {
                     </div>
 
                 </div>
+
+
                 <!-- ================================================= -->
-<!-- DOCUMENT -->
-<!-- ================================================= -->
-
-<div
-    class="border-t border-gray-200 py-8"
->
-
-    <h3
-        class="text-xl font-semibold text-gray-900 mb-6"
-    >
-        Documents
-    </h3>
-
-    <!-- Document exists -->
-
-    <div
-        v-if="user.document"
-        class="border border-gray-200 rounded-xl p-5"
-    >
-
-        <div
-            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-        >
-
-            <!-- FILE INFO -->
-
-            <div class="flex items-center gap-4">
+                <!-- CHANGE PASSWORD -->
+                <!-- ================================================= -->
 
                 <div
-                    class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center"
+                    class="border-t border-gray-200 py-8"
                 >
-                    <span class="text-2xl">
-                        📄
-                    </span>
+
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                    >
+
+                        <div>
+
+                            <h3
+                                class="text-xl font-semibold text-gray-900"
+                            >
+                                Password
+                            </h3>
+
+                            <p
+                                class="text-sm text-gray-500 mt-1"
+                            >
+                                Change your account password
+                            </p>
+
+                        </div>
+
+
+                        <button
+                            v-if="!changingPassword"
+                            @click="openChangePassword"
+                            class="px-5 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition"
+                        >
+                            Change Password
+                        </button>
+
+                    </div>
+
+
+                    <!-- PASSWORD FORM -->
+
+                    <div
+                        v-if="changingPassword"
+                        class="mt-6 bg-gray-50 border border-gray-200 rounded-2xl p-6"
+                    >
+
+                        <div
+                            class="space-y-5"
+                        >
+
+                            <!-- CURRENT PASSWORD -->
+
+                            <div>
+
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                >
+                                    Current Password
+                                </label>
+
+                                <input
+                                    v-model="currentPassword"
+                                    type="password"
+                                    autocomplete="current-password"
+                                    class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter current password"
+                                />
+
+                            </div>
+
+
+                            <!-- NEW PASSWORD -->
+
+                            <div>
+
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                >
+                                    New Password
+                                </label>
+
+                                <input
+                                    v-model="newPassword"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter new password"
+                                />
+
+                                <p
+                                    class="text-xs text-gray-400 mt-2"
+                                >
+                                    Minimum 8 characters.
+                                </p>
+
+                            </div>
+
+
+                            <!-- CONFIRM PASSWORD -->
+
+                            <div>
+
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                >
+                                    Confirm New Password
+                                </label>
+
+                                <input
+                                    v-model="confirmPassword"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Confirm new password"
+                                />
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PASSWORD BUTTONS -->
+
+                        <div
+                            class="flex flex-col sm:flex-row gap-3 mt-6"
+                        >
+
+                            <button
+                                @click="savePassword"
+                                :disabled="passwordLoading"
+                                class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                            >
+
+                                {{
+                                    passwordLoading
+                                        ? 'Changing...'
+                                        : 'Change Password'
+                                }}
+
+                            </button>
+
+
+                            <button
+                                @click="cancelChangePassword"
+                                :disabled="passwordLoading"
+                                class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
+                            >
+
+                                Cancel
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <div>
 
-                    <p class="font-semibold text-gray-900">
-                        PDF Document
-                    </p>
+                <!-- ================================================= -->
+                <!-- DOCUMENT -->
+                <!-- ================================================= -->
 
-                    <p class="text-sm text-gray-500">
-                        Uploaded document
-                    </p>
+                <div
+                    class="border-t border-gray-200 py-8"
+                >
+
+                    <h3
+                        class="text-xl font-semibold text-gray-900 mb-6"
+                    >
+                        Documents
+                    </h3>
+
+
+                    <!-- DOCUMENT EXISTS -->
+
+                    <div
+                        v-if="user.document"
+                        class="border border-gray-200 rounded-xl p-5"
+                    >
+
+                        <div
+                            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                        >
+
+                            <!-- FILE INFO -->
+
+                            <div
+                                class="flex items-center gap-4"
+                            >
+
+                                <div
+                                    class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center"
+                                >
+
+                                    <span
+                                        class="text-2xl"
+                                    >
+                                        📄
+                                    </span>
+
+                                </div>
+
+
+                                <div>
+
+                                    <p
+                                        class="font-semibold text-gray-900"
+                                    >
+                                        PDF Document
+                                    </p>
+
+                                    <p
+                                        class="text-sm text-gray-500"
+                                    >
+                                        Uploaded document
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- BUTTONS -->
+
+                            <div
+                                class="flex flex-wrap gap-2"
+                            >
+
+                                <!-- VIEW -->
+
+                                <a
+                                    :href="documentUrl()"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                                >
+                                    View
+                                </a>
+
+
+                                <!-- DOWNLOAD -->
+
+                                <a
+                                    :href="documentUrl()"
+                                    download
+                                    class="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition"
+                                >
+                                    Download
+                                </a>
+
+
+                                <!-- DELETE -->
+
+                                <button
+                                    type="button"
+                                    @click="deleteDocumentFile"
+                                    class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
+                                >
+                                    Delete
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- NO DOCUMENT -->
+
+                    <div
+                        v-else
+                        class="border border-dashed border-gray-300 rounded-xl p-6 text-center"
+                    >
+
+                        <p
+                            class="text-gray-500"
+                        >
+                            No document uploaded.
+                        </p>
+
+                    </div>
 
                 </div>
-
-            </div>
-
-
-            <!-- BUTTONS -->
-
-            <div class="flex flex-wrap gap-2">
-
-                <!-- VIEW -->
-
-                <a
-                    :href="documentUrl()"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
-                >
-                    View
-                </a>
-
-
-                <!-- DOWNLOAD -->
-
-                <a
-                    :href="documentUrl()"
-                    download
-                    class="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition"
-                >
-                    Download
-                </a>
-
-
-                <!-- DELETE -->
-
-                <button
-                    type="button"
-                    @click="deleteDocumentFile"
-                    class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
-                >
-                    Delete
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- No document -->
-
-    <div
-        v-else
-        class="border border-dashed border-gray-300 rounded-xl p-6 text-center"
-    >
-
-        <p class="text-gray-500">
-            No document uploaded.
-        </p>
-
-    </div>
-
-</div>
-
 
             </div>
 

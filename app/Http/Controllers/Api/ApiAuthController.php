@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -261,6 +262,34 @@ public function deleteDocument(Request $request)
     return response()->json([
         'message' => 'Document deleted successfully.',
         'user' => $user,
+    ]);
+}
+
+//===================
+// Change Password
+//===================
+ 
+public function changePassword(Request $request)
+{
+    $request->validate([
+        'current_password'=>'required',
+        'new_password'=>'required|min:8|confirmed',
+
+    ]);
+    $user=$request->user();
+
+    //check current password
+    if(!Hash::check($request->current_password,$user->password)){
+        return response()->json([
+            'message'=>'current password is incorrect.',
+        ], 422);
+    }
+    //update password
+    $user->update([
+        'password'=>Hash::make($request->new_password),
+    ]);
+    return response()->json([
+        'message'=>'Password changed successfully.',
     ]);
 }
 }

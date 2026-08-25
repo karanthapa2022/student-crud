@@ -79,3 +79,13 @@ export const deleteDocument = (token) => {
   })
 
 }
+
+//change password
+
+export const changePassword=(token,data)=>{
+  return api.post('/profile/change-password',data,{
+    headers:{
+      Authorization:`Bearer ${token}`,
+    },
+  })
+}
