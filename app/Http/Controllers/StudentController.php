@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Unique;
 
 class StudentController extends Controller
 {
@@ -33,8 +34,9 @@ class StudentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:students,email',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:students,phone',
             'status' => 'required|in:active,inactive',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         Student::create($validated);
@@ -60,8 +62,9 @@ class StudentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:students,email,' . $student->id,
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:students,phone,'.$student->id,
             'status' => 'required|in:active,inactive',
+            'photo' =>'nullable|image|mimes.jpg,jpeg,png,webp|max:2048',
         ]);
 
         $student->name = $validated['name'];

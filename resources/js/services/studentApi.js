@@ -93,5 +93,12 @@ export const updateStudentWithPhoto = (id, formData) => {
   )
 }
 
+// =========================================================
+// GET STUDENT STATISTICS
+// =========================================================
+
+export const getStudentStatistics = () => {
+    return api.get('/students/statistics')
+}
 
 export default api

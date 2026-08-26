@@ -20,6 +20,30 @@ class StudentController extends Controller
     }
 
     /**
+ * Student statistics.
+ */
+public function statistics()
+{
+    $totalStudents = Student::count();
+
+    $activeStudents = Student::where(
+        'status',
+        'active'
+    )->count();
+
+    $inactiveStudents = Student::where(
+        'status',
+        'inactive'
+    )->count();
+
+    return response()->json([
+        'total' => $totalStudents,
+        'active' => $activeStudents,
+        'inactive' => $inactiveStudents,
+    ]);
+}
+
+    /**
      * Store a new student.
      */
     public function store(Request $request)

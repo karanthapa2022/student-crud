@@ -1,10 +1,11 @@
 <script setup>
 
 import BaseTable from './BaseTable.vue'
-import BaseCard from './BaseCard.vue'
+
 import BaseButton from './BaseButton.vue'
-import StudentCard from './StudentCard.vue'
-import StudentRow from './StudentRow.vue'
+
+
+
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -62,11 +63,11 @@ const tableHeaders = [
 
 
 // =========================================================
-// EDIT STUDENT
+// EDIT + VIEW STUDENT
 // =========================================================
 
 const editingStudent = ref(null)
-const viewingStudent= ref(null)
+const viewingStudent = ref(null)
 
 const editStudent = (student) => {
 
@@ -94,20 +95,24 @@ const viewStudent = (student) => {
 
 const selectedStudents = ref([])
 
+
 // =========================================================
 // SEARCH + FILTER
 // =========================================================
- const searchQuery= ref('')
- const statusFilter= ref('all')
 
- // =========================================================
-// Pagination
+const searchQuery = ref('')
+const statusFilter = ref('all')
+
+
+// =========================================================
+// PAGINATION
 // =========================================================
 
-const currentPage= ref(1)
-const itemsPerPage=10
+const currentPage = ref(1)
+const itemsPerPage = 10
 
- const filteredStudents = computed(() => {
+
+const filteredStudents = computed(() => {
 
     return studentStore.students.filter(student => {
 
@@ -128,8 +133,9 @@ const itemsPerPage=10
 
     })
 
-
 })
+
+
 const totalPages = computed(() => {
 
     return Math.ceil(
@@ -156,6 +162,7 @@ const paginatedStudents = computed(() => {
 
 })
 
+
 // =========================================================
 // RESET PAGE WHEN SEARCH OR FILTER CHANGES
 // =========================================================
@@ -163,7 +170,9 @@ const paginatedStudents = computed(() => {
 watch(
     [searchQuery, statusFilter],
     () => {
+
         currentPage.value = 1
+
     }
 )
 
@@ -276,6 +285,9 @@ const addStudent = async () => {
             photo: null
         }
 
+        // Refresh statistics after adding student
+        await studentStore.fetchStatistics()
+
         alert(
             'Student added successfully!'
         )
@@ -367,6 +379,9 @@ const updateStudent = async () => {
 
         editingStudent.value = null
 
+        // Refresh statistics after update
+        await studentStore.fetchStatistics()
+
         alert(
             'Student updated successfully!'
         )
@@ -417,6 +432,9 @@ const deleteStudent = async (student) => {
             selectedStudents.value.filter(
                 id => id !== student.id
             )
+
+        // Refresh statistics after delete
+        await studentStore.fetchStatistics()
 
         alert(
             'Student deleted successfully!'
@@ -478,6 +496,9 @@ const bulkDelete = async () => {
             )
 
         selectedStudents.value = []
+
+        // Refresh statistics after bulk delete
+        await studentStore.fetchStatistics()
 
         alert(
             'Selected students deleted successfully!'
@@ -543,9 +564,11 @@ const logout = async () => {
 // ON LOAD
 // =========================================================
 
-onMounted(() => {
+onMounted(async () => {
 
-    studentStore.fetchStudents()
+    await studentStore.fetchStudents()
+
+    await studentStore.fetchStatistics()
 
 })
 
@@ -628,96 +651,183 @@ onMounted(() => {
         </div>
 
 
-       <!-- ================================================= -->
-<!-- ACTION BUTTONS + SEARCH -->
-<!-- ================================================= -->
+        <!-- ================================================= -->
+        <!-- ACTION BUTTONS + SEARCH -->
+        <!-- ================================================= -->
 
-<div
-    class="mt-6 flex flex-col gap-4"
->
-
-    <!-- BUTTONS -->
-
-    <div
-        class="flex flex-col sm:flex-row gap-3"
-    >
-
-        <BaseButton
-            variant="success"
-            @click="showAddForm = true"
-            class="w-full sm:w-auto"
+        <div
+            class="mt-6 flex flex-col gap-4"
         >
-            + Add Student
-        </BaseButton>
+
+            <!-- BUTTONS -->
+
+            <div
+                class="flex flex-col sm:flex-row gap-3"
+            >
+
+                <BaseButton
+                    variant="success"
+                    @click="showAddForm = true"
+                    class="w-full sm:w-auto"
+                >
+                    + Add Student
+                </BaseButton>
 
 
-        <BaseButton
-            variant="danger"
-            @click="bulkDelete"
-            class="w-full sm:w-auto"
-        >
-            Delete Selected
-        </BaseButton>
+                <BaseButton
+                    variant="danger"
+                    @click="bulkDelete"
+                    class="w-full sm:w-auto"
+                >
+                    Delete Selected
+                </BaseButton>
 
-    </div>
-
-
-    <!-- SEARCH + FILTER -->
-
-    <div
-    class="flex flex-col md:flex-row gap-3"
->
-
-    <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Search by name, email or phone..."
-        class="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
+            </div>
 
 
-    <select
-        v-model="statusFilter"
-        class="w-full md:w-48 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
+            <!-- SEARCH + FILTER -->
 
-        <option value="all">
-            All Students
-        </option>
+            <div
+                class="flex flex-col md:flex-row gap-3"
+            >
 
-        <option value="active">
-            Active
-        </option>
-
-        <option value="inactive">
-            Inactive
-        </option>
-
-    </select>
-
-</div>
+                <input
+                    v-model="searchQuery"
+                    type="text"
+                    placeholder="Search by name, email or phone..."
+                    class="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
 
 
-<!-- STUDENT COUNT -->
+                <select
+                    v-model="statusFilter"
+                    class="w-full md:w-48 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
 
-<div
-    class="text-sm text-gray-500"
->
-    Showing
-    <span class="font-semibold text-gray-700">
-        {{ filteredStudents.length }}
-    </span>
+                    <option value="all">
+                        All Students
+                    </option>
 
-    of
+                    <option value="active">
+                        Active
+                    </option>
 
-    <span class="font-semibold text-gray-700">
-        {{ studentStore.students.length }}
-    </span>
+                    <option value="inactive">
+                        Inactive
+                    </option>
 
-    students
-</div>
+                </select>
 
-</div>
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- DASHBOARD STATISTICS -->
+            <!-- ================================================= -->
+
+            <div
+                v-if="studentStore.statistics"
+                class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+            >
+
+                <!-- TOTAL STUDENTS -->
+
+                <div
+                    class="bg-white rounded-xl shadow-sm p-5 border border-gray-100"
+                >
+
+                    <p class="text-sm text-gray-500">
+                        Total Students
+                    </p>
+
+                    <p class="mt-2 text-3xl font-bold text-gray-800">
+                        {{ studentStore.statistics.total }}
+                    </p>
+
+                </div>
+
+
+                <!-- ACTIVE STUDENTS -->
+
+                <div
+                    class="bg-white rounded-xl shadow-sm p-5 border border-gray-100"
+                >
+
+                    <p class="text-sm text-gray-500">
+                        Active Students
+                    </p>
+
+                    <p class="mt-2 text-3xl font-bold text-green-600">
+                        {{ studentStore.statistics.active }}
+                    </p>
+
+                </div>
+
+
+                <!-- INACTIVE STUDENTS -->
+
+                <div
+                    class="bg-white rounded-xl shadow-sm p-5 border border-gray-100"
+                >
+
+                    <p class="text-sm text-gray-500">
+                        Inactive Students
+                    </p>
+
+                    <p class="mt-2 text-3xl font-bold text-red-600">
+                        {{ studentStore.statistics.inactive }}
+                    </p>
+
+                </div>
+
+
+                <!-- STUDENTS WITH PHOTOS -->
+
+                <div
+                    class="bg-white rounded-xl shadow-sm p-5 border border-gray-100"
+                >
+
+                    <p class="text-sm text-gray-500">
+                        Students With Photos
+                    </p>
+
+                    <p class="mt-2 text-3xl font-bold text-blue-600">
+                        {{
+                            studentStore.students.filter(
+                                student => student.photo
+                            ).length
+                        }}
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- STUDENT COUNT -->
+
+            <div
+                class="text-sm text-gray-500"
+            >
+
+                Showing
+
+                <span class="font-semibold text-gray-700">
+                    {{ filteredStudents.length }}
+                </span>
+
+                of
+
+                <span class="font-semibold text-gray-700">
+                    {{ studentStore.students.length }}
+                </span>
+
+                students
+
+            </div>
+
+        </div>
+
 
         <!-- ================================================= -->
         <!-- ADD STUDENT MODAL -->
@@ -854,160 +964,174 @@ onMounted(() => {
             </div>
 
         </Teleport>
-          <!--viewing Student-->
+
+
+        <!-- ================================================= -->
+        <!-- VIEW STUDENT MODAL -->
+        <!-- ================================================= -->
 
         <Teleport to="body">
 
-    <div
-        v-if="viewingStudent"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-    >
-
-        <div
-            class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6"
-        >
-
-            <!-- HEADER -->
-
             <div
-                class="flex items-center justify-between mb-6"
+                v-if="viewingStudent"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
             >
 
-                <h2
-                    class="text-xl font-semibold text-gray-800"
-                >
-                    Student Details
-                </h2>
-
-                <button
-                    type="button"
-                    @click="viewingStudent = null"
-                    class="text-gray-500 hover:text-gray-800 text-2xl"
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            <!-- PHOTO -->
-
-            <div class="flex justify-center mb-6">
-
-                <img
-                    v-if="viewingStudent.photo"
-                    :src="`http://127.0.0.1:8000/storage/${viewingStudent.photo}`"
-                    :alt="viewingStudent.name"
-                    class="w-28 h-28 rounded-full object-cover border-4 border-gray-200"
-                />
-
                 <div
-                    v-else
-                    class="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-gray-500"
+                    class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6"
                 >
-                    No Photo
-                </div>
 
-            </div>
+                    <!-- HEADER -->
 
-
-            <!-- DETAILS -->
-
-            <div class="space-y-4">
-
-                <div
-                    class="flex justify-between border-b pb-3"
-                >
-                    <span class="font-medium text-gray-500">
-                        Student ID
-                    </span>
-
-                    <span class="text-gray-800">
-                        {{ viewingStudent.id }}
-                    </span>
-                </div>
-
-
-                <div
-                    class="flex justify-between border-b pb-3"
-                >
-                    <span class="font-medium text-gray-500">
-                        Name
-                    </span>
-
-                    <span class="text-gray-800">
-                        {{ viewingStudent.name }}
-                    </span>
-                </div>
-
-
-                <div
-                    class="flex justify-between border-b pb-3"
-                >
-                    <span class="font-medium text-gray-500">
-                        Email
-                    </span>
-
-                    <span class="text-gray-800">
-                        {{ viewingStudent.email }}
-                    </span>
-                </div>
-
-
-                <div
-                    class="flex justify-between border-b pb-3"
-                >
-                    <span class="font-medium text-gray-500">
-                        Phone
-                    </span>
-
-                    <span class="text-gray-800">
-                        {{ viewingStudent.phone }}
-                    </span>
-                </div>
-
-
-                <div
-                    class="flex justify-between items-center"
-                >
-                    <span class="font-medium text-gray-500">
-                        Status
-                    </span>
-
-                    <span
-                        class="px-3 py-1 rounded-full text-xs font-semibold"
-                        :class="
-                            viewingStudent.status === 'active'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
-                        "
+                    <div
+                        class="flex items-center justify-between mb-6"
                     >
-                        {{ viewingStudent.status }}
-                    </span>
+
+                        <h2
+                            class="text-xl font-semibold text-gray-800"
+                        >
+                            Student Details
+                        </h2>
+
+                        <button
+                            type="button"
+                            @click="viewingStudent = null"
+                            class="text-gray-500 hover:text-gray-800 text-2xl"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <!-- PHOTO -->
+
+                    <div class="flex justify-center mb-6">
+
+                        <img
+                            v-if="viewingStudent.photo"
+                            :src="`http://127.0.0.1:8000/storage/${viewingStudent.photo}`"
+                            :alt="viewingStudent.name"
+                            class="w-28 h-28 rounded-full object-cover border-4 border-gray-200"
+                        />
+
+                        <div
+                            v-else
+                            class="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-gray-500"
+                        >
+                            No Photo
+                        </div>
+
+                    </div>
+
+
+                    <!-- DETAILS -->
+
+                    <div class="space-y-4">
+
+                        <div
+                            class="flex justify-between border-b pb-3"
+                        >
+
+                            <span class="font-medium text-gray-500">
+                                Student ID
+                            </span>
+
+                            <span class="text-gray-800">
+                                {{ viewingStudent.id }}
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="flex justify-between border-b pb-3"
+                        >
+
+                            <span class="font-medium text-gray-500">
+                                Name
+                            </span>
+
+                            <span class="text-gray-800">
+                                {{ viewingStudent.name }}
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="flex justify-between border-b pb-3"
+                        >
+
+                            <span class="font-medium text-gray-500">
+                                Email
+                            </span>
+
+                            <span class="text-gray-800">
+                                {{ viewingStudent.email }}
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="flex justify-between border-b pb-3"
+                        >
+
+                            <span class="font-medium text-gray-500">
+                                Phone
+                            </span>
+
+                            <span class="text-gray-800">
+                                {{ viewingStudent.phone }}
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="flex justify-between items-center"
+                        >
+
+                            <span class="font-medium text-gray-500">
+                                Status
+                            </span>
+
+                            <span
+                                class="px-3 py-1 rounded-full text-xs font-semibold"
+                                :class="
+                                    viewingStudent.status === 'active'
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-red-100 text-red-700'
+                                "
+                            >
+                                {{ viewingStudent.status }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CLOSE -->
+
+                    <div class="mt-6">
+
+                        <button
+                            type="button"
+                            @click="viewingStudent = null"
+                            class="w-full bg-gray-800 text-white px-5 py-2.5 rounded-lg hover:bg-gray-900"
+                        >
+                            Close
+                        </button>
+
+                    </div>
+
                 </div>
 
             </div>
 
-
-            <!-- CLOSE -->
-
-            <div class="mt-6">
-
-                <button
-                    type="button"
-                    @click="viewingStudent = null"
-                    class="w-full bg-gray-800 text-white px-5 py-2.5 rounded-lg hover:bg-gray-900"
-                >
-                    Close
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</Teleport>
+        </Teleport>
 
 
         <!-- ================================================= -->
@@ -1218,7 +1342,12 @@ onMounted(() => {
                 <td
                     class="px-5 py-4 text-sm text-gray-700"
                 >
-                    {{ (currentPage - 1)* itemsPerPage + index + 1 }}
+                    {{
+                        (currentPage - 1) *
+                        itemsPerPage +
+                        index +
+                        1
+                    }}
                 </td>
 
 
@@ -1311,13 +1440,14 @@ onMounted(() => {
                         class="flex gap-4"
                     >
 
-                    <button
-    type="button"
-    @click="viewStudent(student)"
-    class="text-green-600 hover:text-green-800 font-medium"
->
-    View
-</button>
+                        <button
+                            type="button"
+                            @click="viewStudent(student)"
+                            class="text-green-600 hover:text-green-800 font-medium"
+                        >
+                            View
+                        </button>
+
 
                         <button
                             type="button"
@@ -1360,97 +1490,107 @@ onMounted(() => {
 
         </BaseTable>
 
-      <!-- ================================================= -->
-<!-- PAGINATION -->
-<!-- ================================================= -->
 
-<div
-    v-if="totalPages > 1"
-    class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4"
->
+        <!-- ================================================= -->
+        <!-- PAGINATION -->
+        <!-- ================================================= -->
 
-    <!-- RESULTS INFO -->
-
-    <div class="text-sm text-gray-500">
-
-        Showing
-        <span class="font-semibold text-gray-700">
-            {{ (currentPage - 1) * itemsPerPage + 1 }}
-        </span>
-
-        -
-        <span class="font-semibold text-gray-700">
-            {{
-                Math.min(
-                    currentPage * itemsPerPage,
-                    filteredStudents.length
-                )
-            }}
-        </span>
-
-        of
-
-        <span class="font-semibold text-gray-700">
-            {{ filteredStudents.length }}
-        </span>
-
-        students
-
-    </div>
-
-
-    <!-- PAGINATION -->
-
-    <div class="flex items-center gap-2">
-
-        <!-- PREVIOUS -->
-
-        <button
-            type="button"
-            @click="currentPage--"
-            :disabled="currentPage === 1"
-            class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        <div
+            v-if="totalPages > 1"
+            class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4"
         >
-            ← Previous
-        </button>
+
+            <!-- RESULTS INFO -->
+
+            <div class="text-sm text-gray-500">
+
+                Showing
+
+                <span class="font-semibold text-gray-700">
+                    {{
+                        (currentPage - 1) *
+                        itemsPerPage +
+                        1
+                    }}
+                </span>
+
+                -
+
+                <span class="font-semibold text-gray-700">
+
+                    {{
+                        Math.min(
+                            currentPage * itemsPerPage,
+                            filteredStudents.length
+                        )
+                    }}
+
+                </span>
+
+                of
+
+                <span class="font-semibold text-gray-700">
+                    {{ filteredStudents.length }}
+                </span>
+
+                students
+
+            </div>
 
 
-        <!-- PAGE NUMBERS -->
+            <!-- PAGINATION -->
 
-        <div class="flex items-center gap-1">
+            <div class="flex items-center gap-2">
 
-            <button
-                v-for="page in totalPages"
-                :key="page"
-                type="button"
-                @click="currentPage = page"
-                class="w-9 h-9 rounded-lg text-sm font-medium"
-                :class="
-                    currentPage === page
-                        ? 'bg-blue-600 text-white'
-                        : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
-                "
-            >
-                {{ page }}
-            </button>
+                <!-- PREVIOUS -->
+
+                <button
+                    type="button"
+                    @click="currentPage--"
+                    :disabled="currentPage === 1"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    ← Previous
+                </button>
+
+
+                <!-- PAGE NUMBERS -->
+
+                <div class="flex items-center gap-1">
+
+                    <button
+                        v-for="page in totalPages"
+                        :key="page"
+                        type="button"
+                        @click="currentPage = page"
+                        class="w-9 h-9 rounded-lg text-sm font-medium"
+                        :class="
+                            currentPage === page
+                                ? 'bg-blue-600 text-white'
+                                : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
+                        "
+                    >
+                        {{ page }}
+                    </button>
+
+                </div>
+
+
+                <!-- NEXT -->
+
+                <button
+                    type="button"
+                    @click="currentPage++"
+                    :disabled="currentPage === totalPages"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Next →
+                </button>
+
+            </div>
 
         </div>
 
-
-        <!-- NEXT -->
-
-        <button
-            type="button"
-            @click="currentPage++"
-            :disabled="currentPage === totalPages"
-            class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-            Next →
-        </button>
-
-    </div>
-
-</div>
 
         <!-- ================================================= -->
         <!-- STUDENT CARDS -->

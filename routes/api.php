@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/students/bulk-delete', [StudentController::class, 'bulkDelete']);
     Route::put('/students/bulk-update', [StudentController::class, 'bulkUpdate']);
 
+    Route::get('/students/statistics', [StudentController::class, 'statistics']);
+
     Route::apiResource('students', StudentController::class);
 
     Route::post('/profile/change-password',[ApiAuthController::class,'changePassword']);

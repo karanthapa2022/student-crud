@@ -1,14 +1,20 @@
 import { defineStore } from 'pinia'
-import { getStudents, createStudent } from '../services/studentApi'
+import { getStudents, createStudent, getStudentStatistics } from '../services/studentApi'
 import router from '../router'
 
 export const useStudentStore = defineStore('student', {
 
     state: () => ({
-        students: [],
-        loading: false,
-        error: null
-    }), 
+    students: [],
+    loading: false,
+    error: null,
+
+    statistics: {
+        total: 0,
+        active: 0,
+        inactive: 0
+    }
+}),
     actions:{
         //====================
         //Fetch Students
@@ -33,6 +39,30 @@ export const useStudentStore = defineStore('student', {
                 this.loading=false
             }
         },
+        // =========================================================
+// FETCH STUDENT STATISTICS
+// =========================================================
+
+async fetchStatistics() {
+
+    try {
+
+        const response =
+            await getStudentStatistics()
+
+        this.statistics =
+            response.data
+
+    } catch (error) {
+
+        console.error(
+            'Error fetching statistics:',
+            error
+        )
+
+    }
+
+},
             //====================
     //Add students
     //====================
