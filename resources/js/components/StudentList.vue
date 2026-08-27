@@ -1,15 +1,35 @@
 <script setup>
 
 import BaseTable from './BaseTable.vue'
-
 import BaseButton from './BaseButton.vue'
 
+import {
+    ref,
+    computed,
+    onMounted,
+    onBeforeUnmount,
+    watch,
+    nextTick
+} from 'vue'
 
-
-import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useStudentStore } from '../stores/student'
+
+import {
+    Chart,
+    DoughnutController,
+    ArcElement,
+    Tooltip,
+    Legend
+} from 'chart.js'
+
+Chart.register(
+    DoughnutController,
+    ArcElement,
+    Tooltip,
+    Legend
+)
 
 import {
     updateStudentWithPhoto,
@@ -17,6 +37,10 @@ import {
     bulkDeleteStudents
 } from '../services/studentApi'
 
+
+// =========================================================
+// ROUTER + STORE
+// =========================================================
 
 const router = useRouter()
 
@@ -36,6 +60,7 @@ const newStudent = ref({
     status: 'active',
     photo: null
 })
+
 
 const handlePhotoChange = (event) => {
 
@@ -67,7 +92,9 @@ const tableHeaders = [
 // =========================================================
 
 const editingStudent = ref(null)
+
 const viewingStudent = ref(null)
+
 
 const editStudent = (student) => {
 
@@ -79,6 +106,7 @@ const editStudent = (student) => {
     }
 
 }
+
 
 const viewStudent = (student) => {
 
@@ -96,12 +124,103 @@ const viewStudent = (student) => {
 const selectedStudents = ref([])
 
 
+const toggleStudent = (id) => {
+
+    if (
+        selectedStudents.value.includes(id)
+    ) {
+
+        selectedStudents.value =
+            selectedStudents.value.filter(
+                studentId =>
+                    studentId !== id
+            )
+
+    } else {
+
+        selectedStudents.value.push(id)
+
+    }
+
+}
+
+
+// =========================================================
+// SELECT ALL
+// =========================================================
+
+const allSelected = computed(() => {
+
+    return (
+        studentStore.students.length > 0 &&
+        selectedStudents.value.length ===
+        studentStore.students.length
+    )
+
+})
+
+
+const toggleAll = () => {
+
+    if (allSelected.value) {
+
+        selectedStudents.value = []
+
+    } else {
+
+        selectedStudents.value =
+            studentStore.students.map(
+                student => student.id
+            )
+
+    }
+
+}
+
+
 // =========================================================
 // SEARCH + FILTER
 // =========================================================
 
 const searchQuery = ref('')
+
 const statusFilter = ref('all')
+
+
+const filteredStudents = computed(() => {
+
+    return studentStore.students.filter(student => {
+
+        const search =
+            searchQuery.value
+                .toLowerCase()
+                .trim()
+
+
+        const matchesSearch =
+            student.name
+                ?.toLowerCase()
+                .includes(search) ||
+
+            student.email
+                ?.toLowerCase()
+                .includes(search) ||
+
+            student.phone
+                ?.toLowerCase()
+                .includes(search)
+
+
+        const matchesStatus =
+            statusFilter.value === 'all' ||
+            student.status === statusFilter.value
+
+
+        return matchesSearch && matchesStatus
+
+    })
+
+})
 
 
 // =========================================================
@@ -109,31 +228,8 @@ const statusFilter = ref('all')
 // =========================================================
 
 const currentPage = ref(1)
+
 const itemsPerPage = 10
-
-
-const filteredStudents = computed(() => {
-
-    return studentStore.students.filter(student => {
-
-        const search = searchQuery.value
-            .toLowerCase()
-            .trim()
-
-        const matchesSearch =
-            student.name.toLowerCase().includes(search) ||
-            student.email.toLowerCase().includes(search) ||
-            student.phone.toLowerCase().includes(search)
-
-        const matchesStatus =
-            statusFilter.value === 'all' ||
-            student.status === statusFilter.value
-
-        return matchesSearch && matchesStatus
-
-    })
-
-})
 
 
 const totalPages = computed(() => {
@@ -164,7 +260,7 @@ const paginatedStudents = computed(() => {
 
 
 // =========================================================
-// RESET PAGE WHEN SEARCH OR FILTER CHANGES
+// RESET PAGE WHEN SEARCH / FILTER CHANGES
 // =========================================================
 
 watch(
@@ -178,58 +274,269 @@ watch(
 
 
 // =========================================================
-// TOGGLE STUDENT
+// FIX PAGE AFTER DELETE / FILTER
 // =========================================================
 
-const toggleStudent = (id) => {
+watch(
+    totalPages,
+    (pages) => {
 
-    if (selectedStudents.value.includes(id)) {
+        if (
+            pages > 0 &&
+            currentPage.value > pages
+        ) {
 
-        selectedStudents.value =
-            selectedStudents.value.filter(
-                studentId => studentId !== id
-            )
+            currentPage.value = pages
 
-    } else {
+        }
 
-        selectedStudents.value.push(id)
+    }
+)
+
+
+// =========================================================
+// DASHBOARD STATISTICS
+// =========================================================
+
+const totalStudents = computed(() => {
+
+    return studentStore.students.length
+
+})
+
+
+const activeStudents = computed(() => {
+
+    return studentStore.students.filter(
+        student =>
+            student.status === 'active'
+    ).length
+
+})
+
+
+const inactiveStudents = computed(() => {
+
+    return studentStore.students.filter(
+        student =>
+            student.status === 'inactive'
+    ).length
+
+})
+
+
+const studentsWithPhotos = computed(() => {
+
+    return studentStore.students.filter(
+        student => student.photo
+    ).length
+
+})
+
+
+// =========================================================
+// DASHBOARD CHART
+// =========================================================
+
+const statusChart = ref(null)
+
+let statusChartInstance = null
+
+
+const createStatusChart = async () => {
+
+    await nextTick()
+
+    console.log('=================================')
+    console.log(' Creating Status Chart')
+    console.log('Canvas:', statusChart.value)
+    console.log('Students:', studentStore.students)
+    console.log('=================================')
+
+
+    // -----------------------------------------------------
+    // CHECK CANVAS
+    // -----------------------------------------------------
+
+    if (!statusChart.value) {
+
+        console.log(
+            ' Chart canvas not found'
+        )
+
+        return
 
     }
 
-}
+
+    // -----------------------------------------------------
+    // DESTROY OLD CHART
+    // -----------------------------------------------------
+
+    if (statusChartInstance) {
+
+        statusChartInstance.destroy()
+
+        statusChartInstance = null
+
+    }
 
 
-// =========================================================
-// SELECT ALL
-// =========================================================
+    // -----------------------------------------------------
+    // CALCULATE DATA
+    // -----------------------------------------------------
 
-const allSelected = () => {
+    const active =
+        studentStore.students.filter(
+            student =>
+                student.status === 'active'
+        ).length
 
-    return (
-        studentStore.students.length > 0 &&
-        selectedStudents.value.length ===
-        studentStore.students.length
+
+    const inactive =
+        studentStore.students.filter(
+            student =>
+                student.status === 'inactive'
+        ).length
+
+
+    console.log(
+        ' Active Students:',
+        active
     )
 
-}
+    console.log(
+        ' Inactive Students:',
+        inactive
+    )
 
 
-const toggleAll = () => {
+    // -----------------------------------------------------
+    // CREATE CHART
+    // -----------------------------------------------------
 
-    if (allSelected()) {
+    try {
 
-        selectedStudents.value = []
+        statusChartInstance = new Chart(
+            statusChart.value,
+            {
 
-    } else {
+                type: 'doughnut',
 
-        selectedStudents.value =
-            studentStore.students.map(
-                student => student.id
-            )
+                data: {
+
+                    labels: [
+                        'Active Students',
+                        'Inactive Students'
+                    ],
+
+                    datasets: [
+                        {
+
+                            data: [
+                                active,
+                                inactive
+                            ],
+                            backgroundColor:['green','red'],
+
+                            borderWidth: 3,
+
+                            hoverOffset: 8
+
+                        }
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    cutout: '65%',
+
+                    animation: {
+
+                        duration: 800
+
+                    },
+
+                    plugins: {
+
+                        legend: {
+
+                            display: true,
+
+                            position: 'bottom',
+
+                            labels: {
+
+                                padding: 20,
+
+                                font: {
+
+                                    size: 14
+
+                                }
+
+                            }
+
+                        },
+
+                        tooltip: {
+
+                            enabled: true
+
+                        }
+
+                    }
+
+                }
+
+            }
+        )
+
+
+        console.log(
+            ' Chart created successfully'
+        )
+
+    } catch (error) {
+
+        console.error(
+            ' Chart creation failed:',
+            error
+        )
 
     }
 
 }
+
+
+// =========================================================
+// WATCH STUDENTS
+// =========================================================
+
+watch(
+
+    () => studentStore.students,
+
+    async () => {
+
+        console.log(
+            ' Students changed - updating chart'
+        )
+
+        await createStatusChart()
+
+    },
+
+    {
+        deep: true
+    }
+
+)
 
 
 // =========================================================
@@ -242,25 +549,30 @@ const addStudent = async () => {
 
         const formData = new FormData()
 
+
         formData.append(
             'name',
             newStudent.value.name
         )
+
 
         formData.append(
             'email',
             newStudent.value.email
         )
 
+
         formData.append(
             'phone',
             newStudent.value.phone
         )
 
+
         formData.append(
             'status',
             newStudent.value.status
         )
+
 
         if (newStudent.value.photo) {
 
@@ -271,22 +583,36 @@ const addStudent = async () => {
 
         }
 
+
         await studentStore.addStudent(
             formData
         )
 
+
         showAddForm.value = false
 
+
         newStudent.value = {
+
             name: '',
+
             email: '',
+
             phone: '',
+
             status: 'active',
+
             photo: null
+
         }
 
-        // Refresh statistics after adding student
-        await studentStore.fetchStatistics()
+
+        await studentStore.fetchStudents()
+
+        await nextTick()
+
+        await createStatusChart()
+
 
         alert(
             'Student added successfully!'
@@ -298,6 +624,7 @@ const addStudent = async () => {
             'Error adding student:',
             error
         )
+
 
         alert(
             error.response?.data?.message ||
@@ -316,35 +643,44 @@ const addStudent = async () => {
 const updateStudent = async () => {
 
     if (!editingStudent.value) {
+
         return
+
     }
+
 
     try {
 
         const formData = new FormData()
+
 
         formData.append(
             'name',
             editingStudent.value.name
         )
 
+
         formData.append(
             'email',
             editingStudent.value.email
         )
+
 
         formData.append(
             'phone',
             editingStudent.value.phone
         )
 
+
         formData.append(
             'status',
             editingStudent.value.status
         )
 
-        // Add new photo only if user selected one
-        if (editingStudent.value.newPhoto) {
+
+        if (
+            editingStudent.value.newPhoto
+        ) {
 
             formData.append(
                 'photo',
@@ -353,15 +689,18 @@ const updateStudent = async () => {
 
         }
 
+
         const response =
             await updateStudentWithPhoto(
                 editingStudent.value.id,
                 formData
             )
 
+
         const updatedStudent =
             response.data.student ||
             response.data
+
 
         const index =
             studentStore.students.findIndex(
@@ -370,6 +709,7 @@ const updateStudent = async () => {
                     editingStudent.value.id
             )
 
+
         if (index !== -1) {
 
             studentStore.students[index] =
@@ -377,10 +717,16 @@ const updateStudent = async () => {
 
         }
 
+
         editingStudent.value = null
 
-        // Refresh statistics after update
-        await studentStore.fetchStatistics()
+
+        await studentStore.fetchStudents()
+
+        await nextTick()
+
+        await createStatusChart()
+
 
         alert(
             'Student updated successfully!'
@@ -392,6 +738,7 @@ const updateStudent = async () => {
             'Error updating student:',
             error
         )
+
 
         alert(
             error.response?.data?.message ||
@@ -413,9 +760,13 @@ const deleteStudent = async (student) => {
         `Are you sure you want to delete ${student.name}?`
     )
 
+
     if (!confirmed) {
+
         return
+
     }
+
 
     try {
 
@@ -423,18 +774,25 @@ const deleteStudent = async (student) => {
             student.id
         )
 
+
         studentStore.students =
             studentStore.students.filter(
-                s => s.id !== student.id
+                s =>
+                    s.id !== student.id
             )
+
 
         selectedStudents.value =
             selectedStudents.value.filter(
-                id => id !== student.id
+                id =>
+                    id !== student.id
             )
 
-        // Refresh statistics after delete
-        await studentStore.fetchStatistics()
+
+        await nextTick()
+
+        await createStatusChart()
+
 
         alert(
             'Student deleted successfully!'
@@ -446,6 +804,7 @@ const deleteStudent = async (student) => {
             'Error deleting student:',
             error
         )
+
 
         alert(
             error.response?.data?.message ||
@@ -463,7 +822,9 @@ const deleteStudent = async (student) => {
 
 const bulkDelete = async () => {
 
-    if (selectedStudents.value.length === 0) {
+    if (
+        selectedStudents.value.length === 0
+    ) {
 
         alert(
             'Please select at least one student.'
@@ -473,19 +834,25 @@ const bulkDelete = async () => {
 
     }
 
+
     const confirmed = confirm(
         'Are you sure you want to delete the selected students?'
     )
 
+
     if (!confirmed) {
+
         return
+
     }
+
 
     try {
 
         await bulkDeleteStudents(
             selectedStudents.value
         )
+
 
         studentStore.students =
             studentStore.students.filter(
@@ -495,10 +862,14 @@ const bulkDelete = async () => {
                     )
             )
 
+
         selectedStudents.value = []
 
-        // Refresh statistics after bulk delete
-        await studentStore.fetchStatistics()
+
+        await nextTick()
+
+        await createStatusChart()
+
 
         alert(
             'Selected students deleted successfully!'
@@ -510,6 +881,7 @@ const bulkDelete = async () => {
             'Bulk delete error:',
             error
         )
+
 
         alert(
             error.response?.data?.message ||
@@ -530,17 +902,26 @@ const logout = async () => {
     const token =
         localStorage.getItem('token')
 
+
     try {
 
         await axios.post(
+
             'http://127.0.0.1:8000/api/logout',
+
             {},
+
             {
+
                 headers: {
+
                     Authorization:
                         `Bearer ${token}`
+
                 }
+
             }
+
         )
 
     } catch (error) {
@@ -552,8 +933,11 @@ const logout = async () => {
 
     }
 
+
     localStorage.removeItem('token')
+
     localStorage.removeItem('user')
+
 
     router.push('/login')
 
@@ -561,14 +945,74 @@ const logout = async () => {
 
 
 // =========================================================
-// ON LOAD
+// ON MOUNTED
 // =========================================================
 
 onMounted(async () => {
 
-    await studentStore.fetchStudents()
+    console.log(
+        ' StudentList mounted'
+    )
 
-    await studentStore.fetchStatistics()
+
+    try {
+
+        // -------------------------------------------------
+        // FETCH STUDENTS
+        // -------------------------------------------------
+
+        await studentStore.fetchStudents()
+
+
+        console.log(
+            ' Students fetched:',
+            studentStore.students
+        )
+
+
+        // -------------------------------------------------
+        // WAIT FOR DOM
+        // -------------------------------------------------
+
+        await nextTick()
+
+
+        // -------------------------------------------------
+        // CREATE CHART
+        // -------------------------------------------------
+
+        await createStatusChart()
+
+    } catch (error) {
+
+        console.error(
+            ' StudentList initialization error:',
+            error
+        )
+
+    }
+
+})
+
+
+// =========================================================
+// BEFORE UNMOUNT
+// =========================================================
+
+onBeforeUnmount(() => {
+
+    console.log(
+        ' Destroying chart'
+    )
+
+
+    if (statusChartInstance) {
+
+        statusChartInstance.destroy()
+
+        statusChartInstance = null
+
+    }
 
 })
 
@@ -585,25 +1029,24 @@ onMounted(async () => {
         class="w-full max-w-7xl mx-auto"
     >
 
-
         <!-- ================================================= -->
         <!-- HEADER -->
         <!-- ================================================= -->
 
         <div
-            class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+            class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5"
         >
 
             <div>
 
                 <h1
-                    class="text-2xl sm:text-3xl font-bold text-gray-700"
+                    class="text-2xl sm:text-3xl font-bold text-gray-800"
                 >
                     Student Management
                 </h1>
 
                 <p
-                    class="mt-2 text-sm sm:text-base text-gray-500"
+                    class="mt-1 text-sm text-gray-500"
                 >
                     Manage and view all registered students
                 </p>
@@ -611,23 +1054,23 @@ onMounted(async () => {
             </div>
 
 
-            <!-- PROFILE + LOGOUT -->
-
             <div
                 class="flex flex-col sm:flex-row gap-3"
             >
 
                 <button
+                    type="button"
                     @click="router.push('/profile')"
-                    class="w-full md:w-auto bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition"
+                    class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-sm"
                 >
                     Profile
                 </button>
 
 
                 <button
+                    type="button"
                     @click="logout"
-                    class="w-full md:w-auto bg-gray-800 text-white px-5 py-2.5 rounded-lg hover:bg-gray-900 transition"
+                    class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800 text-white font-medium hover:bg-gray-900 transition shadow-sm"
                 >
                     Logout
                 </button>
@@ -643,7 +1086,7 @@ onMounted(async () => {
 
         <div
             v-if="studentStore.error"
-            class="mt-6 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg"
+            class="mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl"
         >
 
             {{ studentStore.error }}
@@ -652,65 +1095,226 @@ onMounted(async () => {
 
 
         <!-- ================================================= -->
-        <!-- ACTION BUTTONS + SEARCH -->
+        <!-- STATISTICS -->
         <!-- ================================================= -->
 
         <div
-            class="mt-6 flex flex-col gap-4"
+            class="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5"
         >
 
-            <!-- BUTTONS -->
+            <!-- TOTAL -->
 
             <div
-                class="flex flex-col sm:flex-row gap-3"
+                class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition"
             >
 
-                <BaseButton
-                    variant="success"
-                    @click="showAddForm = true"
-                    class="w-full sm:w-auto"
+                <p
+                    class="text-sm font-medium text-gray-500"
                 >
-                    + Add Student
-                </BaseButton>
+                    Total Students
+                </p>
 
 
-                <BaseButton
-                    variant="danger"
-                    @click="bulkDelete"
-                    class="w-full sm:w-auto"
+                <h3
+                    class="mt-2 text-3xl font-bold text-gray-800"
                 >
-                    Delete Selected
-                </BaseButton>
+                    {{ totalStudents }}
+                </h3>
+
+
+                <p
+                    class="mt-2 text-xs text-gray-400"
+                >
+                    All registered students
+                </p>
 
             </div>
 
 
-            <!-- SEARCH + FILTER -->
+            <!-- ACTIVE -->
 
             <div
-                class="flex flex-col md:flex-row gap-3"
+                class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition"
             >
 
-                <input
-                    v-model="searchQuery"
-                    type="text"
-                    placeholder="Search by name, email or phone..."
-                    class="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <p
+                    class="text-sm font-medium text-gray-500"
+                >
+                    Active Students
+                </p>
 
+
+                <h3
+                    class="mt-2 text-3xl font-bold text-green-600"
+                >
+                    {{ activeStudents }}
+                </h3>
+
+
+                <p
+                    class="mt-2 text-xs text-gray-400"
+                >
+                    Currently active
+                </p>
+
+            </div>
+
+
+            <!-- INACTIVE -->
+
+            <div
+                class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition"
+            >
+
+                <p
+                    class="text-sm font-medium text-gray-500"
+                >
+                    Inactive Students
+                </p>
+
+
+                <h3
+                    class="mt-2 text-3xl font-bold text-red-600"
+                >
+                    {{ inactiveStudents }}
+                </h3>
+
+
+                <p
+                    class="mt-2 text-xs text-gray-400"
+                >
+                    Currently inactive
+                </p>
+
+            </div>
+
+
+            <!-- PHOTOS -->
+
+            <div
+                class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition"
+            >
+
+                <p
+                    class="text-sm font-medium text-gray-500"
+                >
+                    Students With Photos
+                </p>
+
+
+                <h3
+                    class="mt-2 text-3xl font-bold text-purple-600"
+                >
+                    {{ studentsWithPhotos }}
+                </h3>
+
+
+                <p
+                    class="mt-2 text-xs text-gray-400"
+                >
+                    Profiles with photos
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- ACTION BAR -->
+        <!-- ================================================= -->
+
+        <div
+            class="mt-8 bg-white border border-gray-200 rounded-2xl p-5 shadow-sm"
+        >
+
+            <div
+                class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5"
+            >
+
+                <div>
+
+                    <h2
+                        class="text-lg font-semibold text-gray-800"
+                    >
+                        Students
+                    </h2>
+
+
+                    <p
+                        class="text-sm text-gray-500 mt-1"
+                    >
+                        Search, filter and manage your students
+                    </p>
+
+                </div>
+
+
+                <div
+                    class="flex flex-col sm:flex-row gap-3"
+                >
+
+                    <BaseButton
+                        variant="success"
+                        @click="showAddForm = true"
+                        class="w-full sm:w-auto"
+                    >
+                        Add Student
+                    </BaseButton>
+
+
+                    <BaseButton
+                        variant="danger"
+                        @click="bulkDelete"
+                        class="w-full sm:w-auto"
+                    >
+                        Delete Selected
+                    </BaseButton>
+
+                </div>
+
+            </div>
+
+
+            <!-- SEARCH -->
+
+            <div
+                class="mt-5 flex flex-col lg:flex-row gap-3"
+            >
+
+                <div
+                    class="relative flex-1"
+                >
+
+                    
+
+
+                    <input
+                        v-model="searchQuery"
+                        type="text"
+                        placeholder="Search by name, email or phone..."
+                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+
+                </div>
+
+
+                <!-- FILTER -->
 
                 <select
                     v-model="statusFilter"
-                    class="w-full md:w-48 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full lg:w-52 px-4 py-3 rounded-xl border border-gray-300 bg-gray-50 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
 
                     <option value="all">
                         All Students
                     </option>
 
+
                     <option value="active">
                         Active
                     </option>
+
 
                     <option value="inactive">
                         Inactive
@@ -721,108 +1325,46 @@ onMounted(async () => {
             </div>
 
 
-            <!-- ================================================= -->
-            <!-- DASHBOARD STATISTICS -->
-            <!-- ================================================= -->
+            <!-- COUNT -->
 
             <div
-                v-if="studentStore.statistics"
-                class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
             >
 
-                <!-- TOTAL STUDENTS -->
-
-                <div
-                    class="bg-white rounded-xl shadow-sm p-5 border border-gray-100"
+                <p
+                    class="text-sm text-gray-500"
                 >
 
-                    <p class="text-sm text-gray-500">
-                        Total Students
-                    </p>
+                    Showing
 
-                    <p class="mt-2 text-3xl font-bold text-gray-800">
-                        {{ studentStore.statistics.total }}
-                    </p>
+                    <span
+                        class="font-semibold text-gray-800"
+                    >
+                        {{ filteredStudents.length }}
+                    </span>
 
-                </div>
+                    of
+
+                    <span
+                        class="font-semibold text-gray-800"
+                    >
+                        {{ studentStore.students.length }}
+                    </span>
+
+                    students
+
+                </p>
 
 
-                <!-- ACTIVE STUDENTS -->
-
-                <div
-                    class="bg-white rounded-xl shadow-sm p-5 border border-gray-100"
+                <p
+                    v-if="selectedStudents.length > 0"
+                    class="text-sm font-medium text-blue-600"
                 >
 
-                    <p class="text-sm text-gray-500">
-                        Active Students
-                    </p>
+                    {{ selectedStudents.length }}
+                    selected
 
-                    <p class="mt-2 text-3xl font-bold text-green-600">
-                        {{ studentStore.statistics.active }}
-                    </p>
-
-                </div>
-
-
-                <!-- INACTIVE STUDENTS -->
-
-                <div
-                    class="bg-white rounded-xl shadow-sm p-5 border border-gray-100"
-                >
-
-                    <p class="text-sm text-gray-500">
-                        Inactive Students
-                    </p>
-
-                    <p class="mt-2 text-3xl font-bold text-red-600">
-                        {{ studentStore.statistics.inactive }}
-                    </p>
-
-                </div>
-
-
-                <!-- STUDENTS WITH PHOTOS -->
-
-                <div
-                    class="bg-white rounded-xl shadow-sm p-5 border border-gray-100"
-                >
-
-                    <p class="text-sm text-gray-500">
-                        Students With Photos
-                    </p>
-
-                    <p class="mt-2 text-3xl font-bold text-blue-600">
-                        {{
-                            studentStore.students.filter(
-                                student => student.photo
-                            ).length
-                        }}
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <!-- STUDENT COUNT -->
-
-            <div
-                class="text-sm text-gray-500"
-            >
-
-                Showing
-
-                <span class="font-semibold text-gray-700">
-                    {{ filteredStudents.length }}
-                </span>
-
-                of
-
-                <span class="font-semibold text-gray-700">
-                    {{ studentStore.students.length }}
-                </span>
-
-                students
+                </p>
 
             </div>
 
@@ -841,26 +1383,35 @@ onMounted(async () => {
             >
 
                 <div
-                    class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6"
+                    class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6"
                 >
-
-                    <!-- HEADER -->
 
                     <div
                         class="flex items-center justify-between mb-6"
                     >
 
-                        <h2
-                            class="text-xl font-semibold text-gray-800"
-                        >
-                            Add New Student
-                        </h2>
+                        <div>
+
+                            <h2
+                                class="text-xl font-bold text-gray-800"
+                            >
+                                Add New Student
+                            </h2>
+
+
+                            <p
+                                class="text-sm text-gray-500 mt-1"
+                            >
+                                Enter student information below
+                            </p>
+
+                        </div>
 
 
                         <button
                             type="button"
                             @click="showAddForm = false"
-                            class="text-gray-500 hover:text-gray-800 text-2xl"
+                            class="w-9 h-9 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-800 text-xl"
                         >
                             ×
                         </button>
@@ -868,52 +1419,43 @@ onMounted(async () => {
                     </div>
 
 
-                    <!-- FORM -->
-
                     <div
                         class="grid grid-cols-1 md:grid-cols-2 gap-4"
                     >
 
-                        <!-- NAME -->
-
                         <input
                             v-model="newStudent.name"
                             type="text"
-                            placeholder="Name"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                            placeholder="Full Name"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
-
-                        <!-- EMAIL -->
 
                         <input
                             v-model="newStudent.email"
                             type="email"
-                            placeholder="Email"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                            placeholder="Email Address"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
-
-                        <!-- PHONE -->
 
                         <input
                             v-model="newStudent.phone"
                             type="text"
-                            placeholder="Phone"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                            placeholder="Phone Number"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
 
-                        <!-- STATUS -->
-
                         <select
                             v-model="newStudent.status"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
 
                             <option value="active">
                                 Active
                             </option>
+
 
                             <option value="inactive">
                                 Inactive
@@ -922,19 +1464,28 @@ onMounted(async () => {
                         </select>
 
 
-                        <!-- PHOTO -->
+                        <div
+                            class="md:col-span-2"
+                        >
 
-                        <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            @change="handlePhotoChange"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 md:col-span-2"
-                        />
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                            >
+                                Student Photo
+                            </label>
+
+
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                @change="handlePhotoChange"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 bg-white"
+                            />
+
+                        </div>
 
                     </div>
 
-
-                    <!-- BUTTONS -->
 
                     <div
                         class="flex flex-col sm:flex-row gap-3 mt-6"
@@ -943,7 +1494,7 @@ onMounted(async () => {
                         <button
                             type="button"
                             @click="addStudent"
-                            class="w-full sm:w-auto bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700"
+                            class="w-full sm:w-auto bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition"
                         >
                             Add Student
                         </button>
@@ -952,7 +1503,7 @@ onMounted(async () => {
                         <button
                             type="button"
                             @click="showAddForm = false"
-                            class="w-full sm:w-auto border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-50"
+                            class="w-full sm:w-auto border border-gray-300 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition"
                         >
                             Cancel
                         </button>
@@ -978,25 +1529,35 @@ onMounted(async () => {
             >
 
                 <div
-                    class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6"
+                    class="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6"
                 >
-
-                    <!-- HEADER -->
 
                     <div
                         class="flex items-center justify-between mb-6"
                     >
 
-                        <h2
-                            class="text-xl font-semibold text-gray-800"
-                        >
-                            Student Details
-                        </h2>
+                        <div>
+
+                            <h2
+                                class="text-xl font-bold text-gray-800"
+                            >
+                                Student Details
+                            </h2>
+
+
+                            <p
+                                class="text-sm text-gray-500 mt-1"
+                            >
+                                Student information
+                            </p>
+
+                        </div>
+
 
                         <button
                             type="button"
                             @click="viewingStudent = null"
-                            class="text-gray-500 hover:text-gray-800 text-2xl"
+                            class="w-9 h-9 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-800 text-xl"
                         >
                             ×
                         </button>
@@ -1006,18 +1567,21 @@ onMounted(async () => {
 
                     <!-- PHOTO -->
 
-                    <div class="flex justify-center mb-6">
+                    <div
+                        class="flex justify-center mb-6"
+                    >
 
                         <img
                             v-if="viewingStudent.photo"
                             :src="`http://127.0.0.1:8000/storage/${viewingStudent.photo}`"
                             :alt="viewingStudent.name"
-                            class="w-28 h-28 rounded-full object-cover border-4 border-gray-200"
+                            class="w-28 h-28 rounded-full object-cover border-4 border-gray-100 shadow-sm"
                         />
+
 
                         <div
                             v-else
-                            class="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-gray-500"
+                            class="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm"
                         >
                             No Photo
                         </div>
@@ -1025,19 +1589,24 @@ onMounted(async () => {
                     </div>
 
 
-                    <!-- DETAILS -->
-
-                    <div class="space-y-4">
+                    <div
+                        class="space-y-4"
+                    >
 
                         <div
-                            class="flex justify-between border-b pb-3"
+                            class="flex justify-between items-center border-b border-gray-100 pb-3 gap-4"
                         >
 
-                            <span class="font-medium text-gray-500">
+                            <span
+                                class="font-medium text-gray-500"
+                            >
                                 Student ID
                             </span>
 
-                            <span class="text-gray-800">
+
+                            <span
+                                class="font-semibold text-gray-800"
+                            >
                                 {{ viewingStudent.id }}
                             </span>
 
@@ -1045,14 +1614,19 @@ onMounted(async () => {
 
 
                         <div
-                            class="flex justify-between border-b pb-3"
+                            class="flex justify-between items-center border-b border-gray-100 pb-3 gap-4"
                         >
 
-                            <span class="font-medium text-gray-500">
+                            <span
+                                class="font-medium text-gray-500"
+                            >
                                 Name
                             </span>
 
-                            <span class="text-gray-800">
+
+                            <span
+                                class="font-semibold text-gray-800 text-right"
+                            >
                                 {{ viewingStudent.name }}
                             </span>
 
@@ -1060,14 +1634,19 @@ onMounted(async () => {
 
 
                         <div
-                            class="flex justify-between border-b pb-3"
+                            class="flex justify-between items-center border-b border-gray-100 pb-3 gap-4"
                         >
 
-                            <span class="font-medium text-gray-500">
+                            <span
+                                class="font-medium text-gray-500"
+                            >
                                 Email
                             </span>
 
-                            <span class="text-gray-800">
+
+                            <span
+                                class="text-gray-800 text-right break-all"
+                            >
                                 {{ viewingStudent.email }}
                             </span>
 
@@ -1075,14 +1654,19 @@ onMounted(async () => {
 
 
                         <div
-                            class="flex justify-between border-b pb-3"
+                            class="flex justify-between items-center border-b border-gray-100 pb-3 gap-4"
                         >
 
-                            <span class="font-medium text-gray-500">
+                            <span
+                                class="font-medium text-gray-500"
+                            >
                                 Phone
                             </span>
 
-                            <span class="text-gray-800">
+
+                            <span
+                                class="text-gray-800"
+                            >
                                 {{ viewingStudent.phone }}
                             </span>
 
@@ -1093,12 +1677,15 @@ onMounted(async () => {
                             class="flex justify-between items-center"
                         >
 
-                            <span class="font-medium text-gray-500">
+                            <span
+                                class="font-medium text-gray-500"
+                            >
                                 Status
                             </span>
 
+
                             <span
-                                class="px-3 py-1 rounded-full text-xs font-semibold"
+                                class="px-3 py-1 rounded-full text-xs font-semibold capitalize"
                                 :class="
                                     viewingStudent.status === 'active'
                                         ? 'bg-green-100 text-green-700'
@@ -1113,14 +1700,14 @@ onMounted(async () => {
                     </div>
 
 
-                    <!-- CLOSE -->
-
-                    <div class="mt-6">
+                    <div
+                        class="mt-6"
+                    >
 
                         <button
                             type="button"
                             @click="viewingStudent = null"
-                            class="w-full bg-gray-800 text-white px-5 py-2.5 rounded-lg hover:bg-gray-900"
+                            class="w-full bg-gray-800 text-white px-5 py-3 rounded-xl font-medium hover:bg-gray-900 transition"
                         >
                             Close
                         </button>
@@ -1146,26 +1733,35 @@ onMounted(async () => {
             >
 
                 <div
-                    class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6"
+                    class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6"
                 >
-
-                    <!-- HEADER -->
 
                     <div
                         class="flex items-center justify-between mb-6"
                     >
 
-                        <h2
-                            class="text-xl font-semibold text-gray-800"
-                        >
-                            Edit Student
-                        </h2>
+                        <div>
+
+                            <h2
+                                class="text-xl font-bold text-gray-800"
+                            >
+                                Edit Student
+                            </h2>
+
+
+                            <p
+                                class="text-sm text-gray-500 mt-1"
+                            >
+                                Update student information
+                            </p>
+
+                        </div>
 
 
                         <button
                             type="button"
                             @click="editingStudent = null"
-                            class="text-gray-500 hover:text-gray-800 text-2xl"
+                            class="w-9 h-9 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-800 text-xl"
                         >
                             ×
                         </button>
@@ -1173,52 +1769,43 @@ onMounted(async () => {
                     </div>
 
 
-                    <!-- FORM -->
-
                     <div
                         class="grid grid-cols-1 md:grid-cols-2 gap-4"
                     >
 
-                        <!-- NAME -->
-
                         <input
                             v-model="editingStudent.name"
                             type="text"
-                            placeholder="Name"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                            placeholder="Full Name"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
-
-                        <!-- EMAIL -->
 
                         <input
                             v-model="editingStudent.email"
                             type="email"
-                            placeholder="Email"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                            placeholder="Email Address"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
-
-                        <!-- PHONE -->
 
                         <input
                             v-model="editingStudent.phone"
                             type="text"
-                            placeholder="Phone"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                            placeholder="Phone Number"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
 
-                        <!-- STATUS -->
-
                         <select
                             v-model="editingStudent.status"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
 
                             <option value="active">
                                 Active
                             </option>
+
 
                             <option value="inactive">
                                 Inactive
@@ -1231,19 +1818,31 @@ onMounted(async () => {
 
                         <div
                             v-if="editingStudent.photo"
-                            class="flex items-center gap-4 md:col-span-2"
+                            class="md:col-span-2 flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200"
                         >
 
                             <img
                                 :src="`http://127.0.0.1:8000/storage/${editingStudent.photo}`"
                                 :alt="editingStudent.name"
-                                class="w-16 h-16 rounded-full object-cover border"
+                                class="w-16 h-16 rounded-full object-cover border-2 border-white shadow"
                             />
 
-                            <div
-                                class="text-sm text-gray-500"
-                            >
-                                Current Photo
+
+                            <div>
+
+                                <p
+                                    class="text-sm font-medium text-gray-700"
+                                >
+                                    Current Photo
+                                </p>
+
+
+                                <p
+                                    class="text-xs text-gray-500 mt-1"
+                                >
+                                    Select a new photo below to replace it.
+                                </p>
+
                             </div>
 
                         </div>
@@ -1251,17 +1850,28 @@ onMounted(async () => {
 
                         <!-- NEW PHOTO -->
 
-                        <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            @change="editingStudent.newPhoto = $event.target.files[0] || null"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 md:col-span-2"
-                        />
+                        <div
+                            class="md:col-span-2"
+                        >
+
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                            >
+                                New Photo
+                            </label>
+
+
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                @change="editingStudent.newPhoto = $event.target.files[0] || null"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-800 bg-white"
+                            />
+
+                        </div>
 
                     </div>
 
-
-                    <!-- BUTTONS -->
 
                     <div
                         class="flex flex-col sm:flex-row gap-3 mt-6"
@@ -1270,16 +1880,16 @@ onMounted(async () => {
                         <button
                             type="button"
                             @click="updateStudent"
-                            class="w-full sm:w-auto bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700"
+                            class="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition"
                         >
-                            Update
+                            Update Student
                         </button>
 
 
                         <button
                             type="button"
                             @click="editingStudent = null"
-                            class="w-full sm:w-auto border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-50"
+                            class="w-full sm:w-auto border border-gray-300 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition"
                         >
                             Cancel
                         </button>
@@ -1299,9 +1909,15 @@ onMounted(async () => {
 
         <div
             v-if="studentStore.loading"
-            class="mt-8 text-center text-gray-500"
+            class="mt-8 bg-white rounded-2xl border border-gray-200 p-10 text-center shadow-sm"
         >
-            Loading students...
+
+            <div
+                class="text-gray-500"
+            >
+                Loading students...
+            </div>
+
         </div>
 
 
@@ -1309,186 +1925,222 @@ onMounted(async () => {
         <!-- TABLE -->
         <!-- ================================================= -->
 
-        <BaseTable
+        <div
             v-else
-            :headers="tableHeaders"
+            class="mt-6"
         >
 
-            <!-- STUDENT ROWS -->
-
-            <tr
-                v-for="(student, index) in paginatedStudents"
-                :key="student.id"
-                class="border-b hover:bg-gray-50"
+            <BaseTable
+                :headers="tableHeaders"
             >
 
-                <!-- CHECKBOX -->
-
-                <td
-                    class="px-5 py-4 text-center"
+                <tr
+                    v-for="(student, index) in paginatedStudents"
+                    :key="student.id"
+                    class="border-b border-gray-100 hover:bg-gray-50 transition"
                 >
 
-                    <input
-                        type="checkbox"
-                        :checked="selectedStudents.includes(student.id)"
-                        @change="toggleStudent(student.id)"
-                    />
+                    <!-- CHECKBOX -->
 
-                </td>
-
-
-                <!-- S.N. -->
-
-                <td
-                    class="px-5 py-4 text-sm text-gray-700"
-                >
-                    {{
-                        (currentPage - 1) *
-                        itemsPerPage +
-                        index +
-                        1
-                    }}
-                </td>
-
-
-                <!-- ID -->
-
-                <td
-                    class="px-5 py-4 text-sm text-gray-700"
-                >
-                    {{ student.id }}
-                </td>
-
-
-                <!-- PHOTO -->
-
-                <td
-                    class="px-5 py-4"
-                >
-
-                    <img
-                        v-if="student.photo"
-                        :src="`http://127.0.0.1:8000/storage/${student.photo}`"
-                        :alt="student.name"
-                        class="w-12 h-12 rounded-full object-cover border"
-                    />
-
-                    <div
-                        v-else
-                        class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs"
-                    >
-                        No Photo
-                    </div>
-
-                </td>
-
-
-                <!-- NAME -->
-
-                <td
-                    class="px-5 py-4 text-sm text-gray-700 font-medium"
-                >
-                    {{ student.name }}
-                </td>
-
-
-                <!-- EMAIL -->
-
-                <td
-                    class="px-5 py-4 text-sm text-gray-700"
-                >
-                    {{ student.email }}
-                </td>
-
-
-                <!-- PHONE -->
-
-                <td
-                    class="px-5 py-4 text-sm text-gray-700"
-                >
-                    {{ student.phone }}
-                </td>
-
-
-                <!-- STATUS -->
-
-                <td
-                    class="px-5 py-4"
-                >
-
-                    <span
-                        class="px-3 py-1 rounded-full text-xs font-semibold"
-                        :class="
-                            student.status === 'active'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
-                        "
-                    >
-                        {{ student.status }}
-                    </span>
-
-                </td>
-
-
-                <!-- ACTIONS -->
-
-                <td
-                    class="px-5 py-4"
-                >
-
-                    <div
-                        class="flex gap-4"
+                    <td
+                        class="px-5 py-4 text-center"
                     >
 
-                        <button
-                            type="button"
-                            @click="viewStudent(student)"
-                            class="text-green-600 hover:text-green-800 font-medium"
+                        <input
+                            type="checkbox"
+                            :checked="selectedStudents.includes(student.id)"
+                            @change="toggleStudent(student.id)"
+                            class="w-4 h-4 accent-blue-600 cursor-pointer"
+                        />
+
+                    </td>
+
+
+                    <!-- S.N. -->
+
+                    <td
+                        class="px-5 py-4 text-sm text-gray-500"
+                    >
+
+                        {{
+                            (currentPage - 1) *
+                            itemsPerPage +
+                            index +
+                            1
+                        }}
+
+                    </td>
+
+
+                    <!-- ID -->
+
+                    <td
+                        class="px-5 py-4 text-sm font-medium text-gray-700"
+                    >
+                        #{{ student.id }}
+                    </td>
+
+
+                    <!-- PHOTO -->
+
+                    <td
+                        class="px-5 py-4"
+                    >
+
+                        <img
+                            v-if="student.photo"
+                            :src="`http://127.0.0.1:8000/storage/${student.photo}`"
+                            :alt="student.name"
+                            class="w-11 h-11 rounded-full object-cover border border-gray-200"
+                        />
+
+
+                        <div
+                            v-else
+                            class="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs"
                         >
-                            View
-                        </button>
+                            No Photo
+                        </div>
+
+                    </td>
 
 
-                        <button
-                            type="button"
-                            @click="editStudent(student)"
-                            class="text-blue-600 hover:text-blue-800 font-medium"
+                    <!-- NAME -->
+
+                    <td
+                        class="px-5 py-4 text-sm font-semibold text-gray-800"
+                    >
+                        {{ student.name }}
+                    </td>
+
+
+                    <!-- EMAIL -->
+
+                    <td
+                        class="px-5 py-4 text-sm text-gray-600"
+                    >
+                        {{ student.email }}
+                    </td>
+
+
+                    <!-- PHONE -->
+
+                    <td
+                        class="px-5 py-4 text-sm text-gray-600"
+                    >
+                        {{ student.phone }}
+                    </td>
+
+
+                    <!-- STATUS -->
+
+                    <td
+                        class="px-5 py-4"
+                    >
+
+                        <span
+                            class="px-3 py-1 rounded-full text-xs font-semibold capitalize"
+                            :class="
+                                student.status === 'active'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-red-100 text-red-700'
+                            "
                         >
-                            Edit
-                        </button>
+
+                            {{ student.status }}
+
+                        </span>
+
+                    </td>
 
 
-                        <button
-                            type="button"
-                            @click="deleteStudent(student)"
-                            class="text-red-600 hover:text-red-800 font-medium"
+                    <!-- ACTIONS -->
+
+                    <td
+                        class="px-5 py-4"
+                    >
+
+                        <div
+                            class="flex flex-wrap gap-3"
                         >
-                            Delete
-                        </button>
 
-                    </div>
+                            <button
+                                type="button"
+                                @click="viewStudent(student)"
+                                class="text-green-600 hover:text-green-800 font-medium text-sm"
+                            >
+                                View
+                            </button>
 
-                </td>
 
-            </tr>
+                            <button
+                                type="button"
+                                @click="editStudent(student)"
+                                class="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                            >
+                                Edit
+                            </button>
 
 
-            <!-- EMPTY -->
+                            <button
+                                type="button"
+                                @click="deleteStudent(student)"
+                                class="text-red-600 hover:text-red-800 font-medium text-sm"
+                            >
+                                Delete
+                            </button>
 
-            <tr
-                v-if="filteredStudents.length === 0"
-            >
+                        </div>
 
-                <td
-                    colspan="9"
-                    class="text-center py-10 text-gray-500"
+                    </td>
+
+                </tr>
+
+
+                <!-- EMPTY -->
+
+                <tr
+                    v-if="filteredStudents.length === 0"
                 >
-                    No students found.
-                </td>
 
-            </tr>
+                    <td
+                        colspan="9"
+                        class="py-14 text-center"
+                    >
 
-        </BaseTable>
+                        <div
+                            class="flex flex-col items-center"
+                        >
+
+                            <div
+                                class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-2xl"
+                            >
+                                🔍
+                            </div>
+
+
+                            <h3
+                                class="mt-4 text-lg font-semibold text-gray-700"
+                            >
+                                No students found
+                            </h3>
+
+
+                            <p
+                                class="mt-1 text-sm text-gray-500"
+                            >
+                                Try changing your search or filter.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            </BaseTable>
+
+        </div>
 
 
         <!-- ================================================= -->
@@ -1497,95 +2149,107 @@ onMounted(async () => {
 
         <div
             v-if="totalPages > 1"
-            class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+            class="mt-6 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
         >
 
-            <!-- RESULTS INFO -->
+            <div
+                class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+            >
 
-            <div class="text-sm text-gray-500">
-
-                Showing
-
-                <span class="font-semibold text-gray-700">
-                    {{
-                        (currentPage - 1) *
-                        itemsPerPage +
-                        1
-                    }}
-                </span>
-
-                -
-
-                <span class="font-semibold text-gray-700">
-
-                    {{
-                        Math.min(
-                            currentPage * itemsPerPage,
-                            filteredStudents.length
-                        )
-                    }}
-
-                </span>
-
-                of
-
-                <span class="font-semibold text-gray-700">
-                    {{ filteredStudents.length }}
-                </span>
-
-                students
-
-            </div>
-
-
-            <!-- PAGINATION -->
-
-            <div class="flex items-center gap-2">
-
-                <!-- PREVIOUS -->
-
-                <button
-                    type="button"
-                    @click="currentPage--"
-                    :disabled="currentPage === 1"
-                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                <div
+                    class="text-sm text-gray-500"
                 >
-                    ← Previous
-                </button>
 
+                    Showing
 
-                <!-- PAGE NUMBERS -->
-
-                <div class="flex items-center gap-1">
-
-                    <button
-                        v-for="page in totalPages"
-                        :key="page"
-                        type="button"
-                        @click="currentPage = page"
-                        class="w-9 h-9 rounded-lg text-sm font-medium"
-                        :class="
-                            currentPage === page
-                                ? 'bg-blue-600 text-white'
-                                : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
-                        "
+                    <span
+                        class="font-semibold text-gray-800"
                     >
-                        {{ page }}
-                    </button>
+                        {{
+                            (currentPage - 1) *
+                            itemsPerPage +
+                            1
+                        }}
+                    </span>
+
+                    -
+
+                    <span
+                        class="font-semibold text-gray-800"
+                    >
+                        {{
+                            Math.min(
+                                currentPage * itemsPerPage,
+                                filteredStudents.length
+                            )
+                        }}
+                    </span>
+
+                    of
+
+                    <span
+                        class="font-semibold text-gray-800"
+                    >
+                        {{ filteredStudents.length }}
+                    </span>
+
+                    students
 
                 </div>
 
 
-                <!-- NEXT -->
-
-                <button
-                    type="button"
-                    @click="currentPage++"
-                    :disabled="currentPage === totalPages"
-                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                <div
+                    class="flex items-center gap-2 flex-wrap"
                 >
-                    Next →
-                </button>
+
+                    <!-- PREVIOUS -->
+
+                    <button
+                        type="button"
+                        @click="currentPage--"
+                        :disabled="currentPage === 1"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        ← Previous
+                    </button>
+
+
+                    <!-- PAGE NUMBERS -->
+
+                    <div
+                        class="flex items-center gap-1"
+                    >
+
+                        <button
+                            v-for="page in totalPages"
+                            :key="page"
+                            type="button"
+                            @click="currentPage = page"
+                            class="w-9 h-9 rounded-lg text-sm font-medium transition"
+                            :class="
+                                currentPage === page
+                                    ? 'bg-blue-600 text-white'
+                                    : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
+                            "
+                        >
+                            {{ page }}
+                        </button>
+
+                    </div>
+
+
+                    <!-- NEXT -->
+
+                    <button
+                        type="button"
+                        @click="currentPage++"
+                        :disabled="currentPage === totalPages"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next →
+                    </button>
+
+                </div>
 
             </div>
 
@@ -1593,16 +2257,48 @@ onMounted(async () => {
 
 
         <!-- ================================================= -->
-        <!-- STUDENT CARDS -->
+        <!-- DASHBOARD CHART -->
         <!-- ================================================= -->
 
         <div
-            v-if="!studentStore.loading"
-            class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+            class="mt-8 bg-white rounded-2xl shadow-sm border border-gray-200 p-6"
         >
 
-        </div>
+            <!-- HEADER -->
 
+            <div
+                class="mb-6"
+            >
+
+                <h2
+                    class="text-xl font-bold text-gray-800"
+                >
+                    Student Statistics
+                </h2>
+
+
+                <p
+                    class="mt-1 text-sm text-gray-500"
+                >
+                    Overview of active and inactive students
+                </p>
+
+            </div>
+
+
+            <!-- CHART -->
+
+            <div
+                class="relative h-80 w-full max-w-md mx-auto"
+            >
+
+                <canvas
+                    ref="statusChart"
+                ></canvas>
+
+            </div>
+
+        </div>
 
     </div>
 
