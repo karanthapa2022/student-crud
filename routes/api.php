@@ -32,7 +32,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/students/statistics', [StudentController::class, 'statistics']);
 
+    Route::get('students/trash', [StudentController::class, 'trash']);
+    Route::post('students/{id}/restore', [StudentController::class, 'restore']);
+    Route::delete('students/{id}/force-delete', [StudentController::class, 'forceDelete']);
+
     Route::apiResource('students', StudentController::class);
 
     Route::post('/profile/change-password',[ApiAuthController::class,'changePassword']);
+    
 });

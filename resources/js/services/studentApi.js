@@ -101,4 +101,19 @@ export const getStudentStatistics = () => {
     return api.get('/students/statistics')
 }
 
+//Get deleted students
+export const getTrashedStudents=()=>{
+  return api.get('/students/trash')
+}
+
+//Restore deleted students
+export const restoreStudent=(id)=>{
+  return api.post(`/students/${id}/restore`)
+}
+
+//permanently delete students
+export const forceDeleteStudent=(id)=>{
+  return api.delete(`/students/${id}/force-delete`)
+}
+
 export default api

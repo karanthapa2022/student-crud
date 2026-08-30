@@ -901,389 +901,726 @@ onMounted(() => {
 
 <template>
 
-<div class="min-h-screen bg-gray-100">
+<div class="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+
+
+<!-- ================================================= -->
+<!-- LOADING -->
+<!-- ================================================= -->
+
+<div
+    v-if="loading"
+    class="min-h-screen flex items-center justify-center"
+>
+
+    <div class="text-center">
+
+        <div
+            class="w-10 h-10 border-4 border-gray-300 dark:border-gray-700 border-t-gray-900 dark:border-t-white rounded-full animate-spin mx-auto mb-4"
+        ></div>
+
+        <p class="text-gray-500 dark:text-gray-400">
+            Loading profile...
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- ERROR WITHOUT USER -->
+<!-- ================================================= -->
+
+<div
+    v-else-if="error && !user"
+    class="max-w-4xl mx-auto px-4 pt-10"
+>
+
+    <div
+        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl p-4"
+    >
+
+        {{ error }}
+
+    </div>
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- PROFILE -->
+<!-- ================================================= -->
+
+<div
+    v-else-if="user"
+    class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+>
 
 
     <!-- ================================================= -->
-    <!-- LOADING -->
+    <!-- PAGE HEADER -->
     <!-- ================================================= -->
 
     <div
-        v-if="loading"
-        class="min-h-screen flex items-center justify-center"
+        class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
     >
 
-        <div class="text-center">
+        <div>
 
-            <div
-                class="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"
-            ></div>
+            <h1
+                class="text-3xl font-bold text-gray-900 dark:text-white"
+            >
+                Profile
+            </h1>
 
-            <p class="text-gray-500">
-                Loading profile...
+            <p
+                class="mt-1 text-gray-500 dark:text-gray-400"
+            >
+                View and manage your account information
             </p>
 
         </div>
 
-    </div>
 
+        <!-- BACK BUTTON -->
 
-    <!-- ================================================= -->
-    <!-- ERROR WITHOUT USER -->
-    <!-- ================================================= -->
-
-    <div
-        v-else-if="error && !user"
-        class="max-w-4xl mx-auto px-4 pt-10"
-    >
-
-        <div
-            class="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4"
+        <button
+            @click="goToStudents"
+            class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-sm"
         >
 
-            {{ error }}
+            <span>←</span>
 
-        </div>
+            Back to Students
+
+        </button>
 
     </div>
 
 
     <!-- ================================================= -->
-    <!-- PROFILE -->
+    <!-- SUCCESS MESSAGE -->
     <!-- ================================================= -->
 
     <div
-        v-else-if="user"
-        class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+        v-if="successMessage"
+        class="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-5 py-4 rounded-xl flex items-center gap-3"
+    >
+
+        <div
+            class="w-7 h-7 rounded-full bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 flex items-center justify-center font-bold"
+        >
+            ✓
+        </div>
+
+        <span>
+            {{ successMessage }}
+        </span>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- ERROR MESSAGE -->
+    <!-- ================================================= -->
+
+    <div
+        v-if="error"
+        class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-5 py-4 rounded-xl"
+    >
+
+        {{ error }}
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- MAIN PROFILE CARD -->
+    <!-- ================================================= -->
+
+    <div
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-300"
     >
 
 
         <!-- ================================================= -->
-        <!-- PAGE HEADER -->
+        <!-- COVER -->
         <!-- ================================================= -->
 
         <div
-            class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-        >
-
-            <div>
-
-                <h1
-                    class="text-3xl font-bold text-gray-900"
-                >
-                    Profile
-                </h1>
-
-                <p
-                    class="mt-1 text-gray-500"
-                >
-                    View and manage your account information
-                </p>
-
-            </div>
-
-
-            <button
-                @click="goToStudents"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition shadow-sm"
-            >
-
-                <span>←</span>
-
-                Back to Students
-
-            </button>
-
-        </div>
+            class="h-40 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"
+        ></div>
 
 
         <!-- ================================================= -->
-        <!-- SUCCESS MESSAGE -->
+        <!-- USER SECTION -->
         <!-- ================================================= -->
 
         <div
-            v-if="successMessage"
-            class="mb-6 bg-green-50 border border-green-200 text-green-700 px-5 py-4 rounded-xl flex items-center gap-3"
-        >
-
-            <div
-                class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center font-bold"
-            >
-                ✓
-            </div>
-
-            <span>
-                {{ successMessage }}
-            </span>
-
-        </div>
-
-
-        <!-- ================================================= -->
-        <!-- ERROR MESSAGE -->
-        <!-- ================================================= -->
-
-        <div
-            v-if="error"
-            class="mb-6 bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl"
-        >
-
-            {{ error }}
-
-        </div>
-
-
-        <!-- ================================================= -->
-        <!-- MAIN PROFILE CARD -->
-        <!-- ================================================= -->
-
-        <div
-            class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
+            class="px-6 sm:px-10"
         >
 
 
             <!-- ================================================= -->
-            <!-- COVER -->
+            <!-- AVATAR -->
             <!-- ================================================= -->
 
             <div
-                class="h-40 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"
-            ></div>
-
-
-            <!-- ================================================= -->
-            <!-- USER SECTION -->
-            <!-- ================================================= -->
-
-            <div
-                class="px-6 sm:px-10"
+                class="-mt-14"
             >
-
-
-                <!-- ================================================= -->
-                <!-- AVATAR -->
-                <!-- ================================================= -->
 
                 <div
-                    class="-mt-14"
+                    class="relative w-28 h-28"
                 >
 
+                    <!-- AVATAR -->
+
                     <div
-                        class="relative w-28 h-28"
+                        class="w-28 h-28 rounded-full bg-white dark:bg-gray-800 p-2 shadow-lg"
                     >
 
+                        <!-- UPLOADED PHOTO -->
 
-                        <!-- AVATAR -->
+                        <img
+                            v-if="profilePhotoUrl()"
+                            :src="profilePhotoUrl()"
+                            alt="Profile Photo"
+                            class="w-full h-full rounded-full object-cover"
+                        />
+
+
+                        <!-- DEFAULT AVATAR -->
 
                         <div
-                            class="w-28 h-28 rounded-full bg-white p-2 shadow-lg"
+                            v-else
+                            class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"
                         >
 
-                            <!-- UPLOADED PHOTO -->
-
-                            <img
-                                v-if="profilePhotoUrl()"
-                                :src="profilePhotoUrl()"
-                                alt="Profile Photo"
-                                class="w-full h-full rounded-full object-cover"
-                            />
-
-
-                            <!-- DEFAULT AVATAR -->
-
-                            <div
-                                v-else
-                                class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"
+                            <span
+                                class="text-4xl font-bold text-white"
                             >
 
-                                <span
-                                    class="text-4xl font-bold text-white"
-                                >
+                                {{
+                                    user.name
+                                        .charAt(0)
+                                        .toUpperCase()
+                                }}
 
-                                    {{
-                                        user.name
-                                            .charAt(0)
-                                            .toUpperCase()
-                                    }}
-
-                                </span>
-
-                            </div>
+                            </span>
 
                         </div>
 
+                    </div>
 
-                        <!-- CAMERA BUTTON -->
 
-                        <button
-                            type="button"
-                            @click="selectPhoto"
-                            :disabled="uploadingPhoto"
-                            class="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center shadow-lg hover:bg-gray-700 transition border-2 border-white disabled:opacity-60"
-                            title="Change profile photo"
+                    <!-- CAMERA BUTTON -->
+
+                    <button
+                        type="button"
+                        @click="selectPhoto"
+                        :disabled="uploadingPhoto"
+                        class="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center shadow-lg hover:bg-gray-700 dark:hover:bg-gray-200 transition border-2 border-white dark:border-gray-800 disabled:opacity-60"
+                        title="Change profile photo"
+                    >
+
+                        <span
+                            v-if="!uploadingPhoto"
+                            class="text-lg"
                         >
+                            📷
+                        </span>
 
-                            <span
-                                v-if="!uploadingPhoto"
-                                class="text-lg"
-                            >
-                                📷
-                            </span>
+                        <span
+                            v-else
+                            class="text-xs"
+                        >
+                            ...
+                        </span>
 
-                            <span
-                                v-else
-                                class="text-xs"
-                            >
-                                ...
-                            </span>
-
-                        </button>
+                    </button>
 
 
-                        <!-- HIDDEN INPUT -->
+                    <!-- HIDDEN INPUT -->
+
+                    <input
+                        ref="photoInput"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        class="hidden"
+                        @change="handlePhotoUpload"
+                    />
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- DOCUMENT UPLOAD -->
+                <!-- ================================================= -->
+
+                <div
+                    class="mt-6"
+                >
+
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Upload PDF Document
+                    </label>
+
+                    <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        @change="handleDocumentChange"
+                        class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-900 dark:file:bg-white file:text-white dark:file:text-gray-900 file:font-medium hover:file:bg-gray-800 dark:hover:file:bg-gray-200"
+                    />
+
+                    <p
+                        class="text-xs text-gray-400 dark:text-gray-500 mt-2"
+                    >
+                        PDF only, maximum 5MB.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- NAME + EDIT BUTTON -->
+            <!-- ================================================= -->
+
+            <div
+                class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 pt-5 pb-7"
+            >
+
+                <div
+                    class="min-w-0"
+                >
+
+                    <h2
+                        class="text-3xl font-bold text-gray-900 dark:text-white leading-tight break-words"
+                    >
+                        {{ user.name }}
+                    </h2>
+
+                    <p
+                        class="text-gray-500 dark:text-gray-400 mt-2 break-all"
+                    >
+                        {{ user.email }}
+                    </p>
+
+                    <p
+                        class="text-xs text-gray-400 dark:text-gray-500 mt-2"
+                    >
+                        Click the camera icon to change your photo
+                    </p>
+
+                </div>
+
+
+                <!-- EDIT BUTTON -->
+
+                <button
+                    v-if="!editing"
+                    @click="editProfile"
+                    class="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-sm"
+                >
+                    Edit Profile
+                </button>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- EDIT PROFILE -->
+            <!-- ================================================= -->
+
+            <div
+                v-if="editing"
+                class="mb-8 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-6"
+            >
+
+                <h3
+                    class="text-lg font-semibold text-gray-900 dark:text-white mb-5"
+                >
+                    Edit Profile
+                </h3>
+
+
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 gap-5"
+                >
+
+                    <!-- NAME -->
+
+                    <div>
+
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Full Name
+                        </label>
 
                         <input
-                            ref="photoInput"
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            class="hidden"
-                            @change="handlePhotoUpload"
+                            v-model="editName"
+                            type="text"
+                            class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                            placeholder="Enter your name"
                         />
 
                     </div>
 
 
-                    <!-- DOCUMENT UPLOAD -->
+                    <!-- EMAIL -->
 
-                    <div
-                        class="mt-6"
-                    >
+                    <div>
 
                         <label
-                            class="block text-sm font-medium text-gray-700 mb-2"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                         >
-                            Upload PDF Document
+                            Email Address
                         </label>
 
                         <input
-                            type="file"
-                            accept=".pdf,application/pdf"
-                            @change="handleDocumentChange"
-                            class="block w-full text-sm text-gray-500"
+                            v-model="editEmail"
+                            type="email"
+                            class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                            placeholder="Enter your email"
                         />
-
-                        <p
-                            class="text-xs text-gray-400 mt-2"
-                        >
-                            PDF only, maximum 5MB.
-                        </p>
 
                     </div>
 
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- NAME + EDIT BUTTON -->
-                <!-- ================================================= -->
+                <!-- BUTTONS -->
 
                 <div
-                    class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 pt-5 pb-7"
+                    class="flex flex-col sm:flex-row gap-3 mt-6"
                 >
 
-                    <div
-                        class="min-w-0"
+                    <button
+                        @click="saveProfile"
+                        :disabled="saving"
+                        class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50"
                     >
 
-                        <h2
-                            class="text-3xl font-bold text-gray-900 leading-tight break-words"
-                        >
-                            {{ user.name }}
-                        </h2>
+                        {{
+                            saving
+                                ? 'Saving...'
+                                : 'Save Changes'
+                        }}
+
+                    </button>
+
+
+                    <button
+                        @click="cancelEdit"
+                        :disabled="saving"
+                        class="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    >
+
+                        Cancel
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- ACCOUNT INFORMATION -->
+            <!-- ================================================= -->
+
+            <div
+                class="border-t border-gray-200 dark:border-gray-700 py-8"
+            >
+
+                <h3
+                    class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+                >
+                    Account Information
+                </h3>
+
+
+                <div
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+                >
+
+                    <!-- USER ID -->
+
+                    <div
+                        class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 hover:shadow-sm transition"
+                    >
 
                         <p
-                            class="text-gray-500 mt-2 break-all"
+                            class="text-sm text-gray-500 dark:text-gray-400 mb-2"
                         >
-                            {{ user.email }}
+                            User ID
                         </p>
 
                         <p
-                            class="text-xs text-gray-400 mt-2"
+                            class="text-xl font-semibold text-gray-900 dark:text-white"
                         >
-                            Click the camera icon to change your photo
+                            #{{ user.id }}
                         </p>
 
                     </div>
 
 
-                    <!-- EDIT BUTTON -->
+                    <!-- EMAIL -->
+
+                    <div
+                        class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 hover:shadow-sm transition"
+                    >
+
+                        <p
+                            class="text-sm text-gray-500 dark:text-gray-400 mb-2"
+                        >
+                            Email Address
+                        </p>
+
+                        <p
+                            class="font-semibold text-gray-900 dark:text-white break-all"
+                        >
+                            {{ user.email }}
+                        </p>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div
+                        class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 hover:shadow-sm transition"
+                    >
+
+                        <p
+                            class="text-sm text-gray-500 dark:text-gray-400 mb-2"
+                        >
+                            Account Status
+                        </p>
+
+                        <div
+                            class="flex items-center gap-2"
+                        >
+
+                            <span
+                                class="w-2.5 h-2.5 rounded-full bg-green-500"
+                            ></span>
+
+                            <span
+                                class="font-semibold text-green-600 dark:text-green-400"
+                            >
+                                Active
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- ACCOUNT DETAILS -->
+            <!-- ================================================= -->
+
+            <div
+                class="border-t border-gray-200 dark:border-gray-700 py-8"
+            >
+
+                <h3
+                    class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+                >
+                    Account Details
+                </h3>
+
+
+                <div
+                    class="space-y-6"
+                >
+
+                    <!-- NAME -->
+
+                    <div>
+
+                        <p
+                            class="text-sm text-gray-500 dark:text-gray-400"
+                        >
+                            Full Name
+                        </p>
+
+                        <p
+                            class="font-medium text-gray-900 dark:text-white mt-1 break-words"
+                        >
+                            {{ user.name }}
+                        </p>
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+
+                    <div>
+
+                        <p
+                            class="text-sm text-gray-500 dark:text-gray-400"
+                        >
+                            Email
+                        </p>
+
+                        <p
+                            class="font-medium text-gray-900 dark:text-white mt-1 break-all"
+                        >
+                            {{ user.email }}
+                        </p>
+
+                    </div>
+
+
+                    <!-- MEMBER SINCE -->
+
+                    <div>
+
+                        <p
+                            class="text-sm text-gray-500 dark:text-gray-400"
+                        >
+                            Member Since
+                        </p>
+
+                        <p
+                            class="font-medium text-gray-900 dark:text-white mt-1"
+                        >
+                            {{ formatDate(user.created_at) }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CHANGE PASSWORD -->
+            <!-- ================================================= -->
+
+            <div
+                class="border-t border-gray-200 dark:border-gray-700 py-8"
+            >
+
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                >
+
+                    <div>
+
+                        <h3
+                            class="text-xl font-semibold text-gray-900 dark:text-white"
+                        >
+                            Password
+                        </h3>
+
+                        <p
+                            class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                        >
+                            Change your account password
+                        </p>
+
+                    </div>
+
 
                     <button
-                        v-if="!editing"
-                        @click="editProfile"
-                        class="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition shadow-sm"
+                        v-if="!changingPassword"
+                        @click="openChangePassword"
+                        class="px-5 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition"
                     >
-                        Edit Profile
+                        Change Password
                     </button>
 
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- EDIT PROFILE -->
-                <!-- ================================================= -->
+                <!-- PASSWORD FORM -->
 
                 <div
-                    v-if="editing"
-                    class="mb-8 bg-gray-50 border border-gray-200 rounded-2xl p-6"
+                    v-if="changingPassword"
+                    class="mt-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-6"
                 >
 
-                    <h3
-                        class="text-lg font-semibold text-gray-900 mb-5"
-                    >
-                        Edit Profile
-                    </h3>
-
-
                     <div
-                        class="grid grid-cols-1 md:grid-cols-2 gap-5"
+                        class="space-y-5"
                     >
 
-                        <!-- NAME -->
+                        <!-- CURRENT PASSWORD -->
 
                         <div>
 
                             <label
-                                class="block text-sm font-medium text-gray-700 mb-2"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                             >
-                                Full Name
+                                Current Password
                             </label>
 
                             <input
-                                v-model="editName"
-                                type="text"
-                                class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter your name"
+                                v-model="currentPassword"
+                                type="password"
+                                autocomplete="current-password"
+                                class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter current password"
                             />
 
                         </div>
 
 
-                        <!-- EMAIL -->
+                        <!-- NEW PASSWORD -->
 
                         <div>
 
                             <label
-                                class="block text-sm font-medium text-gray-700 mb-2"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                             >
-                                Email Address
+                                New Password
                             </label>
 
                             <input
-                                v-model="editEmail"
-                                type="email"
-                                class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter your email"
+                                v-model="newPassword"
+                                type="password"
+                                autocomplete="new-password"
+                                class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter new password"
+                            />
+
+                            <p
+                                class="text-xs text-gray-400 dark:text-gray-500 mt-2"
+                            >
+                                Minimum 8 characters.
+                            </p>
+
+                        </div>
+
+
+                        <!-- CONFIRM PASSWORD -->
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            >
+                                Confirm New Password
+                            </label>
+
+                            <input
+                                v-model="confirmPassword"
+                                type="password"
+                                autocomplete="new-password"
+                                class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Confirm new password"
                             />
 
                         </div>
@@ -1291,31 +1628,31 @@ onMounted(() => {
                     </div>
 
 
-                    <!-- BUTTONS -->
+                    <!-- PASSWORD BUTTONS -->
 
                     <div
                         class="flex flex-col sm:flex-row gap-3 mt-6"
                     >
 
                         <button
-                            @click="saveProfile"
-                            :disabled="saving"
+                            @click="savePassword"
+                            :disabled="passwordLoading"
                             class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50"
                         >
 
                             {{
-                                saving
-                                    ? 'Saving...'
-                                    : 'Save Changes'
+                                passwordLoading
+                                    ? 'Changing...'
+                                    : 'Change Password'
                             }}
 
                         </button>
 
 
                         <button
-                            @click="cancelEdit"
-                            :disabled="saving"
-                            class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
+                            @click="cancelChangePassword"
+                            :disabled="passwordLoading"
+                            class="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                         >
 
                             Cancel
@@ -1326,334 +1663,110 @@ onMounted(() => {
 
                 </div>
 
+            </div>
 
-                <!-- ================================================= -->
-                <!-- ACCOUNT INFORMATION -->
-                <!-- ================================================= -->
 
-                <div
-                    class="border-t border-gray-200 py-8"
+            <!-- ================================================= -->
+            <!-- DOCUMENT -->
+            <!-- ================================================= -->
+
+            <div
+                class="border-t border-gray-200 dark:border-gray-700 py-8"
+            >
+
+                <h3
+                    class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
                 >
-
-                    <h3
-                        class="text-xl font-semibold text-gray-900 mb-6"
-                    >
-                        Account Information
-                    </h3>
+                    Documents
+                </h3>
 
 
-                    <div
-                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-                    >
-
-                        <!-- USER ID -->
-
-                        <div
-                            class="rounded-xl border border-gray-200 p-5 hover:shadow-sm transition"
-                        >
-
-                            <p
-                                class="text-sm text-gray-500 mb-2"
-                            >
-                                User ID
-                            </p>
-
-                            <p
-                                class="text-xl font-semibold text-gray-900"
-                            >
-                                #{{ user.id }}
-                            </p>
-
-                        </div>
-
-
-                        <!-- EMAIL -->
-
-                        <div
-                            class="rounded-xl border border-gray-200 p-5 hover:shadow-sm transition"
-                        >
-
-                            <p
-                                class="text-sm text-gray-500 mb-2"
-                            >
-                                Email Address
-                            </p>
-
-                            <p
-                                class="font-semibold text-gray-900 break-all"
-                            >
-                                {{ user.email }}
-                            </p>
-
-                        </div>
-
-
-                        <!-- STATUS -->
-
-                        <div
-                            class="rounded-xl border border-gray-200 p-5 hover:shadow-sm transition"
-                        >
-
-                            <p
-                                class="text-sm text-gray-500 mb-2"
-                            >
-                                Account Status
-                            </p>
-
-                            <div
-                                class="flex items-center gap-2"
-                            >
-
-                                <span
-                                    class="w-2.5 h-2.5 rounded-full bg-green-500"
-                                ></span>
-
-                                <span
-                                    class="font-semibold text-green-600"
-                                >
-                                    Active
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- ================================================= -->
-                <!-- ACCOUNT DETAILS -->
-                <!-- ================================================= -->
+                <!-- DOCUMENT EXISTS -->
 
                 <div
-                    class="border-t border-gray-200 py-8"
-                >
-
-                    <h3
-                        class="text-xl font-semibold text-gray-900 mb-6"
-                    >
-                        Account Details
-                    </h3>
-
-
-                    <div
-                        class="space-y-6"
-                    >
-
-                        <!-- NAME -->
-
-                        <div>
-
-                            <p
-                                class="text-sm text-gray-500"
-                            >
-                                Full Name
-                            </p>
-
-                            <p
-                                class="font-medium text-gray-900 mt-1 break-words"
-                            >
-                                {{ user.name }}
-                            </p>
-
-                        </div>
-
-
-                        <!-- EMAIL -->
-
-                        <div>
-
-                            <p
-                                class="text-sm text-gray-500"
-                            >
-                                Email
-                            </p>
-
-                            <p
-                                class="font-medium text-gray-900 mt-1 break-all"
-                            >
-                                {{ user.email }}
-                            </p>
-
-                        </div>
-
-
-                        <!-- MEMBER SINCE -->
-
-                        <div>
-
-                            <p
-                                class="text-sm text-gray-500"
-                            >
-                                Member Since
-                            </p>
-
-                            <p
-                                class="font-medium text-gray-900 mt-1"
-                            >
-                                {{ formatDate(user.created_at) }}
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- ================================================= -->
-                <!-- CHANGE PASSWORD -->
-                <!-- ================================================= -->
-
-                <div
-                    class="border-t border-gray-200 py-8"
+                    v-if="user.document"
+                    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5"
                 >
 
                     <div
                         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
                     >
 
-                        <div>
-
-                            <h3
-                                class="text-xl font-semibold text-gray-900"
-                            >
-                                Password
-                            </h3>
-
-                            <p
-                                class="text-sm text-gray-500 mt-1"
-                            >
-                                Change your account password
-                            </p>
-
-                        </div>
-
-
-                        <button
-                            v-if="!changingPassword"
-                            @click="openChangePassword"
-                            class="px-5 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition"
-                        >
-                            Change Password
-                        </button>
-
-                    </div>
-
-
-                    <!-- PASSWORD FORM -->
-
-                    <div
-                        v-if="changingPassword"
-                        class="mt-6 bg-gray-50 border border-gray-200 rounded-2xl p-6"
-                    >
+                        <!-- FILE INFO -->
 
                         <div
-                            class="space-y-5"
+                            class="flex items-center gap-4"
                         >
 
-                            <!-- CURRENT PASSWORD -->
+                            <div
+                                class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center"
+                            >
 
-                            <div>
-
-                                <label
-                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                <span
+                                    class="text-2xl"
                                 >
-                                    Current Password
-                                </label>
-
-                                <input
-                                    v-model="currentPassword"
-                                    type="password"
-                                    autocomplete="current-password"
-                                    class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter current password"
-                                />
+                                    📄
+                                </span>
 
                             </div>
 
 
-                            <!-- NEW PASSWORD -->
-
                             <div>
 
-                                <label
-                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                <p
+                                    class="font-semibold text-gray-900 dark:text-white"
                                 >
-                                    New Password
-                                </label>
-
-                                <input
-                                    v-model="newPassword"
-                                    type="password"
-                                    autocomplete="new-password"
-                                    class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter new password"
-                                />
+                                    PDF Document
+                                </p>
 
                                 <p
-                                    class="text-xs text-gray-400 mt-2"
+                                    class="text-sm text-gray-500 dark:text-gray-400"
                                 >
-                                    Minimum 8 characters.
+                                    Uploaded document
                                 </p>
 
                             </div>
 
-
-                            <!-- CONFIRM PASSWORD -->
-
-                            <div>
-
-                                <label
-                                    class="block text-sm font-medium text-gray-700 mb-2"
-                                >
-                                    Confirm New Password
-                                </label>
-
-                                <input
-                                    v-model="confirmPassword"
-                                    type="password"
-                                    autocomplete="new-password"
-                                    class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Confirm new password"
-                                />
-
-                            </div>
-
                         </div>
 
 
-                        <!-- PASSWORD BUTTONS -->
+                        <!-- BUTTONS -->
 
                         <div
-                            class="flex flex-col sm:flex-row gap-3 mt-6"
+                            class="flex flex-wrap gap-2"
                         >
 
-                            <button
-                                @click="savePassword"
-                                :disabled="passwordLoading"
-                                class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                            <!-- VIEW -->
+
+                            <a
+                                :href="documentUrl()"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
                             >
+                                View
+                            </a>
 
-                                {{
-                                    passwordLoading
-                                        ? 'Changing...'
-                                        : 'Change Password'
-                                }}
 
-                            </button>
+                            <!-- DOWNLOAD -->
 
+                            <a
+                                :href="documentUrl()"
+                                download
+                                class="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition"
+                            >
+                                Download
+                            </a>
+
+
+                            <!-- DELETE -->
 
                             <button
-                                @click="cancelChangePassword"
-                                :disabled="passwordLoading"
-                                class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
+                                type="button"
+                                @click="deleteDocumentFile"
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
                             >
-
-                                Cancel
-
+                                Delete
                             </button>
 
                         </div>
@@ -1663,134 +1776,23 @@ onMounted(() => {
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- DOCUMENT -->
-                <!-- ================================================= -->
+                <!-- NO DOCUMENT -->
 
                 <div
-                    class="border-t border-gray-200 py-8"
+                    v-else
+                    class="border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-6 text-center"
                 >
 
-                    <h3
-                        class="text-xl font-semibold text-gray-900 mb-6"
+                    <p
+                        class="text-gray-500 dark:text-gray-400"
                     >
-                        Documents
-                    </h3>
-
-
-                    <!-- DOCUMENT EXISTS -->
-
-                    <div
-                        v-if="user.document"
-                        class="border border-gray-200 rounded-xl p-5"
-                    >
-
-                        <div
-                            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-                        >
-
-                            <!-- FILE INFO -->
-
-                            <div
-                                class="flex items-center gap-4"
-                            >
-
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center"
-                                >
-
-                                    <span
-                                        class="text-2xl"
-                                    >
-                                        📄
-                                    </span>
-
-                                </div>
-
-
-                                <div>
-
-                                    <p
-                                        class="font-semibold text-gray-900"
-                                    >
-                                        PDF Document
-                                    </p>
-
-                                    <p
-                                        class="text-sm text-gray-500"
-                                    >
-                                        Uploaded document
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- BUTTONS -->
-
-                            <div
-                                class="flex flex-wrap gap-2"
-                            >
-
-                                <!-- VIEW -->
-
-                                <a
-                                    :href="documentUrl()"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
-                                >
-                                    View
-                                </a>
-
-
-                                <!-- DOWNLOAD -->
-
-                                <a
-                                    :href="documentUrl()"
-                                    download
-                                    class="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition"
-                                >
-                                    Download
-                                </a>
-
-
-                                <!-- DELETE -->
-
-                                <button
-                                    type="button"
-                                    @click="deleteDocumentFile"
-                                    class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
-                                >
-                                    Delete
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- NO DOCUMENT -->
-
-                    <div
-                        v-else
-                        class="border border-dashed border-gray-300 rounded-xl p-6 text-center"
-                    >
-
-                        <p
-                            class="text-gray-500"
-                        >
-                            No document uploaded.
-                        </p>
-
-                    </div>
+                        No document uploaded.
+                    </p>
 
                 </div>
 
             </div>
+
 
         </div>
 
@@ -1798,4 +1800,8 @@ onMounted(() => {
 
 </div>
 
+
+</div>
+
 </template>
+

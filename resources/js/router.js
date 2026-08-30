@@ -4,6 +4,7 @@ import Login from './components/Login.vue'
 import Register from './components/Register.vue'
 import StudentList from './components/StudentList.vue'
 import Profile from './components/Profile.vue'
+import Trash from './components/Trash.vue'
 
 const routes = [
     {
@@ -24,10 +25,17 @@ const routes = [
         }
 
     },
+    {
+        path:'/students',
+        component:StudentList,
+        meta:{
+            requiresAuth: true
+        }
+    },
 
     {
-        path: '/students',
-        component: StudentList,
+        path: '/trash',
+        component: Trash,
         meta: {
             requiresAuth: true
         }

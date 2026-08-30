@@ -20,28 +20,28 @@ class StudentController extends Controller
     }
 
     /**
- * Student statistics.
- */
-public function statistics()
-{
-    $totalStudents = Student::count();
+     * Student statistics.
+     */
+    public function statistics()
+    {
+        $totalStudents = Student::count();
 
-    $activeStudents = Student::where(
-        'status',
-        'active'
-    )->count();
+        $activeStudents = Student::where(
+            'status',
+            'active'
+        )->count();
 
-    $inactiveStudents = Student::where(
-        'status',
-        'inactive'
-    )->count();
+        $inactiveStudents = Student::where(
+            'status',
+            'inactive'
+        )->count();
 
-    return response()->json([
-        'total' => $totalStudents,
-        'active' => $activeStudents,
-        'inactive' => $inactiveStudents,
-    ]);
-}
+        return response()->json([
+            'total' => $totalStudents,
+            'active' => $activeStudents,
+            'inactive' => $inactiveStudents,
+        ]);
+    }
 
     /**
      * Store a new student.
@@ -53,12 +53,9 @@ public function statistics()
             'email' => 'required|email|max:255|unique:students,email',
             'phone' => 'required|string|max:20',
             'status' => 'required|in:active,inactive',
-
-            // Student photo
             'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        // Upload photo
         if ($request->hasFile('photo')) {
             $validated['photo'] =
                 $request->file('photo')->store('students', 'public');
@@ -90,12 +87,9 @@ public function statistics()
             'email' => 'required|email|max:255|unique:students,email,' . $student->id,
             'phone' => 'required|string|max:20',
             'status' => 'required|in:active,inactive',
-
-            // Student photo
             'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        // Replace old photo if a new one is uploaded
         if ($request->hasFile('photo')) {
 
             if ($student->photo) {
@@ -115,24 +109,21 @@ public function statistics()
     }
 
     /**
-     * Delete one student.
+     * Move one student to Trash.
      */
     public function destroy(Student $student)
     {
-        // Delete student's photo
-        if ($student->photo) {
-            Storage::disk('public')->delete($student->photo);
-        }
-
+        // Do NOT delete the photo.
+        // We need it if the student is restored.
         $student->delete();
 
         return response()->json([
-            'message' => 'Student deleted successfully.',
+            'message' => 'Student moved to trash successfully.',
         ]);
     }
 
     /**
-     * Bulk delete students.
+     * Bulk move students to Trash.
      */
     public function bulkDelete(Request $request)
     {
@@ -141,28 +132,59 @@ public function statistics()
             'ids.*' => 'integer|exists:students,id',
         ]);
 
-        $students = Student::whereIn(
-            'id',
-            $request->ids
-        )->get();
-
-        // Delete photos
-        foreach ($students as $student) {
-
-            if ($student->photo) {
-                Storage::disk('public')->delete(
-                    $student->photo
-                );
-            }
-        }
-
         Student::whereIn(
             'id',
             $request->ids
         )->delete();
 
         return response()->json([
-            'message' => 'Students deleted successfully.',
+            'message' => 'Students moved to trash successfully.',
+        ]);
+    }
+
+    /**
+     * Display all trashed students.
+     */
+    public function trash()
+    {
+        $students = Student::onlyTrashed()
+            ->latest('deleted_at')
+            ->get();
+
+        return response()->json($students);
+    }
+
+    /**
+     * Restore a trashed student.
+     */
+    public function restore($id)
+    {
+        $student = Student::onlyTrashed()->findOrFail($id);
+
+        $student->restore();
+
+        return response()->json([
+            'message' => 'Student restored successfully.',
+            'student' => $student,
+        ]);
+    }
+
+    /**
+     * Permanently delete a student.
+     */
+    public function forceDelete($id)
+    {
+        $student = Student::onlyTrashed()->findOrFail($id);
+
+        // Delete photo only when permanently deleting.
+        if ($student->photo) {
+            Storage::disk('public')->delete($student->photo);
+        }
+
+        $student->forceDelete();
+
+        return response()->json([
+            'message' => 'Student permanently deleted.',
         ]);
     }
 }

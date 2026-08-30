@@ -1,3 +1,4 @@
+
 <script setup>
 
 defineProps({
@@ -29,7 +30,16 @@ const emit = defineEmits([
 
 <template>
 
-<tr class="border-b hover:bg-gray-50">
+<tr
+    class="
+        border-b
+        border-gray-200
+        dark:border-gray-700
+        hover:bg-gray-50
+        dark:hover:bg-gray-800
+        transition
+    "
+>
 
     <!-- CHECKBOX -->
 
@@ -39,6 +49,13 @@ const emit = defineEmits([
             type="checkbox"
             :checked="selected"
             @change="emit('toggle', student.id)"
+            class="
+                rounded
+                border-gray-300
+                dark:border-gray-600
+                dark:bg-gray-700
+                dark:checked:bg-blue-600
+            "
         />
 
     </td>
@@ -46,7 +63,15 @@ const emit = defineEmits([
 
     <!-- S.N. -->
 
-    <td class="px-5 py-4 text-sm text-gray-700">
+    <td
+        class="
+            px-5
+            py-4
+            text-sm
+            text-gray-700
+            dark:text-gray-300
+        "
+    >
 
         {{ index + 1 }}
 
@@ -55,7 +80,15 @@ const emit = defineEmits([
 
     <!-- ID -->
 
-    <td class="px-5 py-4 text-sm text-gray-700">
+    <td
+        class="
+            px-5
+            py-4
+            text-sm
+            text-gray-700
+            dark:text-gray-300
+        "
+    >
 
         {{ student.id }}
 
@@ -65,7 +98,14 @@ const emit = defineEmits([
     <!-- NAME -->
 
     <td
-        class="px-5 py-4 text-sm text-gray-700 font-medium"
+        class="
+            px-5
+            py-4
+            text-sm
+            text-gray-900
+            dark:text-white
+            font-semibold
+        "
     >
 
         {{ student.name }}
@@ -75,7 +115,15 @@ const emit = defineEmits([
 
     <!-- EMAIL -->
 
-    <td class="px-5 py-4 text-sm text-gray-700">
+    <td
+        class="
+            px-5
+            py-4
+            text-sm
+            text-gray-700
+            dark:text-gray-300
+        "
+    >
 
         {{ student.email }}
 
@@ -84,7 +132,15 @@ const emit = defineEmits([
 
     <!-- PHONE -->
 
-    <td class="px-5 py-4 text-sm text-gray-700">
+    <td
+        class="
+            px-5
+            py-4
+            text-sm
+            text-gray-700
+            dark:text-gray-300
+        "
+    >
 
         {{ student.phone }}
 
@@ -95,19 +151,23 @@ const emit = defineEmits([
 
     <td class="px-5 py-4">
 
-        <!-- STATUS SLOT -->
-
         <slot
             name="status"
             :student="student"
         >
 
             <span
-                class="px-3 py-1 rounded-full text-xs font-semibold"
+                class="
+                    px-3
+                    py-1
+                    rounded-full
+                    text-xs
+                    font-semibold
+                "
                 :class="
                     student.status === 'active'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                        : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
                 "
             >
 
@@ -124,8 +184,6 @@ const emit = defineEmits([
 
     <td class="px-5 py-4">
 
-        <!-- ACTIONS SLOT -->
-
         <slot
             name="actions"
             :student="student"
@@ -133,17 +191,35 @@ const emit = defineEmits([
 
             <div class="flex gap-4">
 
+                <!-- EDIT -->
+
                 <button
                     @click="emit('edit', student)"
-                    class="text-blue-600 hover:text-blue-800 font-medium"
+                    class="
+                        text-blue-600
+                        dark:text-blue-400
+                        hover:text-blue-800
+                        dark:hover:text-blue-300
+                        font-medium
+                        transition
+                    "
                 >
                     Edit
                 </button>
 
 
+                <!-- DELETE -->
+
                 <button
                     @click="emit('delete', student)"
-                    class="text-red-600 hover:text-red-800 font-medium"
+                    class="
+                        text-red-600
+                        dark:text-red-400
+                        hover:text-red-800
+                        dark:hover:text-red-300
+                        font-medium
+                        transition
+                    "
                 >
                     Delete
                 </button>
@@ -157,3 +233,4 @@ const emit = defineEmits([
 </tr>
 
 </template>
+
