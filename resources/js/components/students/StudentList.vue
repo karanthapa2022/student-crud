@@ -1,21 +1,37 @@
-
 <script setup>
 
-import BaseTable from './BaseTable.vue'
-import BaseButton from './BaseButton.vue'
+import BaseTable from '../BaseTable.vue'
+import BaseButton from '../BaseButton.vue'
 
 import {
     ref,
     computed,
     onMounted,
     onBeforeUnmount,
-    watch,
-    nextTick
+    nextTick,
+    watch
 } from 'vue'
 
 import { useRouter } from 'vue-router'
+
 import axios from 'axios'
-import { useStudentStore } from '../stores/student'
+
+import { useStudentStore } from '../../stores/students/student'
+import { useParentStore } from '../../stores/parents/parent'
+import { useAddressStore } from '../../stores/addresses/address'
+import { useSubjectStore } from '../../stores/subjects/subject'
+
+
+import {
+    updateStudentWithPhoto,
+    deleteStudent as deleteStudentApi,
+    bulkDeleteStudents
+} from '../../services/students/studentApi'
+
+
+// =========================================================
+// CHART.JS
+// =========================================================
 
 import {
     Chart,
@@ -25,18 +41,13 @@ import {
     Legend
 } from 'chart.js'
 
+
 Chart.register(
     DoughnutController,
     ArcElement,
     Tooltip,
     Legend
 )
-
-import {
-    updateStudentWithPhoto,
-    deleteStudent as deleteStudentApi,
-    bulkDeleteStudents
-} from '../services/studentApi'
 
 
 // =========================================================
@@ -45,22 +56,58 @@ import {
 
 const router = useRouter()
 
-const isDark = ref(false)
+const studentStore = useStudentStore()
+const parentStore =useParentStore()
+const addressStore = useAddressStore()
+const subjectStore = useSubjectStore()
 
-const toggleDarkMode = () => {
-    isDark.value = !isDark.value
+
+// =========================================================
+// DARK MODE
+// =========================================================
+
+const isDark = ref(
+    localStorage.getItem('theme') === 'dark'
+)
+
+
+const applyDarkMode = () => {
 
     if (isDark.value) {
+
         document.documentElement.classList.add('dark')
+
     } else {
+
         document.documentElement.classList.remove('dark')
+
     }
+
 }
 
-const studentStore = useStudentStore()
 
-const goToTrash=()=>{
+const toggleDarkMode = () => {
+
+    isDark.value = !isDark.value
+
+    localStorage.setItem(
+        'theme',
+        isDark.value ? 'dark' : 'light'
+    )
+
+    applyDarkMode()
+
+}
+
+
+// =========================================================
+// TRASH
+// =========================================================
+
+const goToTrash = () => {
+
     router.push('/trash')
+
 }
 
 
@@ -70,12 +117,19 @@ const goToTrash=()=>{
 
 const showAddForm = ref(false)
 
+
 const newStudent = ref({
+
     name: '',
     email: '',
     phone: '',
     status: 'active',
-    photo: null
+    photo: null,
+    parent_id: null,
+    address_id: null,
+    photo: null,
+    subjects:[]
+
 })
 
 
@@ -92,20 +146,57 @@ const handlePhotoChange = (event) => {
 // =========================================================
 
 const tableHeaders = [
-    { key: 'select', label: '' },
-    { key: 'sn', label: 'S.N.' },
-    { key: 'id', label: 'ID' },
-    { key: 'photo', label: 'Photo' },
-    { key: 'name', label: 'Name' },
-    { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Phone' },
-    { key: 'status', label: 'Status' },
-    { key: 'actions', label: 'Actions' }
+
+    {
+        key: 'select',
+        label: ''
+    },
+
+    {
+        key: 'sn',
+        label: 'S.N.'
+    },
+
+    {
+        key: 'id',
+        label: 'ID'
+    },
+
+    {
+        key: 'photo',
+        label: 'Photo'
+    },
+
+    {
+        key: 'name',
+        label: 'Name'
+    },
+
+    {
+        key: 'email',
+        label: 'Email'
+    },
+
+    {
+        key: 'phone',
+        label: 'Phone'
+    },
+
+    {
+        key: 'status',
+        label: 'Status'
+    },
+
+    {
+        key: 'actions',
+        label: 'Actions'
+    }
+
 ]
 
 
 // =========================================================
-// EDIT + VIEW STUDENT
+// EDIT + VIEW
 // =========================================================
 
 const editingStudent = ref(null)
@@ -115,11 +206,19 @@ const viewingStudent = ref(null)
 
 const editStudent = (student) => {
 
-    console.log('Edit clicked:', student)
-
     editingStudent.value = {
+
         ...student,
+
+        // Convert subject objects into subject IDs
+        subjects: student.subjects
+            ? student.subjects.map(
+                subject => subject.id
+            )
+            : [],
+
         newPhoto: null
+
     }
 
 }
@@ -128,7 +227,9 @@ const editStudent = (student) => {
 const viewStudent = (student) => {
 
     viewingStudent.value = {
+
         ...student
+
     }
 
 }
@@ -149,8 +250,7 @@ const toggleStudent = (id) => {
 
         selectedStudents.value =
             selectedStudents.value.filter(
-                studentId =>
-                    studentId !== id
+                studentId => studentId !== id
             )
 
     } else {
@@ -169,9 +269,12 @@ const toggleStudent = (id) => {
 const allSelected = computed(() => {
 
     return (
+
         studentStore.students.length > 0 &&
+
         selectedStudents.value.length ===
         studentStore.students.length
+
     )
 
 })
@@ -204,140 +307,199 @@ const searchQuery = ref('')
 const statusFilter = ref('all')
 
 
-const filteredStudents = computed(() => {
+// =========================================================
+// SEARCH + FILTER FROM API
+// =========================================================
 
-    return studentStore.students.filter(student => {
+const applyFilters = async () => {
 
-        const search =
-            searchQuery.value
-                .toLowerCase()
-                .trim()
+    selectedStudents.value = []
 
+    await studentStore.fetchStudents(
+        1,
+        searchQuery.value,
+        statusFilter.value
+    )
 
-        const matchesSearch =
-            student.name
-                ?.toLowerCase()
-                .includes(search) ||
-
-            student.email
-                ?.toLowerCase()
-                .includes(search) ||
-
-            student.phone
-                ?.toLowerCase()
-                .includes(search)
+}
 
 
-        const matchesStatus =
-            statusFilter.value === 'all' ||
-            student.status === statusFilter.value
+watch(
+    searchQuery,
+    () => {
+
+        applyFilters()
+
+    }
+)
 
 
-        return matchesSearch && matchesStatus
+watch(
+    statusFilter,
+    () => {
 
-    })
+        applyFilters()
 
-})
+    }
+)
 
 
 // =========================================================
 // PAGINATION
 // =========================================================
 
-const currentPage = ref(1)
+const currentPage = computed(() => {
 
-const itemsPerPage = 10
+    return (
+        studentStore.pagination.currentPage || 1
+    )
+
+})
 
 
 const totalPages = computed(() => {
 
-    return Math.ceil(
-        filteredStudents.value.length /
-        itemsPerPage
+    return (
+        studentStore.pagination.lastPage || 1
     )
 
 })
 
 
-const paginatedStudents = computed(() => {
+const itemsPerPage = computed(() => {
 
-    const start =
-        (currentPage.value - 1) *
-        itemsPerPage
+    return (
+        studentStore.pagination.perPage || 10
+    )
 
-    const end =
-        start + itemsPerPage
+})
 
-    return filteredStudents.value.slice(
-        start,
-        end
+
+const totalStudents = computed(() => {
+
+    return (
+        studentStore.pagination.totalStudents || 0
+    )
+
+})
+
+
+const showingFrom = computed(() => {
+
+    return (
+        studentStore.pagination.from || 0
+    )
+
+})
+
+
+const showingTo = computed(() => {
+
+    return (
+        studentStore.pagination.to || 0
     )
 
 })
 
 
 // =========================================================
-// RESET PAGE WHEN SEARCH / FILTER CHANGES
+// GO TO PAGE
 // =========================================================
 
-watch(
-    [searchQuery, statusFilter],
-    () => {
+const goToPage = async (page) => {
 
-        currentPage.value = 1
+    if (
+        page < 1 ||
+        page > totalPages.value
+    ) {
+
+        return
 
     }
-)
 
 
-// =========================================================
-// FIX PAGE AFTER DELETE / FILTER
-// =========================================================
+    if (
+        page === currentPage.value
+    ) {
 
-watch(
-    totalPages,
-    (pages) => {
-
-        if (
-            pages > 0 &&
-            currentPage.value > pages
-        ) {
-
-            currentPage.value = pages
-
-        }
+        return
 
     }
-)
+
+
+    selectedStudents.value = []
+
+
+    await studentStore.fetchStudents(
+
+        page,
+
+        searchQuery.value,
+
+        statusFilter.value
+
+    )
+
+}
+
+
+// =========================================================
+// PREVIOUS PAGE
+// =========================================================
+
+const previousPage = async () => {
+
+    if (
+        currentPage.value > 1
+    ) {
+
+        await goToPage(
+            currentPage.value - 1
+        )
+
+    }
+
+}
+
+
+// =========================================================
+// NEXT PAGE
+// =========================================================
+
+const nextPage = async () => {
+
+    if (
+        currentPage.value <
+        totalPages.value
+    ) {
+
+        await goToPage(
+            currentPage.value + 1
+        )
+
+    }
+
+}
 
 
 // =========================================================
 // DASHBOARD STATISTICS
 // =========================================================
 
-const totalStudents = computed(() => {
-
-    return studentStore.students.length
-
-})
-
-
 const activeStudents = computed(() => {
 
-    return studentStore.students.filter(
-        student =>
-            student.status === 'active'
-    ).length
+    return (
+        studentStore.statistics.active || 0
+    )
 
 })
 
 
 const inactiveStudents = computed(() => {
 
-    return studentStore.students.filter(
-        student =>
-            student.status === 'inactive'
-    ).length
+    return (
+        studentStore.statistics.inactive || 0
+    )
 
 })
 
@@ -352,7 +514,7 @@ const studentsWithPhotos = computed(() => {
 
 
 // =========================================================
-// DASHBOARD CHART
+// CHART
 // =========================================================
 
 const statusChart = ref(null)
@@ -364,18 +526,8 @@ const createStatusChart = async () => {
 
     await nextTick()
 
-    console.log('=================================')
-    console.log(' Creating Status Chart')
-    console.log('Canvas:', statusChart.value)
-    console.log('Students:', studentStore.students)
-    console.log('=================================')
-
 
     if (!statusChart.value) {
-
-        console.log(
-            ' Chart canvas not found'
-        )
 
         return
 
@@ -392,106 +544,103 @@ const createStatusChart = async () => {
 
 
     const active =
-        studentStore.students.filter(
-            student =>
-                student.status === 'active'
-        ).length
+        studentStore.statistics.active || 0
 
 
     const inactive =
-        studentStore.students.filter(
-            student =>
-                student.status === 'inactive'
-        ).length
-
-
-    console.log(
-        ' Active Students:',
-        active
-    )
-
-    console.log(
-        ' Inactive Students:',
-        inactive
-    )
+        studentStore.statistics.inactive || 0
 
 
     try {
 
-        statusChartInstance = new Chart(
-            statusChart.value,
-            {
+        statusChartInstance =
+            new Chart(
+                statusChart.value,
+                {
 
-                type: 'doughnut',
+                    type: 'doughnut',
 
-                data: {
+                    data: {
 
-                    labels: [
-                        'Active Students',
-                        'Inactive Students'
-                    ],
+                        labels: [
 
-                    datasets: [
-                        {
+                            'Active Students',
 
-                            data: [
-                                active,
-                                inactive
-                            ],
+                            'Inactive Students'
 
-                            backgroundColor: [
-                                'green',
-                                'red'
-                            ],
+                        ],
 
-                            borderWidth: 3,
+                        datasets: [
 
-                            hoverOffset: 8
+                            {
 
-                        }
-                    ]
+                                data: [
 
-                },
+                                    active,
 
-                options: {
+                                    inactive
 
-                    responsive: true,
+                                ],
 
-                    maintainAspectRatio: false,
+                                backgroundColor: [
 
-                    cutout: '65%',
+                                    'green',
 
-                    animation: {
+                                    'red'
 
-                        duration: 800
+                                ],
 
-                    },
+                                borderWidth: 3,
 
-                    plugins: {
-
-                        legend: {
-
-                            display: true,
-
-                            position: 'bottom',
-
-                            labels: {
-
-                                padding: 20,
-
-                                font: {
-
-                                    size: 14
-
-                                }
+                                hoverOffset: 8
 
                             }
 
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        cutout: '65%',
+
+                        animation: {
+
+                            duration: 800
+
                         },
 
-                        tooltip: {
+                        plugins: {
 
-                            enabled: true
+                            legend: {
+
+                                display: true,
+
+                                position: 'bottom',
+
+                                labels: {
+
+                                    padding: 20,
+
+                                    font: {
+
+                                        size: 14
+
+                                    }
+
+                                }
+
+                            },
+
+                            tooltip: {
+
+                                enabled: true
+
+                            }
 
                         }
 
@@ -499,18 +648,12 @@ const createStatusChart = async () => {
 
                 }
 
-            }
-        )
-
-
-        console.log(
-            ' Chart created successfully'
-        )
+            )
 
     } catch (error) {
 
         console.error(
-            ' Chart creation failed:',
+            'Chart creation failed:',
             error
         )
 
@@ -520,18 +663,14 @@ const createStatusChart = async () => {
 
 
 // =========================================================
-// WATCH STUDENTS
+// WATCH STATISTICS
 // =========================================================
 
 watch(
 
-    () => studentStore.students,
+    () => studentStore.statistics,
 
     async () => {
-
-        console.log(
-            ' Students changed - updating chart'
-        )
 
         await createStatusChart()
 
@@ -577,9 +716,51 @@ const addStudent = async () => {
             'status',
             newStudent.value.status
         )
+        if(newStudent.value.parent_id){
+        formData.append(
+            'parent_id',
+            newStudent.value.parent_id
+        )}
+        if(newStudent.value.address_id){
+        formData.append(
+            'address_id',
+            newStudent.value.address_id
+        )}
 
+        // Always send subjects
+const selectedSubjects = editingStudent.value.subjects || []
 
-        if (newStudent.value.photo) {
+console.log('SELECTED SUBJECTS:', selectedSubjects)
+
+selectedSubjects.forEach(subjectId => {
+
+    console.log(
+        'SUBJECT ID:',
+        subjectId,
+        'TYPE:',
+        typeof subjectId
+    )
+
+    formData.append(
+        'subjects[]',
+        subjectId
+    )
+
+})
+
+// Tell Laravel to clear subjects when nothing is selected
+if (selectedSubjects.length === 0) {
+
+    formData.append(
+        'subjects',
+        JSON.stringify([])
+    )
+
+}
+
+        if (
+            newStudent.value.photo
+        ) {
 
             formData.append(
                 'photo',
@@ -600,28 +781,36 @@ const addStudent = async () => {
         newStudent.value = {
 
             name: '',
-
             email: '',
-
             phone: '',
-
             status: 'active',
-
-            photo: null
+            photo: null,
+            parent_id: null,
+            address_id: null,
+            subjects:[]
 
         }
 
 
-        await studentStore.fetchStudents()
+        // Keep current search/filter
+        await studentStore.fetchStudents(
 
-        await nextTick()
+            currentPage.value,
 
-        await createStatusChart()
+            searchQuery.value,
+
+            statusFilter.value
+
+        )
+
+
+        await studentStore.fetchStatistics()
 
 
         alert(
             'Student added successfully!'
         )
+
 
     } catch (error) {
 
@@ -647,7 +836,9 @@ const addStudent = async () => {
 
 const updateStudent = async () => {
 
-    if (!editingStudent.value) {
+    if (
+        !editingStudent.value
+    ) {
 
         return
 
@@ -682,6 +873,43 @@ const updateStudent = async () => {
             editingStudent.value.status
         )
 
+        if (editingStudent.value.parent_id) {
+
+    formData.append(
+        'parent_id',
+        editingStudent.value.parent_id
+    )
+
+}
+
+if (editingStudent.value.address_id) {
+
+    formData.append(
+        'address_id',
+        editingStudent.value.address_id
+    )
+
+}
+
+
+
+// Add selected subjects
+console.log(
+    'EDITING SUBJECTS:',
+    editingStudent.value.subjects
+)
+if (Array.isArray(editingStudent.value.subjects)) {
+
+    editingStudent.value.subjects.forEach(subjectId => {
+
+        formData.append(
+            'subjects[]',
+            subjectId
+        )
+
+    })
+
+}
 
         if (
             editingStudent.value.newPhoto
@@ -695,47 +923,39 @@ const updateStudent = async () => {
         }
 
 
-        const response =
-            await updateStudentWithPhoto(
-                editingStudent.value.id,
-                formData
-            )
+        await updateStudentWithPhoto(
 
+        
+            editingStudent.value.id,
 
-        const updatedStudent =
-            response.data.student ||
-            response.data
+            formData
 
+        )
 
-        const index =
-            studentStore.students.findIndex(
-                student =>
-                    student.id ===
-                    editingStudent.value.id
-            )
-
-
-        if (index !== -1) {
-
-            studentStore.students[index] =
-                updatedStudent
-
-        }
-
+        console.log('Selected subject IDs:', editingStudent.value.subjects)
 
         editingStudent.value = null
 
 
-        await studentStore.fetchStudents()
+        // Keep current search/filter
+        await studentStore.fetchStudents(
 
-        await nextTick()
+            currentPage.value,
 
-        await createStatusChart()
+            searchQuery.value,
+
+            statusFilter.value
+
+        )
+
+
+        await studentStore.fetchStatistics()
 
 
         alert(
             'Student updated successfully!'
         )
+
 
     } catch (error) {
 
@@ -743,6 +963,10 @@ const updateStudent = async () => {
             'Error updating student:',
             error
         )
+        console.log(
+    'VALIDATION ERRORS:',
+    error.response?.data
+)
 
 
         alert(
@@ -761,9 +985,10 @@ const updateStudent = async () => {
 
 const deleteStudent = async (student) => {
 
-    const confirmed = confirm(
-        `Are you sure you want to delete ${student.name}?`
-    )
+    const confirmed =
+        confirm(
+            `Are you sure you want to delete ${student.name}?`
+        )
 
 
     if (!confirmed) {
@@ -780,28 +1005,48 @@ const deleteStudent = async (student) => {
         )
 
 
-        studentStore.students =
-            studentStore.students.filter(
-                s =>
-                    s.id !== student.id
-            )
-
-
         selectedStudents.value =
             selectedStudents.value.filter(
-                id =>
-                    id !== student.id
+                id => id !== student.id
             )
 
 
-        await nextTick()
+        let pageToLoad =
+            currentPage.value
 
-        await createStatusChart()
+
+        // If last student on page was deleted,
+        // go back one page.
+        if (
+            studentStore.students.length === 1 &&
+            currentPage.value > 1
+        ) {
+
+            pageToLoad =
+                currentPage.value - 1
+
+        }
+
+
+        // Keep current search/filter
+        await studentStore.fetchStudents(
+
+            pageToLoad,
+
+            searchQuery.value,
+
+            statusFilter.value
+
+        )
+
+
+        await studentStore.fetchStatistics()
 
 
         alert(
             'Student deleted successfully!'
         )
+
 
     } catch (error) {
 
@@ -840,9 +1085,10 @@ const bulkDelete = async () => {
     }
 
 
-    const confirmed = confirm(
-        'Are you sure you want to delete the selected students?'
-    )
+    const confirmed =
+        confirm(
+            'Are you sure you want to delete the selected students?'
+        )
 
 
     if (!confirmed) {
@@ -859,26 +1105,52 @@ const bulkDelete = async () => {
         )
 
 
-        studentStore.students =
-            studentStore.students.filter(
-                student =>
-                    !selectedStudents.value.includes(
-                        student.id
-                    )
-            )
-
-
         selectedStudents.value = []
 
 
-        await nextTick()
+        let pageToLoad =
+            currentPage.value
 
-        await createStatusChart()
+
+        // Keep current search/filter
+        await studentStore.fetchStudents(
+
+            pageToLoad,
+
+            searchQuery.value,
+
+            statusFilter.value
+
+        )
+
+
+        // If current page becomes empty,
+        // go to previous page.
+        if (
+            studentStore.students.length === 0 &&
+            currentPage.value > 1
+        ) {
+
+            await studentStore.fetchStudents(
+
+                currentPage.value - 1,
+
+                searchQuery.value,
+
+                statusFilter.value
+
+            )
+
+        }
+
+
+        await studentStore.fetchStatistics()
 
 
         alert(
             'Selected students deleted successfully!'
         )
+
 
     } catch (error) {
 
@@ -955,30 +1227,37 @@ const logout = async () => {
 
 onMounted(async () => {
 
-    console.log(
-        ' StudentList mounted'
-    )
+    applyDarkMode()
+
 
     try {
 
-        await studentStore.fetchStudents()
+        await studentStore.fetchStudents(
 
+            1,
 
-        console.log(
-            ' Students fetched:',
-            studentStore.students
+            searchQuery.value,
+
+            statusFilter.value
+
         )
+
+
+        await studentStore.fetchStatistics()
+        await parentStore.fetchParents()
+        await addressStore.fetchAddresses()
+        await subjectStore.fetchSubjects()
 
 
         await nextTick()
 
-
         await createStatusChart()
+
 
     } catch (error) {
 
         console.error(
-            ' StudentList initialization error:',
+            'StudentList initialization error:',
             error
         )
 
@@ -992,11 +1271,6 @@ onMounted(async () => {
 // =========================================================
 
 onBeforeUnmount(() => {
-
-    console.log(
-        ' Destroying chart'
-    )
-
 
     if (statusChartInstance) {
 
@@ -1017,9 +1291,13 @@ onBeforeUnmount(() => {
     class="min-h-screen bg-gray-100 dark:bg-gray-950 p-4 sm:p-6 lg:p-8 transition-colors duration-300"
 >
 
-    <div class="w-full max-w-7xl mx-auto">
+    <div
+        class="w-full max-w-7xl mx-auto"
+    >
 
+        <!-- ================================================= -->
         <!-- HEADER -->
+        <!-- ================================================= -->
 
         <div
             class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5"
@@ -1042,7 +1320,9 @@ onBeforeUnmount(() => {
             </div>
 
 
-            <div class="flex flex-col sm:flex-row gap-3">
+            <div
+                class="flex flex-col sm:flex-row gap-3"
+            >
 
                 <button
                     type="button"
@@ -1066,19 +1346,21 @@ onBeforeUnmount(() => {
         </div>
 
 
+        <!-- ================================================= -->
         <!-- ERROR -->
+        <!-- ================================================= -->
 
         <div
             v-if="studentStore.error"
             class="mt-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl"
         >
-
             {{ studentStore.error }}
-
         </div>
 
 
+        <!-- ================================================= -->
         <!-- STATISTICS -->
+        <!-- ================================================= -->
 
         <div
             class="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5"
@@ -1087,7 +1369,7 @@ onBeforeUnmount(() => {
             <!-- TOTAL -->
 
             <div
-                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm hover:shadow-md dark:shadow-gray-950/40 transition"
+                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm"
             >
 
                 <p
@@ -1116,7 +1398,7 @@ onBeforeUnmount(() => {
             <!-- ACTIVE -->
 
             <div
-                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition"
+                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm"
             >
 
                 <p
@@ -1145,7 +1427,7 @@ onBeforeUnmount(() => {
             <!-- INACTIVE -->
 
             <div
-                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition"
+                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm"
             >
 
                 <p
@@ -1174,7 +1456,7 @@ onBeforeUnmount(() => {
             <!-- PHOTOS -->
 
             <div
-                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition"
+                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm"
             >
 
                 <p
@@ -1194,7 +1476,7 @@ onBeforeUnmount(() => {
                 <p
                     class="mt-2 text-xs text-gray-400 dark:text-gray-500"
                 >
-                    Profiles with photos
+                    Current page
                 </p>
 
             </div>
@@ -1202,10 +1484,12 @@ onBeforeUnmount(() => {
         </div>
 
 
+        <!-- ================================================= -->
         <!-- ACTION BAR -->
+        <!-- ================================================= -->
 
         <div
-            class="mt-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm transition-colors"
+            class="mt-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm"
         >
 
             <div
@@ -1252,18 +1536,14 @@ onBeforeUnmount(() => {
                     </BaseButton>
 
 
-                    <!-- TRASH -->
-
                     <button
                         type="button"
                         @click="goToTrash"
                         class="px-4 py-2.5 rounded-xl bg-gray-800 dark:bg-gray-700 text-white font-medium hover:bg-gray-900 dark:hover:bg-gray-600 transition"
                     >
-                         Trash
+                        Trash
                     </button>
 
-
-                    <!-- DARK MODE -->
 
                     <button
                         type="button"
@@ -1278,22 +1558,20 @@ onBeforeUnmount(() => {
             </div>
 
 
+            <!-- ================================================= -->
             <!-- SEARCH + FILTER -->
+            <!-- ================================================= -->
 
             <div
                 class="mt-5 flex flex-col lg:flex-row gap-3"
             >
 
-                <div class="relative flex-1">
-
-                    <input
-                        v-model="searchQuery"
-                        type="text"
-                        placeholder="Search by name, email or phone..."
-                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                    />
-
-                </div>
+                <input
+                    v-model="searchQuery"
+                    type="text"
+                    placeholder="Search by name, email or phone..."
+                    class="w-full flex-1 pl-4 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                />
 
 
                 <select
@@ -1318,7 +1596,9 @@ onBeforeUnmount(() => {
             </div>
 
 
+            <!-- ================================================= -->
             <!-- COUNT -->
+            <!-- ================================================= -->
 
             <div
                 class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
@@ -1333,7 +1613,15 @@ onBeforeUnmount(() => {
                     <span
                         class="font-semibold text-gray-800 dark:text-white"
                     >
-                        {{ filteredStudents.length }}
+                        {{ showingFrom }}
+                    </span>
+
+                    -
+
+                    <span
+                        class="font-semibold text-gray-800 dark:text-white"
+                    >
+                        {{ showingTo }}
                     </span>
 
                     of
@@ -1341,7 +1629,7 @@ onBeforeUnmount(() => {
                     <span
                         class="font-semibold text-gray-800 dark:text-white"
                     >
-                        {{ studentStore.students.length }}
+                        {{ totalStudents }}
                     </span>
 
                     students
@@ -1353,7 +1641,11 @@ onBeforeUnmount(() => {
                     v-if="selectedStudents.length > 0"
                     class="text-sm font-medium text-blue-600 dark:text-blue-400"
                 >
-                    {{ selectedStudents.length }} selected
+
+                    {{ selectedStudents.length }}
+
+                    selected
+
                 </p>
 
             </div>
@@ -1361,7 +1653,9 @@ onBeforeUnmount(() => {
         </div>
 
 
-        <!-- ADD STUDENT MODAL -->
+        <!-- ================================================= -->
+        <!-- ADD MODAL -->
+        <!-- ================================================= -->
 
         <Teleport to="body">
 
@@ -1398,7 +1692,7 @@ onBeforeUnmount(() => {
                         <button
                             type="button"
                             @click="showAddForm = false"
-                            class="w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white text-xl transition"
+                            class="w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 text-xl"
                         >
                             ×
                         </button>
@@ -1414,7 +1708,7 @@ onBeforeUnmount(() => {
                             v-model="newStudent.name"
                             type="text"
                             placeholder="Full Name"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         />
 
 
@@ -1422,7 +1716,7 @@ onBeforeUnmount(() => {
                             v-model="newStudent.email"
                             type="email"
                             placeholder="Email Address"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         />
 
 
@@ -1430,13 +1724,13 @@ onBeforeUnmount(() => {
                             v-model="newStudent.phone"
                             type="text"
                             placeholder="Phone Number"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         />
 
 
                         <select
                             v-model="newStudent.status"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         >
 
                             <option value="active">
@@ -1448,9 +1742,49 @@ onBeforeUnmount(() => {
                             </option>
 
                         </select>
+                        <select
+    v-model="newStudent.parent_id"
+    class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+>
+
+    <option :value="null">
+        Select Parent
+    </option>
+
+    <option
+        v-for="parent in parentStore.parents"
+        :key="parent.id"
+        :value="parent.id"
+    >
+        {{ parent.name }}
+    </option>
+
+</select>
+<select
+    v-model="newStudent.address_id"
+    class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+>
+
+    <option :value="null">
+        Select Address
+    </option>
+
+    <option
+        v-for="address in addressStore.addresses"
+        :key="address.id"
+        :value="address.id"
+    >
+        {{ address.province }} - {{ address.district }} - {{ address.municipality }} - Ward {{ address.ward }}
+    </option>
+
+</select>
 
 
-                        <div class="md:col-span-2">
+
+
+                        <div
+                            class="md:col-span-2"
+                        >
 
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
@@ -1487,7 +1821,7 @@ onBeforeUnmount(() => {
                         <button
                             type="button"
                             @click="showAddForm = false"
-                            class="w-full sm:w-auto border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                            class="w-full sm:w-auto border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-medium"
                         >
                             Cancel
                         </button>
@@ -1501,7 +1835,9 @@ onBeforeUnmount(() => {
         </Teleport>
 
 
-        <!-- VIEW STUDENT MODAL -->
+        <!-- ================================================= -->
+        <!-- VIEW MODAL -->
+        <!-- ================================================= -->
 
         <Teleport to="body">
 
@@ -1518,27 +1854,17 @@ onBeforeUnmount(() => {
                         class="flex items-center justify-between mb-6"
                     >
 
-                        <div>
-
-                            <h2
-                                class="text-xl font-bold text-gray-800 dark:text-white"
-                            >
-                                Student Details
-                            </h2>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                            >
-                                Student information
-                            </p>
-
-                        </div>
+                        <h2
+                            class="text-xl font-bold text-gray-800 dark:text-white"
+                        >
+                            Student Details
+                        </h2>
 
 
                         <button
                             type="button"
                             @click="viewingStudent = null"
-                            class="w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white text-xl"
+                            class="w-9 h-9 rounded-lg text-gray-500 text-xl"
                         >
                             ×
                         </button>
@@ -1546,21 +1872,21 @@ onBeforeUnmount(() => {
                     </div>
 
 
-                    <!-- PHOTO -->
-
-                    <div class="flex justify-center mb-6">
+                    <div
+                        class="flex justify-center mb-6"
+                    >
 
                         <img
                             v-if="viewingStudent.photo"
                             :src="`http://127.0.0.1:8000/storage/${viewingStudent.photo}`"
                             :alt="viewingStudent.name"
-                            class="w-28 h-28 rounded-full object-cover border-4 border-gray-100 dark:border-gray-700 shadow-sm"
+                            class="w-28 h-28 rounded-full object-cover border-4 border-gray-100 dark:border-gray-700"
                         />
 
 
                         <div
                             v-else
-                            class="w-28 h-28 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm"
+                            class="w-28 h-28 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400"
                         >
                             No Photo
                         </div>
@@ -1568,14 +1894,16 @@ onBeforeUnmount(() => {
                     </div>
 
 
-                    <div class="space-y-4">
+                    <div
+                        class="space-y-4"
+                    >
 
                         <div
-                            class="flex justify-between items-center border-b border-gray-100 dark:border-gray-800 pb-3 gap-4"
+                            class="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3"
                         >
 
                             <span
-                                class="font-medium text-gray-500 dark:text-gray-400"
+                                class="font-medium text-gray-500"
                             >
                                 Student ID
                             </span>
@@ -1590,17 +1918,17 @@ onBeforeUnmount(() => {
 
 
                         <div
-                            class="flex justify-between items-center border-b border-gray-100 dark:border-gray-800 pb-3 gap-4"
+                            class="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3"
                         >
 
                             <span
-                                class="font-medium text-gray-500 dark:text-gray-400"
+                                class="font-medium text-gray-500"
                             >
                                 Name
                             </span>
 
                             <span
-                                class="font-semibold text-gray-800 dark:text-white text-right"
+                                class="font-semibold text-gray-800 dark:text-white"
                             >
                                 {{ viewingStudent.name }}
                             </span>
@@ -1609,17 +1937,17 @@ onBeforeUnmount(() => {
 
 
                         <div
-                            class="flex justify-between items-center border-b border-gray-100 dark:border-gray-800 pb-3 gap-4"
+                            class="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 gap-4"
                         >
 
                             <span
-                                class="font-medium text-gray-500 dark:text-gray-400"
+                                class="font-medium text-gray-500"
                             >
                                 Email
                             </span>
 
                             <span
-                                class="text-gray-800 dark:text-gray-200 text-right break-all"
+                                class="text-gray-800 dark:text-gray-200 break-all text-right"
                             >
                                 {{ viewingStudent.email }}
                             </span>
@@ -1628,14 +1956,15 @@ onBeforeUnmount(() => {
 
 
                         <div
-                            class="flex justify-between items-center border-b border-gray-100 dark:border-gray-800 pb-3 gap-4"
+                            class="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3"
                         >
 
                             <span
-                                class="font-medium text-gray-500 dark:text-gray-400"
+                                class="font-medium text-gray-500"
                             >
                                 Phone
                             </span>
+
 
                             <span
                                 class="text-gray-800 dark:text-gray-200"
@@ -1645,22 +1974,106 @@ onBeforeUnmount(() => {
 
                         </div>
 
+                        <div
+    class="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 gap-4"
+>
 
-                        <div class="flex justify-between items-center">
+    <span
+        class="font-medium text-gray-500"
+    >
+        Parent
+    </span>
+
+    <span
+        class="text-gray-800 dark:text-gray-200 text-right"
+    >
+        {{ viewingStudent.parent?.name || 'Not assigned' }}
+    </span>
+
+</div>
+<div
+    class="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3 gap-4"
+>
+
+    <span
+        class="font-medium text-gray-500"
+    >
+        Address
+    </span>
+
+    <span
+        class="text-gray-800 dark:text-gray-200 text-right"
+    >
+        {{
+            viewingStudent.address
+                ? `${viewingStudent.address.municipality}, ${viewingStudent.address.district}`
+                : 'Not assigned'
+        }}
+    </span>
+
+</div>
+
+<div
+    class="border-b border-gray-100 dark:border-gray-800 pb-3"
+>
+
+    <div class="flex justify-between gap-4 mb-2">
+
+        <span
+            class="font-medium text-gray-500"
+        >
+            Subjects
+        </span>
+
+        <span
+            v-if="!viewingStudent.subjects?.length"
+            class="text-gray-800 dark:text-gray-200"
+        >
+            Not assigned
+        </span>
+
+    </div>
+
+
+    <div
+        v-if="viewingStudent.subjects?.length"
+        class="flex flex-wrap justify-end gap-2"
+    >
+
+        <span
+            v-for="subject in viewingStudent.subjects"
+            :key="subject.id"
+            class="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full text-sm"
+        >
+            {{ subject.name }}
+            <span class="text-xs opacity-75">
+                ({{ subject.code }})
+            </span>
+        </span>
+
+    </div>
+
+</div>
+
+
+
+
+                        <div
+                            class="flex justify-between"
+                        >
 
                             <span
-                                class="font-medium text-gray-500 dark:text-gray-400"
+                                class="font-medium text-gray-500"
                             >
                                 Status
                             </span>
-
 
                             <span
                                 class="px-3 py-1 rounded-full text-xs font-semibold capitalize"
                                 :class="
                                     viewingStudent.status === 'active'
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400'
-                                        : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-red-100 text-red-700'
                                 "
                             >
                                 {{ viewingStudent.status }}
@@ -1671,17 +2084,13 @@ onBeforeUnmount(() => {
                     </div>
 
 
-                    <div class="mt-6">
-
-                        <button
-                            type="button"
-                            @click="viewingStudent = null"
-                            class="w-full bg-gray-800 dark:bg-gray-700 text-white px-5 py-3 rounded-xl font-medium hover:bg-gray-900 dark:hover:bg-gray-600 transition"
-                        >
-                            Close
-                        </button>
-
-                    </div>
+                    <button
+                        type="button"
+                        @click="viewingStudent = null"
+                        class="w-full mt-6 bg-gray-800 text-white px-5 py-3 rounded-xl font-medium"
+                    >
+                        Close
+                    </button>
 
                 </div>
 
@@ -1690,7 +2099,9 @@ onBeforeUnmount(() => {
         </Teleport>
 
 
-        <!-- EDIT STUDENT MODAL -->
+        <!-- ================================================= -->
+        <!-- EDIT MODAL -->
+        <!-- ================================================= -->
 
         <Teleport to="body">
 
@@ -1707,27 +2118,17 @@ onBeforeUnmount(() => {
                         class="flex items-center justify-between mb-6"
                     >
 
-                        <div>
-
-                            <h2
-                                class="text-xl font-bold text-gray-800 dark:text-white"
-                            >
-                                Edit Student
-                            </h2>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                            >
-                                Update student information
-                            </p>
-
-                        </div>
+                        <h2
+                            class="text-xl font-bold text-gray-800 dark:text-white"
+                        >
+                            Edit Student
+                        </h2>
 
 
                         <button
                             type="button"
                             @click="editingStudent = null"
-                            class="w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white text-xl"
+                            class="w-9 h-9 rounded-lg text-gray-500 text-xl"
                         >
                             ×
                         </button>
@@ -1743,7 +2144,7 @@ onBeforeUnmount(() => {
                             v-model="editingStudent.name"
                             type="text"
                             placeholder="Full Name"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         />
 
 
@@ -1751,7 +2152,7 @@ onBeforeUnmount(() => {
                             v-model="editingStudent.email"
                             type="email"
                             placeholder="Email Address"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         />
 
 
@@ -1759,13 +2160,13 @@ onBeforeUnmount(() => {
                             v-model="editingStudent.phone"
                             type="text"
                             placeholder="Phone Number"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         />
 
 
                         <select
                             v-model="editingStudent.status"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         >
 
                             <option value="active">
@@ -1777,19 +2178,87 @@ onBeforeUnmount(() => {
                             </option>
 
                         </select>
+                        <select
+    v-model="editingStudent.parent_id"
+    class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+>
+
+    <option value="">
+        Select Parent
+    </option>
+
+    <option
+        v-for="parent in parentStore.parents"
+        :key="parent.id"
+        :value="parent.id"
+    >
+        {{ parent.name }}
+    </option>
+
+</select>
+
+<select
+    v-model="editingStudent.address_id"
+    class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+>
+
+    <option value="">
+        Select Address
+    </option>
+
+    <option
+        v-for="address in addressStore.addresses"
+        :key="address.id"
+        :value="address.id"
+    >
+        {{ address.municipality }}, {{ address.district }}
+    </option>
+
+</select>
 
 
-                        <!-- CURRENT PHOTO -->
+
+<!-- SUBJECTS -->
+
+<div class="md:col-span-2">
+
+    <label
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+    >
+        Subjects
+    </label>
+
+    <select
+        v-model="editingStudent.subjects"
+        multiple
+        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+    >
+
+        <option
+            v-for="subject in subjectStore.subjects"
+            :key="subject.id"
+            :value="subject.id"
+        >
+            {{ subject.name }} ({{ subject.code }})
+        </option>
+
+    </select>
+
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        Hold Command (⌘) and click to select multiple subjects.
+    </p>
+
+</div>
 
                         <div
                             v-if="editingStudent.photo"
-                            class="md:col-span-2 flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+                            class="md:col-span-2 flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl"
                         >
 
                             <img
                                 :src="`http://127.0.0.1:8000/storage/${editingStudent.photo}`"
                                 :alt="editingStudent.name"
-                                class="w-16 h-16 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow"
+                                class="w-16 h-16 rounded-full object-cover"
                             />
 
 
@@ -1802,9 +2271,9 @@ onBeforeUnmount(() => {
                                 </p>
 
                                 <p
-                                    class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                                    class="text-xs text-gray-500 dark:text-gray-400"
                                 >
-                                    Select a new photo below to replace it.
+                                    Select a new photo to replace it.
                                 </p>
 
                             </div>
@@ -1812,9 +2281,9 @@ onBeforeUnmount(() => {
                         </div>
 
 
-                        <!-- NEW PHOTO -->
-
-                        <div class="md:col-span-2">
+                        <div
+                            class="md:col-span-2"
+                        >
 
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
@@ -1842,7 +2311,7 @@ onBeforeUnmount(() => {
                         <button
                             type="button"
                             @click="updateStudent"
-                            class="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition"
+                            class="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700"
                         >
                             Update Student
                         </button>
@@ -1851,7 +2320,7 @@ onBeforeUnmount(() => {
                         <button
                             type="button"
                             @click="editingStudent = null"
-                            class="w-full sm:w-auto border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                            class="w-full sm:w-auto border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-medium"
                         >
                             Cancel
                         </button>
@@ -1865,11 +2334,13 @@ onBeforeUnmount(() => {
         </Teleport>
 
 
+        <!-- ================================================= -->
         <!-- LOADING -->
+        <!-- ================================================= -->
 
         <div
             v-if="studentStore.loading"
-            class="mt-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-10 text-center shadow-sm"
+            class="mt-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-10 text-center"
         >
 
             <div
@@ -1881,7 +2352,9 @@ onBeforeUnmount(() => {
         </div>
 
 
+        <!-- ================================================= -->
         <!-- TABLE -->
+        <!-- ================================================= -->
 
         <div
             v-else
@@ -1893,14 +2366,16 @@ onBeforeUnmount(() => {
             >
 
                 <tr
-                    v-for="(student, index) in paginatedStudents"
+                    v-for="(student, index) in studentStore.students"
                     :key="student.id"
                     class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition"
                 >
 
                     <!-- CHECKBOX -->
 
-                    <td class="px-5 py-4 text-center">
+                    <td
+                        class="px-5 py-4 text-center"
+                    >
 
                         <input
                             type="checkbox"
@@ -1919,9 +2394,12 @@ onBeforeUnmount(() => {
                     >
 
                         {{
-                            (currentPage - 1) *
-                            itemsPerPage +
-                            index +
+                            (currentPage - 1)
+                            *
+                            itemsPerPage
+                            +
+                            index
+                            +
                             1
                         }}
 
@@ -1933,13 +2411,17 @@ onBeforeUnmount(() => {
                     <td
                         class="px-5 py-4 text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
+
                         #{{ student.id }}
+
                     </td>
 
 
                     <!-- PHOTO -->
 
-                    <td class="px-5 py-4">
+                    <td
+                        class="px-5 py-4"
+                    >
 
                         <img
                             v-if="student.photo"
@@ -1951,7 +2433,7 @@ onBeforeUnmount(() => {
 
                         <div
                             v-else
-                            class="w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs"
+                            class="w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-xs"
                         >
                             No Photo
                         </div>
@@ -1964,7 +2446,9 @@ onBeforeUnmount(() => {
                     <td
                         class="px-5 py-4 text-sm font-semibold text-gray-800 dark:text-white"
                     >
+
                         {{ student.name }}
+
                     </td>
 
 
@@ -1973,7 +2457,9 @@ onBeforeUnmount(() => {
                     <td
                         class="px-5 py-4 text-sm text-gray-600 dark:text-gray-400"
                     >
+
                         {{ student.email }}
+
                     </td>
 
 
@@ -1982,23 +2468,29 @@ onBeforeUnmount(() => {
                     <td
                         class="px-5 py-4 text-sm text-gray-600 dark:text-gray-400"
                     >
+
                         {{ student.phone }}
+
                     </td>
 
 
                     <!-- STATUS -->
 
-                    <td class="px-5 py-4">
+                    <td
+                        class="px-5 py-4"
+                    >
 
                         <span
                             class="px-3 py-1 rounded-full text-xs font-semibold capitalize"
                             :class="
                                 student.status === 'active'
-                                    ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400'
-                                    : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-red-100 text-red-700'
                             "
                         >
+
                             {{ student.status }}
+
                         </span>
 
                     </td>
@@ -2006,14 +2498,18 @@ onBeforeUnmount(() => {
 
                     <!-- ACTIONS -->
 
-                    <td class="px-5 py-4">
+                    <td
+                        class="px-5 py-4"
+                    >
 
-                        <div class="flex flex-wrap gap-3">
+                        <div
+                            class="flex flex-wrap gap-3"
+                        >
 
                             <button
                                 type="button"
                                 @click="viewStudent(student)"
-                                class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 font-medium text-sm"
+                                class="text-green-600 hover:text-green-800 font-medium text-sm"
                             >
                                 View
                             </button>
@@ -2022,7 +2518,7 @@ onBeforeUnmount(() => {
                             <button
                                 type="button"
                                 @click="editStudent(student)"
-                                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium text-sm"
+                                class="text-blue-600 hover:text-blue-800 font-medium text-sm"
                             >
                                 Edit
                             </button>
@@ -2031,7 +2527,7 @@ onBeforeUnmount(() => {
                             <button
                                 type="button"
                                 @click="deleteStudent(student)"
-                                class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium text-sm"
+                                class="text-red-600 hover:text-red-800 font-medium text-sm"
                             >
                                 Delete
                             </button>
@@ -2046,7 +2542,7 @@ onBeforeUnmount(() => {
                 <!-- EMPTY -->
 
                 <tr
-                    v-if="filteredStudents.length === 0"
+                    v-if="studentStore.students.length === 0"
                 >
 
                     <td
@@ -2054,7 +2550,9 @@ onBeforeUnmount(() => {
                         class="py-14 text-center"
                     >
 
-                        <div class="flex flex-col items-center">
+                        <div
+                            class="flex flex-col items-center"
+                        >
 
                             <div
                                 class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl"
@@ -2087,7 +2585,9 @@ onBeforeUnmount(() => {
         </div>
 
 
+        <!-- ================================================= -->
         <!-- PAGINATION -->
+        <!-- ================================================= -->
 
         <div
             v-if="totalPages > 1"
@@ -2098,6 +2598,8 @@ onBeforeUnmount(() => {
                 class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
             >
 
+                <!-- PAGINATION INFO -->
+
                 <div
                     class="text-sm text-gray-500 dark:text-gray-400"
                 >
@@ -2107,11 +2609,7 @@ onBeforeUnmount(() => {
                     <span
                         class="font-semibold text-gray-800 dark:text-white"
                     >
-                        {{
-                            (currentPage - 1) *
-                            itemsPerPage +
-                            1
-                        }}
+                        {{ showingFrom }}
                     </span>
 
                     -
@@ -2119,12 +2617,7 @@ onBeforeUnmount(() => {
                     <span
                         class="font-semibold text-gray-800 dark:text-white"
                     >
-                        {{
-                            Math.min(
-                                currentPage * itemsPerPage,
-                                filteredStudents.length
-                            )
-                        }}
+                        {{ showingTo }}
                     </span>
 
                     of
@@ -2132,13 +2625,15 @@ onBeforeUnmount(() => {
                     <span
                         class="font-semibold text-gray-800 dark:text-white"
                     >
-                        {{ filteredStudents.length }}
+                        {{ totalStudents }}
                     </span>
 
                     students
 
                 </div>
 
+
+                <!-- BUTTONS -->
 
                 <div
                     class="flex items-center gap-2 flex-wrap"
@@ -2148,8 +2643,11 @@ onBeforeUnmount(() => {
 
                     <button
                         type="button"
-                        @click="currentPage--"
-                        :disabled="currentPage === 1"
+                        @click="previousPage"
+                        :disabled="
+                            currentPage === 1 ||
+                            studentStore.loading
+                        "
                         class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                         ← Previous
@@ -2166,15 +2664,18 @@ onBeforeUnmount(() => {
                             v-for="page in totalPages"
                             :key="page"
                             type="button"
-                            @click="currentPage = page"
-                            class="w-9 h-9 rounded-lg text-sm font-medium transition"
+                            @click="goToPage(page)"
+                            :disabled="studentStore.loading"
+                            class="w-9 h-9 rounded-lg text-sm font-medium transition disabled:opacity-50"
                             :class="
                                 currentPage === page
                                     ? 'bg-blue-600 text-white'
                                     : 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                             "
                         >
+
                             {{ page }}
+
                         </button>
 
                     </div>
@@ -2184,8 +2685,11 @@ onBeforeUnmount(() => {
 
                     <button
                         type="button"
-                        @click="currentPage++"
-                        :disabled="currentPage === totalPages"
+                        @click="nextPage"
+                        :disabled="
+                            currentPage === totalPages ||
+                            studentStore.loading
+                        "
                         class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                         Next →
@@ -2198,15 +2702,17 @@ onBeforeUnmount(() => {
         </div>
 
 
-        <!-- DASHBOARD CHART -->
+        <!-- ================================================= -->
+        <!-- CHART -->
+        <!-- ================================================= -->
 
         <div
-            class="mt-8 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 transition-colors"
+            class="mt-8 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6"
         >
 
-            <!-- HEADER -->
-
-            <div class="mb-6">
+            <div
+                class="mb-6"
+            >
 
                 <h2
                     class="text-xl font-bold text-gray-800 dark:text-white"
@@ -2223,8 +2729,6 @@ onBeforeUnmount(() => {
 
             </div>
 
-
-            <!-- CHART -->
 
             <div
                 class="relative h-80 w-full max-w-md mx-auto"

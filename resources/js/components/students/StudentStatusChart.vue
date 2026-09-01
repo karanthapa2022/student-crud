@@ -12,7 +12,7 @@ import {
 
 import { Bar } from 'vue-chartjs'
 import { computed } from 'vue'
-import { useStudentStore } from '../stores/student'
+import { useStudentStore } from '../../stores/students/student'
 
 
 ChartJS.register(

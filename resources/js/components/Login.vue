@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../services/StudentApi'
+import { loginUser } from '../services/authApi'
 
 
 
@@ -23,7 +23,7 @@ const login = async () => {
   loading.value = true
 
   try {
-    const response = await api.post('/login', {
+    const response = await loginUser({
   email: email.value,
   password: password.value
 })

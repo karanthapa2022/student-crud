@@ -3,8 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\Addresses\AddressController;
+use App\Http\Controllers\Api\Students\StudentController;
 use App\Http\Controllers\Api\ApiAuthController;
+use App\Http\Controllers\Api\Parents\ParentController;
+use App\Http\Controllers\Api\Subjects\SubjectController;
+
 
 // Public authentication routes
 Route::post('/register', [ApiAuthController::class, 'register']);
@@ -13,6 +17,25 @@ Route::post('/login', [ApiAuthController::class, 'login']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
+    // =========================================================
+// PARENT API
+// =========================================================
+
+Route::apiResource('parents', ParentController::class);
+
+
+// =========================================================
+// ADDRESS API
+// =========================================================
+
+Route::apiResource('addresses', AddressController::class);
+
+// =========================================================
+// SUBJECT API
+// =========================================================
+
+Route::apiResource('subjects', SubjectController::class);
+
 
     Route::post('/logout', [ApiAuthController::class, 'logout']);
 
@@ -33,7 +56,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/students/statistics', [StudentController::class, 'statistics']);
 
     Route::get('students/trash', [StudentController::class, 'trash']);
+
+    Route::post('students/bulk-restore',[StudentController::class, 'bulkRestore']);
+    Route::post('students/bulk-force-delete',[StudentController::class, 'bulkForceDelete']);
+
+
     Route::post('students/{id}/restore', [StudentController::class, 'restore']);
+
     Route::delete('students/{id}/force-delete', [StudentController::class, 'forceDelete']);
 
     Route::apiResource('students', StudentController::class);

@@ -1,8 +1,8 @@
 
 <script setup>
 
-import BaseButton from './BaseButton.vue'
-import BaseCard from './BaseCard.vue'
+import BaseButton from '../BaseButton.vue'
+import BaseCard from '../BaseCard.vue'
 
 
 // =========================================================

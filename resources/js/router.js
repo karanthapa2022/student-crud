@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
+import ParentList from './components/parents/ParentList.vue'
+import AddressList from './components/addresses/AddressList.vue'
 import Login from './components/Login.vue'
 import Register from './components/Register.vue'
-import StudentList from './components/StudentList.vue'
+import StudentList from './components/students/StudentList.vue'
 import Profile from './components/Profile.vue'
-import Trash from './components/Trash.vue'
+import Trash from './components/students/Trash.vue'
+import SubjectList from './components/subjects/SubjectList.vue'
 
 const routes = [
     {
@@ -16,6 +18,7 @@ const routes = [
         path: '/register',
         component: Register
     },
+    
 
     {
         path:'/profile',
@@ -32,6 +35,27 @@ const routes = [
             requiresAuth: true
         }
     },
+    {
+    path: '/parents',
+    component: ParentList,
+    meta: {
+        requiresAuth: true
+    }
+},
+    {
+        path: '/addresses',
+        component: AddressList,
+        meta: {
+            requiresAuth: true
+        }
+    },
+    {
+    path: '/subjects',
+    component: SubjectList,
+    meta: {
+        requiresAuth: true
+    }
+},
 
     {
         path: '/trash',

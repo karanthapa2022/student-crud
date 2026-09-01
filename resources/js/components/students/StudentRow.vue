@@ -35,6 +35,7 @@ const emit = defineEmits([
         border-b
         border-gray-200
         dark:border-gray-700
+        bg-white dark:bg-gray-900
         hover:bg-gray-50
         dark:hover:bg-gray-800
         transition
@@ -50,11 +51,7 @@ const emit = defineEmits([
             :checked="selected"
             @change="emit('toggle', student.id)"
             class="
-                rounded
-                border-gray-300
-                dark:border-gray-600
-                dark:bg-gray-700
-                dark:checked:bg-blue-600
+                w-4 h-4 accent-blue-600
             "
         />
 
@@ -166,8 +163,8 @@ const emit = defineEmits([
                 "
                 :class="
                     student.status === 'active'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                        : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                        : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
                 "
             >
 

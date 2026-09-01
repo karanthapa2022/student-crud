@@ -1,4 +1,3 @@
-
 <script setup>
 
 // =========================================================
@@ -20,11 +19,14 @@ defineProps({
 <template>
 
     <div
-        class="bg-white rounded-xl shadow-md overflow-x-auto"
+        class="bg-white dark:bg-gray-900
+               rounded-xl shadow-md
+               overflow-x-auto
+               border border-gray-200 dark:border-gray-700"
     >
 
         <table
-            class="w-full min-w-[1000px]"
+            class="w-full bg-white dark:bg-gray-900"
         >
 
             <!-- ================================================= -->
@@ -33,12 +35,17 @@ defineProps({
 
             <thead>
 
-                <tr class="bg-gray-50 border-b">
+                <tr
+                    class="bg-gray-50 dark:bg-gray-800
+                           border-b border-gray-200 dark:border-gray-700"
+                >
 
                     <th
                         v-for="header in headers"
                         :key="header.key"
-                        class="px-5 py-4 text-left text-sm font-semibold text-gray-600"
+                        class="px-5 py-4
+                               text-left text-sm font-semibold
+                               text-gray-700 dark:text-gray-200"
                     >
 
                         {{ header.label }}
@@ -54,7 +61,9 @@ defineProps({
             <!-- TABLE BODY -->
             <!-- ================================================= -->
 
-            <tbody>
+            <tbody
+                class="bg-white dark:bg-gray-900"
+            >
 
                 <slot />
 
@@ -65,4 +74,3 @@ defineProps({
     </div>
 
 </template>
-
