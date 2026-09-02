@@ -63,6 +63,8 @@ class StudentController extends Controller
 
             'name' => 'required|string|max:255',
 
+            'class' => 'required|string|max:100',
+
             'email' => 'required|email|unique:students,email',
 
             'phone' => 'required|string|max:20',
@@ -142,6 +144,9 @@ class StudentController extends Controller
 
             'name' =>
                 'required|string|max:255',
+
+            'class' =>
+                'required|string|max:100',
 
             'email' =>
                 'required|email|unique:students,email,' . $student->id,

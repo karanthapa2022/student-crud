@@ -121,6 +121,7 @@ const showAddForm = ref(false)
 const newStudent = ref({
 
     name: '',
+    class: '',
     email: '',
     phone: '',
     status: 'active',
@@ -170,6 +171,10 @@ const tableHeaders = [
     {
         key: 'name',
         label: 'Name'
+    },
+    {
+        key: 'class',
+        label: 'Class'
     },
 
     {
@@ -698,6 +703,10 @@ const addStudent = async () => {
             'name',
             newStudent.value.name
         )
+        formData.append(
+            'class',
+            newStudent.value.class
+        )
 
 
         formData.append(
@@ -773,6 +782,7 @@ selectedSubjects.forEach(subjectId => {
         newStudent.value = {
 
             name: '',
+            class: '',
             email: '',
             phone: '',
             status: 'active',
@@ -849,6 +859,10 @@ const updateStudent = async () => {
             editingStudent.value.name
         )
 
+        formData.append(
+            'class',
+            editingStudent.value.class
+        )
 
         formData.append(
             'email',
@@ -1705,8 +1719,21 @@ onBeforeUnmount(() => {
                             v-model="newStudent.name"
                             type="text"
                             placeholder="Full Name"
+                            
                             class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         />
+                        <div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Class
+    </label>
+
+    <input
+        v-model="newStudent.class"
+        type="text"
+        placeholder="Enter Class"
+        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
+    />
+</div>
 
 
                         <input
@@ -1931,6 +1958,15 @@ onBeforeUnmount(() => {
                             </span>
 
                         </div>
+                        <div class="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+    <span class="font-medium text-gray-500">
+        Class
+    </span>
+
+    <span class="font-semibold text-gray-800 dark:text-white">
+        {{ viewingStudent.class || 'Not assigned' }}
+    </span>
+</div>
 
 
                         <div
@@ -2143,6 +2179,18 @@ onBeforeUnmount(() => {
                             placeholder="Full Name"
                             class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
                         />
+                        <div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Class
+    </label>
+
+    <input
+        v-model="editingStudent.class"
+        type="text"
+        placeholder="Enter Class"
+        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
+    />
+</div>
 
 
                         <input
@@ -2447,6 +2495,12 @@ onBeforeUnmount(() => {
                         {{ student.name }}
 
                     </td>
+                        <!--CLASS-->
+                    <td
+    class="px-6 py-4 whitespace-nowrap text-gray-800 dark:text-gray-200"
+>
+    {{ student.class || 'Not assigned' }}
+</td>
 
 
                     <!-- EMAIL -->
@@ -2543,7 +2597,7 @@ onBeforeUnmount(() => {
                 >
 
                     <td
-                        colspan="9"
+                        colspan="10"
                         class="py-14 text-center"
                     >
 
