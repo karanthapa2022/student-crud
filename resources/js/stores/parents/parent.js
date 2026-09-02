@@ -28,7 +28,7 @@ export const useParentStore = defineStore('parent', {
 
             lastPage: 1,
 
-            perPage: 10,
+            perPage: 5,
 
             totalParents: 0,
 
@@ -51,7 +51,10 @@ export const useParentStore = defineStore('parent', {
         // FETCH PARENTS
         // =====================================================
 
-        async fetchParents(page = 1) {
+        async fetchParents(page = 1,
+            search='',
+            realtionshipFilter='all'
+        ) {
 
             this.loading = true
 
@@ -60,7 +63,10 @@ export const useParentStore = defineStore('parent', {
             try {
 
                 const response =
-                    await getParents(page)
+                    await getParents(page,
+                        search,
+                        realtionshipFilter
+                    )
 
                 console.log(
                     'Parents response:',
@@ -79,7 +85,7 @@ export const useParentStore = defineStore('parent', {
                         response.data.last_page || 1,
 
                     perPage:
-                        response.data.per_page || 10,
+                        response.data.per_page || 5,
 
                     totalParents:
                         response.data.total || 0,

@@ -891,7 +891,12 @@ const formatDate = (date) => {
 // =========================================================
 
 onMounted(() => {
-
+    const savedTheme=localStorage.getItem('theme')
+    if(savedTheme==='dark'){
+        document.documentElement.classList.add('dark')
+    }else{
+        document.documentElemenr.classList.remove('dark')
+    }
     fetchUser()
 
 })

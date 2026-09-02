@@ -75,7 +75,7 @@ class StudentController extends Controller
 
             'address_id' => 'nullable|exists:addresses,id',
 
-            'subjects' => 'present|array',
+            'subjects' => 'nullable |array',
 
             'subjects.*' => 'exists:subjects,id',
         ]);

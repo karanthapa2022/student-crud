@@ -1,17 +1,42 @@
 <script setup>
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useSubjectStore } from '../../stores/subjects/subject'
 
+
+
 const subjectStore = useSubjectStore()
+
+
+//Search and Filter
+const searchQuery= ref('')
+const teacherFilter=ref('all')
+
+//watch search & filter
+watch(
+    [searchQuery, teacherFilter],
+    () => {
+
+        subjectStore.fetchSubjects(
+            1,
+            searchQuery.value,
+            teacherFilter.value
+        )
+
+    }
+)
+
+
 
 // =========================================================
 // FORM
 // =========================================================
 
+
 const showModal = ref(false)
 
 const editingSubject = ref(null)
+const viewingSubject = ref(null)
 
 const form = ref({
     name: '',
@@ -20,6 +45,11 @@ const form = ref({
 })
 
 const errorMessage = ref('')
+
+//open view modal
+const openViewModal=(subject)=>{
+viewingSubject.value=subject
+}
 
 
 // =========================================================
@@ -163,7 +193,10 @@ const changePage = async (page) => {
         return
     }
 
-    await subjectStore.fetchSubjects(page)
+    await subjectStore.fetchSubjects(page,
+        searchQuery.value,
+        teacherFilter.value
+    )
 
 }
 
@@ -174,7 +207,16 @@ const changePage = async (page) => {
 
 onMounted(() => {
 
-    subjectStore.fetchSubjects()
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark')
+    } else {
+        document.documentElement.classList.remove('dark')
+    }
+    subjectStore.fetchSubjects(1,
+        searchQuery.value,
+        teacherFilter.value
+    )
 
 })
 
@@ -183,7 +225,7 @@ onMounted(() => {
 
 <template>
 
-<div class="p-6">
+<div class="p-6 text-gray-800 bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
 
     <!-- =====================================================
          HEADER
@@ -193,11 +235,11 @@ onMounted(() => {
 
         <div>
 
-            <h1 class="text-2xl font-bold text-gray-800">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
                 Subjects
             </h1>
 
-            <p class="text-gray-500">
+            <p class="text-gray-500 dark:text-gray-400">
                 Manage student subjects
             </p>
 
@@ -213,6 +255,25 @@ onMounted(() => {
 
     </div>
 
+    <!--Search and Filter-->
+        <div class="flex flex-col md:flex-row gap-3 mb-6">
+            <!--search-->
+            <input v-model="searchQuery"
+            type="text"
+            placeholder="Search subjects by name or code"
+            class="flex-1 px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white text-gray-800 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+
+            <!--teacher filter-->
+            <select v-model="teacherFilter"
+            class="px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 dark:text-white text-gray-800 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+            <option value="all">All Subjects</option>
+            <option value="with_teacher">With Teacher</option>
+            <option value="without_teacher">Without Teacher</option>
+        
+        </select>
+
+        </div>
 
     <!-- =====================================================
          ERROR
@@ -230,16 +291,16 @@ onMounted(() => {
          TABLE
     ====================================================== -->
 
-    <div class="overflow-x-auto bg-white rounded-lg shadow">
+    <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow">
 
         <table class="w-full">
 
-            <thead class="bg-gray-100">
+            <thead class="bg-gray-100 dark:bg-gray-800">
 
                 <tr>
 
                     <th class="px-4 py-3 text-left">
-                        #
+                        S.N
                     </th>
 
                     <th class="px-4 py-3 text-left">
@@ -271,7 +332,7 @@ onMounted(() => {
 
                     <td
                         colspan="5"
-                        class="text-center py-8 text-gray-500"
+                        class="text-center py-8 text-gray-500 dark:text-gray-400"
                     >
                         Loading subjects...
                     </td>
@@ -287,7 +348,7 @@ onMounted(() => {
 
                     <td
                         colspan="5"
-                        class="text-center py-8 text-gray-500"
+                        class="text-center py-8 text-gray-500 dark:text-gray-400 "
                     >
                         No subjects found.
                     </td>
@@ -301,7 +362,7 @@ onMounted(() => {
                     v-else
                     v-for="(subject, index) in subjectStore.subjects"
                     :key="subject.id"
-                    class="border-t hover:bg-gray-50"
+                    class="border-t hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
 
                     <td class="px-4 py-3">
@@ -325,7 +386,7 @@ onMounted(() => {
                     <td class="px-4 py-3">
 
                         <span
-                            class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-sm font-medium"
+                            class="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-300 rounded-md text-sm font-medium"
                         >
                             {{ subject.code }}
                         </span>
@@ -345,8 +406,14 @@ onMounted(() => {
                         <div class="flex gap-2">
 
                             <button
+                            @click="openViewModal(subject)"
+                                class="px-3 py-1 bg-gray-500 text-white dark:bg-gray-600 dark:text-white rounded hover:bg-gray-600"
+                            >
+                                View
+                            </button>
+                            <button
                                 @click="openEditModal(subject)"
-                                class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                class="px-3 py-1 bg-blue-500 text-white dark:bg-blue-600 dark:text-white rounded hover:bg-blue-600"
                             >
                                 Edit
                             </button>
@@ -354,7 +421,7 @@ onMounted(() => {
 
                             <button
                                 @click="removeSubject(subject.id)"
-                                class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                class="px-3 py-1 bg-red-500 text-white dark:bg-red-600 dark:text-white rounded hover:bg-red-600"
                             >
                                 Delete
                             </button>
@@ -381,7 +448,7 @@ onMounted(() => {
         class="flex items-center justify-between mt-4"
     >
 
-        <p class="text-sm text-gray-500">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
 
             Showing
             {{ subjectStore.pagination.from }}
@@ -468,7 +535,7 @@ onMounted(() => {
 
                 <button
                     @click="closeModal"
-                    class="text-gray-500 hover:text-gray-800 text-xl"
+                    class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 text-xl"
                 >
                     ×
                 </button>
@@ -555,7 +622,7 @@ onMounted(() => {
                 <button
                     @click="saveSubject"
                     :disabled="subjectStore.loading"
-                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                    class="px-4 py-2 bg-green-600 text-white dark:bg-green-700 rounded-lg hover:bg-green-700 dark:hover:bg-green-800 disabled:opacity-50"
                 >
 
                     {{
@@ -571,6 +638,145 @@ onMounted(() => {
         </div>
 
     </div>
+
+  <!-- =====================================================
+     VIEW SUBJECT MODAL
+====================================================== -->
+
+<div
+    v-if="viewingSubject"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+>
+
+    <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6"
+    >
+
+        <div class="flex justify-between items-center mb-6">
+
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+                Subject Details
+            </h2>
+
+            <button
+                @click="viewingSubject = null"
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 text-xl"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <!-- SUBJECT NAME -->
+
+        <div class="mb-4">
+
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Subject Name
+            </p>
+
+            <p class="font-semibold text-gray-800 dark:text-white">
+                {{ viewingSubject.name }}
+            </p>
+
+        </div>
+
+
+        <!-- CODE -->
+
+        <div class="mb-4">
+
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Subject Code
+            </p>
+
+            <p class="font-semibold text-gray-800 dark:text-white">
+                {{ viewingSubject.code }}
+            </p>
+
+        </div>
+
+
+        <!-- DESCRIPTION -->
+
+        <div class="mb-4">
+
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Description
+            </p>
+
+            <p class="text-gray-800 dark:text-gray-200">
+                {{ viewingSubject.description || '-' }}
+            </p>
+
+        </div>
+
+
+        <!-- TEACHER -->
+
+        <div class="mb-6">
+
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                Teacher
+            </p>
+
+            <div
+                v-if="
+                    viewingSubject.teachers &&
+                    viewingSubject.teachers.length > 0
+                "
+                class="space-y-3"
+            >
+
+                <div
+                    v-for="teacher in viewingSubject.teachers"
+                    :key="teacher.id"
+                    class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg"
+                >
+
+                    <p class="font-semibold text-gray-800 dark:text-white">
+                        {{ teacher.name }}
+                    </p>
+
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        {{ teacher.email }}
+                    </p>
+
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        {{ teacher.phone }}
+                    </p>
+
+                </div>
+
+            </div>
+
+            <p
+                v-else
+                class="text-gray-500 dark:text-gray-400"
+            >
+                No teacher assigned.
+            </p>
+
+        </div>
+
+
+        <!-- CLOSE -->
+
+        <div class="flex justify-end">
+
+            <button
+                @click="viewingSubject = null"
+                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
 </div>
 

@@ -8,13 +8,18 @@ const api = axios.create({
 // GET ALL ADDRESSES
 // =========================================================
 
-export const getAddresses = (page = 1) => {
+export const getAddresses = (page = 1,
+    search='',
+    provinceFilter='all'
+) => {
 
     const token = localStorage.getItem('token')
 
     return api.get('/addresses', {
         params: {
-            page
+            page,
+            search,
+            province_filter:provinceFilter
         },
         headers: {
             Authorization: `Bearer ${token}`,

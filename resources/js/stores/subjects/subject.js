@@ -33,7 +33,7 @@ export const useSubjectStore = defineStore('subject', {
 
             lastPage: 1,
 
-            perPage: 10,
+            perPage: 5,
 
             totalSubjects: 0,
 
@@ -56,7 +56,10 @@ export const useSubjectStore = defineStore('subject', {
         // FETCH SUBJECTS
         // =====================================================
 
-        async fetchSubjects(page = 1) {
+        async fetchSubjects(page = 1,
+            search='',
+            teacherFilter='all'
+        ) {
 
             this.loading = true
 
@@ -66,7 +69,10 @@ export const useSubjectStore = defineStore('subject', {
             try {
 
                 const response =
-                    await getSubjects(page)
+                    await getSubjects(page,
+                        search,
+                        teacherFilter
+                    )
 
 
                 console.log(
@@ -88,7 +94,7 @@ export const useSubjectStore = defineStore('subject', {
                         response.data.last_page || 1,
 
                     perPage:
-                        response.data.per_page || 10,
+                        response.data.per_page || 5,
 
                     totalSubjects:
                         response.data.total || 0,

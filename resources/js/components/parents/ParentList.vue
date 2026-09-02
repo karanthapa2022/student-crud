@@ -1,9 +1,24 @@
 <script setup>
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useParentStore } from '../../stores/parents/parent'
 
 const parentStore = useParentStore()
+
+//search & filter
+
+const searchQuery = ref('')
+const relationshipFilter = ref('all')
+watch(
+    [searchQuery, relationshipFilter],()=>{
+        parentStore.fetchParents(
+            1,
+            searchQuery.value,
+            relationshipFilter.value
+        )
+    }
+
+)
 
 // =========================================================
 // FORM
@@ -156,7 +171,10 @@ const changePage = async (page) => {
         return
     }
 
-    await parentStore.fetchParents(page)
+    await parentStore.fetchParents(page,
+        searchQuery.value,
+        relationshipFilter.value
+    )
 
 }
 
@@ -206,6 +224,33 @@ onMounted(() => {
 
     </div>
 
+    <!--search & filter-->
+
+    <div
+    class="flex items-center gap-4 mb-6">
+
+    <!--search-->
+    <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search parents by name, email, or phone...."
+        class=" flex-1 border rounded-lg px-4 py-2 w-full max-w-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+    />
+
+    <select
+    v-model="relationshipFilter"
+    class="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+    >
+
+        <option value="all">All Relationships</option>
+        <option value="Father">Father</option>
+        <option value="Mother">Mother</option>
+        <option value="Guardian">Guardian</option>
+        <option value="Other">Other</option>
+
+    </select>
+    </div>
+
 
     <!-- =====================================================
          ERROR
@@ -232,7 +277,7 @@ onMounted(() => {
                 <tr>
 
                     <th class="px-4 py-3 text-left">
-                        #
+                        S.N.
                     </th>
 
                     <th class="px-4 py-3 text-left">

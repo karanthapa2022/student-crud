@@ -1,8 +1,27 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAddressStore } from '../../stores/addresses/address'
+import { nepalLocations } from '../../data/nepalLocations'
 
 const addressStore = useAddressStore()
+
+// search and filter
+
+const searchQuery = ref('')
+const provinceFilter = ref('all')
+watch(
+    [
+        searchQuery,
+        provinceFilter
+    ],()=>{
+        addressStore.fetchAddresses(
+            1,
+            searchQuery.value,
+            provinceFilter.value
+        )
+    }
+
+)
 
 // =========================================================
 // FORM STATE
@@ -20,6 +39,26 @@ const form = ref({
     city: '',
     street: ''
 })
+watch(
+    () => form.value.province,
+    () => {
+
+        const districts =
+            nepalLocations[form.value.province] || {}
+
+        // Only reset district if it is not valid
+        // for the selected province
+        if (
+            !Object.prototype.hasOwnProperty.call(
+                districts,
+                form.value.district
+            )
+        ) {
+            form.value.district = ''
+        }
+
+    }
+)
 
 const successMessage = ref('')
 
@@ -28,7 +67,11 @@ const successMessage = ref('')
 // =========================================================
 
 onMounted(() => {
-    addressStore.fetchAddresses()
+    addressStore.fetchAddresses(
+        1,
+        searchQuery.value,
+        provinceFilter.value
+    )
 })
 
 // =========================================================
@@ -176,7 +219,10 @@ const changePage = (page) => {
         return
     }
 
-    addressStore.fetchAddresses(page)
+    addressStore.fetchAddresses(page,
+        searchQuery.value,
+        provinceFilter.value
+    )
 }
 
 const paginationPages = computed(() => {
@@ -216,6 +262,8 @@ const paginationPages = computed(() => {
                 </p>
             </div>
 
+            
+
             <button
                 @click="openAddModal"
                 class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition"
@@ -225,6 +273,33 @@ const paginationPages = computed(() => {
 
         </div>
 
+        <!-- SEARCH & FILTER -->
+<div class="flex gap-4 mb-6">
+
+    <!-- SEARCH -->
+    <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search province, district, municipality, city or street..."
+        class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+    />
+
+    <!-- PROVINCE FILTER -->
+    <select
+        v-model="provinceFilter"
+        class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+    >
+        <option value="all">All Provinces</option>
+        <option value="Koshi">Koshi</option>
+        <option value="Madhesh">Madhesh</option>
+        <option value="Bagmati">Bagmati</option>
+        <option value="Gandaki">Gandaki</option>
+        <option value="Lumbini">Lumbini</option>
+        <option value="Karnali">Karnali</option>
+        <option value="Sudurpashchim">Sudurpashchim</option>
+    </select>
+
+</div>
 
         <!-- ================================================= -->
         <!-- SUCCESS MESSAGE -->
@@ -280,7 +355,7 @@ const paginationPages = computed(() => {
                         <tr>
 
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
-                                #
+                                S.N.
                             </th>
 
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
@@ -292,7 +367,7 @@ const paginationPages = computed(() => {
                             </th>
 
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
-                                Municipality
+                                Municipality/VDC
                             </th>
 
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
@@ -501,34 +576,47 @@ const paginationPages = computed(() => {
                                 Province
                             </label>
 
-                            <input
-                                v-model="form.province"
-                                type="text"
-                                required
-                                class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-                                placeholder="Enter province"
-                            />
+                            <select
+    v-model="form.province"
+    required
+    class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+>
+    <option value="">Select province</option>
+
+    <option
+        v-for="(districts, province) in nepalLocations"
+        :key="province"
+        :value="province"
+    >
+        {{ province }}
+    </option>
+</select>
 
                         </div>
 
 
-                        <!-- District -->
+                       <!-- District -->
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+        District
+    </label>
 
-                        <div>
+    <select
+        v-model="form.district"
+        required
+        class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+    >
+        <option value="">Select district</option>
 
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                District
-                            </label>
-
-                            <input
-                                v-model="form.district"
-                                type="text"
-                                required
-                                class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-                                placeholder="Enter district"
-                            />
-
-                        </div>
+        <option
+            v-for="(value, district) in nepalLocations[form.province] || {}"
+            :key="district"
+            :value="district"
+        >
+            {{ district }}
+        </option>
+    </select>
+</div>
 
 
                         <!-- Municipality -->

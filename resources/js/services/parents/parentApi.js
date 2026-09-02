@@ -8,13 +8,18 @@ const api = axios.create({
 // GET ALL PARENTS
 // =========================================================
 
-export const getParents = (page = 1) => {
+export const getParents = (page = 1,
+    search='',
+    relationshipFilter='all'
+) => {
 
     const token = localStorage.getItem('token')
 
     return api.get('/parents', {
         params: {
-            page
+            page,
+            search,
+            relationship_filter: relationshipFilter
         },
         headers: {
             Authorization: `Bearer ${token}`,

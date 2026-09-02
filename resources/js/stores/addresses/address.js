@@ -28,7 +28,7 @@ export const useAddressStore = defineStore('address', {
 
             lastPage: 1,
 
-            perPage: 10,
+            perPage: 5,
 
             totalAddresses: 0,
 
@@ -51,7 +51,10 @@ export const useAddressStore = defineStore('address', {
         // FETCH ADDRESSES
         // =====================================================
 
-        async fetchAddresses(page = 1) {
+        async fetchAddresses(page = 1,
+            search='',
+            provinceFilter='all'
+        ) {
 
             this.loading = true
 
@@ -60,7 +63,10 @@ export const useAddressStore = defineStore('address', {
             try {
 
                 const response =
-                    await getAddresses(page)
+                    await getAddresses(page,
+                        search,
+                        provinceFilter
+                    )
 
                 console.log(
                     'Addresses response:',
@@ -79,7 +85,7 @@ export const useAddressStore = defineStore('address', {
                         response.data.last_page || 1,
 
                     perPage:
-                        response.data.per_page || 10,
+                        response.data.per_page || 5,
 
                     totalAddresses:
                         response.data.total || 0,

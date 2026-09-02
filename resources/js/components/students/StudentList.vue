@@ -728,7 +728,7 @@ const addStudent = async () => {
         )}
 
         // Always send subjects
-const selectedSubjects = editingStudent.value.subjects || []
+const selectedSubjects = newStudent.value.subjects || []
 
 console.log('SELECTED SUBJECTS:', selectedSubjects)
 
@@ -748,15 +748,7 @@ selectedSubjects.forEach(subjectId => {
 
 })
 
-// Tell Laravel to clear subjects when nothing is selected
-if (selectedSubjects.length === 0) {
 
-    formData.append(
-        'subjects',
-        JSON.stringify([])
-    )
-
-}
 
         if (
             newStudent.value.photo
@@ -813,6 +805,8 @@ if (selectedSubjects.length === 0) {
 
 
     } catch (error) {
+        console.log('FULL SERVER ERROR:', error.response?.data)
+console.log('VALIDATION ERRORS:', error.response?.data?.errors)
 
         console.error(
             'Error adding student:',
@@ -964,10 +958,13 @@ if (Array.isArray(editingStudent.value.subjects)) {
             error
         )
         console.log(
-    'VALIDATION ERRORS:',
+    'FULL SERVER ERROR:',
     error.response?.data
 )
-
+        console.log(
+    'VALIDATION ERRORS:',
+    error.response?.data?.errors
+)
 
         alert(
             error.response?.data?.message ||

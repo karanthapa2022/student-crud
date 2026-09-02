@@ -8,13 +8,16 @@ const api = axios.create({
 // GET ALL SUBJECTS
 // =========================================================
 
-export const getSubjects = (page = 1) => {
+export const getSubjects = (page = 1,
+search='',teacherFilter='all') => {
 
     const token = localStorage.getItem('token')
 
     return api.get('/subjects', {
         params: {
-            page
+            page,
+            search,
+            teacher_filter: teacherFilter
         },
         headers: {
             Authorization: `Bearer ${token}`,

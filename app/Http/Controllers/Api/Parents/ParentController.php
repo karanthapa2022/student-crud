@@ -13,13 +13,40 @@ class ParentController extends Controller
     // =========================================================
 
     public function index(Request $request)
-    {
-        $parents = StudentParent::with('students')
-            ->latest()
-            ->paginate(10);
+{
+    $query = StudentParent::with('students');
 
-        return response()->json($parents);
+    // SEARCH
+    if ($request->filled('search')) {
+
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%")
+              ->orWhere('phone', 'like', "%{$search}%");
+
+        });
     }
+            // RELATIONSHIP FILTER
+        if (
+            $request->filled('relationship_filter') &&
+            $request->relationship_filter !== 'all'
+        ) {
+
+            $query->where(
+                'relationship',
+                $request->relationship_filter
+            );
+        }
+
+    $parents = $query
+        ->latest()
+        ->paginate(5);
+
+    return response()->json($parents);
+}
 
 
     // =========================================================

@@ -11,14 +11,41 @@ class SubjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $subjects = Subject::withCount('students')
-            ->latest()
-            ->paginate(10);
+    public function index(Request $request)
+{
+    $query = Subject::with(['teachers'])
+        ->withCount('students');
 
-        return response()->json($subjects);
+    // SEARCH
+    if ($request->filled('search')) {
+
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('code', 'like', "%{$search}%");
+
+        });
     }
+
+    // TEACHER FILTER
+    if ($request->teacher_filter === 'with_teacher') {
+
+        $query->whereHas('teachers');
+
+    } elseif ($request->teacher_filter === 'without_teacher') {
+
+        $query->whereDoesntHave('teachers');
+
+    }
+
+    $subjects = $query
+        ->latest()
+        ->paginate(5);
+
+    return response()->json($subjects);
+}
 
 
     /**
@@ -46,7 +73,8 @@ class SubjectController extends Controller
      */
     public function show(string $id)
     {
-        $subject = Subject::withCount('students')
+        $subject = Subject::with(['teachers'])
+            ->withCount('students')
             ->findOrFail($id);
 
         return response()->json($subject);

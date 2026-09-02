@@ -14,9 +14,38 @@ class AddressController extends Controller
 
     public function index(Request $request)
     {
-        $addresses = Address::with('students')
+        $query = Address::with('students');
+
+        //search
+        if($request->filled('search')){
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('province', 'like', "%{$search}%")
+                  ->orWhere('district', 'like', "%{$search}%")
+                  ->orWhere('municipality', 'like', "%{$search}%")
+                  ->orWhere('ward', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%")
+                  ->orWhere('street', 'like', "%{$search}%");
+
+            });
+        }
+        // PROVINCE FILTER
+if (
+    $request->filled('province_filter') &&
+    $request->province_filter !== 'all'
+) {
+
+    $query->where(
+        'province',
+        $request->province_filter
+    );
+}
+            
+        $addresses = $query
             ->latest()
-            ->paginate(10);
+            ->paginate(5);
 
         return response()->json($addresses);
     }
