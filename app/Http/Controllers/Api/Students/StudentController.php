@@ -65,6 +65,10 @@ class StudentController extends Controller
 
             'class' => 'required|string|max:100',
 
+            'symbol_no'=>'nullable|string|max:100|unique:students,symbol_no',
+
+            'date_of_birth' =>'nullable|date',
+
             'email' => 'required|email|unique:students,email',
 
             'phone' => 'required|string|max:20',
@@ -84,7 +88,7 @@ class StudentController extends Controller
 
 
         // Upload photo
-        if ($request->hasFile('photo')) {
+        if ($request->hasFile('photo')) {                                               
 
             $validated['photo'] =
                 $request->file('photo')
@@ -147,6 +151,11 @@ class StudentController extends Controller
 
             'class' =>
                 'required|string|max:100',
+
+            'symbol_no'=>
+                'nullable|string|max:100|unique:students,symbol_no,'. $student->id, 
+                
+            'date_of_birth' =>'nullable|date',
 
             'email' =>
                 'required|email|unique:students,email,' . $student->id,

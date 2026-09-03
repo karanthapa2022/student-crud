@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Students\StudentController;
 use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\Parents\ParentController;
 use App\Http\Controllers\Api\Subjects\SubjectController;
+use App\Http\Controllers\Api\Marksheets\MarksheetController;
 
 
 // Public authentication routes
@@ -29,6 +30,17 @@ Route::apiResource('parents', ParentController::class);
 // =========================================================
 
 Route::apiResource('addresses', AddressController::class);
+
+
+// =========================================================
+// MARKSHEET API
+// =========================================================
+
+Route::apiResource('marksheets', MarksheetController::class)
+    ->only(['index', 'show', 'store','update','destroy']);
+
+Route::post('marksheets/parent-search', [MarksheetController::class, 'parentSearch']);
+
 
 // =========================================================
 // SUBJECT API

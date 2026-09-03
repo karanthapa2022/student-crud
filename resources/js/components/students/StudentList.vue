@@ -122,6 +122,8 @@ const newStudent = ref({
 
     name: '',
     class: '',
+    symbol_no:'',
+    date_of_birth:'',
     email: '',
     phone: '',
     status: 'active',
@@ -707,6 +709,11 @@ const addStudent = async () => {
             'class',
             newStudent.value.class
         )
+        formData.append(
+            'symbol_no',
+            newStudent.value.symbol_no
+        )
+        formData.append('date_of_birth', newStudent.value.date_of_birth)
 
 
         formData.append(
@@ -783,6 +790,8 @@ selectedSubjects.forEach(subjectId => {
 
             name: '',
             class: '',
+            symbol_no:'',
+            date_of_birth:'',
             email: '',
             phone: '',
             status: 'active',
@@ -863,11 +872,19 @@ const updateStudent = async () => {
             'class',
             editingStudent.value.class
         )
+        formData.append(
+            'symbol_no',
+            editingStudent.value.symbol_no ||''
+
+        )
+
+        formData.append('date_of_birth', editingStudent.value.date_of_birth || '')
 
         formData.append(
             'email',
             editingStudent.value.email
         )
+        console.log('Symbol No being sent:',editingStudent.value.symbol_no)
 
 
         formData.append(
@@ -1555,6 +1572,14 @@ onBeforeUnmount(() => {
                         Trash
                     </button>
 
+                    <button
+    type="button"
+    @click="router.push('/marksheets')"
+    class="px-4 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition"
+>
+    Marksheets
+</button>
+
 
                     <button
                         type="button"
@@ -1733,6 +1758,30 @@ onBeforeUnmount(() => {
         placeholder="Enter Class"
         class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
     />
+    <div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        Symbol No.
+    </label>
+
+    <input
+        v-model="newStudent.symbol_no"
+        type="text"
+        placeholder="Enter symbol number"
+        class="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+    >
+</div>
+
+<div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        Date of Birth
+    </label>
+
+    <input
+        v-model="newStudent.date_of_birth"
+        type="date"
+        class="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+    >
+</div>
 </div>
 
 
@@ -1871,7 +1920,7 @@ onBeforeUnmount(() => {
             >
 
                 <div
-                    class="w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6"
+                    class="w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 max-h-[80vh] overflow-y-auto"
                 >
 
                     <div
@@ -1965,6 +2014,24 @@ onBeforeUnmount(() => {
 
     <span class="font-semibold text-gray-800 dark:text-white">
         {{ viewingStudent.class || 'Not assigned' }}
+    </span>
+</div>
+<div class="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+    <span class="font-medium text-gray-500">
+        Symbol No.
+    </span>
+
+    <span class="font-semibold text-gray-800 dark:text-white">
+        {{ viewingStudent.symbol_no || 'Not assigned' }}
+    </span>
+</div>
+<div class="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+    <span class="font-medium text-gray-500">
+        Date of Birth
+    </span>
+
+    <span class="font-semibold text-gray-800 dark:text-white">
+        {{ viewingStudent.date_of_birth || 'Not assigned' }}
     </span>
 </div>
 
@@ -2120,7 +2187,7 @@ onBeforeUnmount(() => {
                     <button
                         type="button"
                         @click="viewingStudent = null"
-                        class="w-full mt-6 bg-gray-800 text-white px-5 py-3 rounded-xl font-medium"
+                        class="w-full mt-6 mb-2 bg-gray-800 text-white px-5 py-3 rounded-xl font-medium"
                     >
                         Close
                     </button>
@@ -2144,9 +2211,8 @@ onBeforeUnmount(() => {
             >
 
                 <div
-                    class="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6"
-                >
-
+                    class="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 max-h-[80vh] overflow-y-auto"
+>
                     <div
                         class="flex items-center justify-between mb-6"
                     >
@@ -2188,6 +2254,29 @@ onBeforeUnmount(() => {
         v-model="editingStudent.class"
         type="text"
         placeholder="Enter Class"
+        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
+    />
+</div>
+<div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Symbol No.
+    </label>
+
+    <input
+        v-model="editingStudent.symbol_no"
+        type="text"
+        placeholder="Enter symbol number"
+        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
+    />
+</div>
+<div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Date of Birth
+    </label>
+
+    <input
+        v-model="editingStudent.date_of_birth"
+        type="date"
         class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
     />
 </div>

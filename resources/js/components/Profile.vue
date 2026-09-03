@@ -895,7 +895,7 @@ onMounted(() => {
     if(savedTheme==='dark'){
         document.documentElement.classList.add('dark')
     }else{
-        document.documentElemenr.classList.remove('dark')
+        document.documentElement.classList.remove('dark')
     }
     fetchUser()
 
