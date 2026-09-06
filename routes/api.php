@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\Parents\ParentController;
 use App\Http\Controllers\Api\Subjects\SubjectController;
 use App\Http\Controllers\Api\Marksheets\MarksheetController;
+use App\Http\Controllers\Api\Parents\ParentAuthController;
 
 
 // Public authentication routes
@@ -23,6 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
 // =========================================================
 
 Route::apiResource('parents', ParentController::class);
+
+Route::put('/parents/{parent}/children',[ParentController::class, 'updateChildren']);
 
 
 // =========================================================
@@ -80,5 +83,7 @@ Route::apiResource('subjects', SubjectController::class);
     Route::apiResource('students', StudentController::class);
 
     Route::post('/profile/change-password',[ApiAuthController::class,'changePassword']);
+
+    Route::post('parent/login', [ParentAuthController::class, 'login']);
     
 });

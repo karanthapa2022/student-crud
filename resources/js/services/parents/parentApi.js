@@ -100,3 +100,22 @@ export const deleteParent = (id) => {
     })
 
 }
+
+// =========================================================
+// UPDATE PARENT'S CHILDREN
+// =========================================================
+
+export const updateParentChildren = (id, studentIds) => {
+
+    const token = localStorage.getItem('token')
+
+    return api.put(`/parents/${id}/children`, {
+        student_ids: studentIds
+    }, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json'
+        }
+    })
+
+}

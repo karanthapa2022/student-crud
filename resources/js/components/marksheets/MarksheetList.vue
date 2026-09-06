@@ -3,19 +3,18 @@
 import { ref, onMounted } from 'vue'
 import { downloadMarksheetPdf } from '../../utils/marksheetPdf'
 
-
 import {
-    getMarksheets, deleteMarksheet
+    getMarksheets,
+    deleteMarksheet
 } from '../../services/marksheets/marksheetApi'
 
 const marksheets = ref([])
 const loading = ref(false)
 const error = ref('')
-const successMessage= ref('')
+const successMessage = ref('')
 
-const showDeleteModal= ref(false)
-const deleteMarksheetId= ref(null)
-
+const showDeleteModal = ref(false)
+const deleteMarksheetId = ref(null)
 
 // =========================================================
 // FETCH MARKSHEETS
@@ -44,6 +43,11 @@ const fetchMarksheets = async () => {
 
     }
 }
+
+// =========================================================
+// DELETE MODAL
+// =========================================================
+
 const confirmDeleteMarksheet = (id) => {
 
     deleteMarksheetId.value = id
@@ -51,18 +55,23 @@ const confirmDeleteMarksheet = (id) => {
 
 }
 
+// =========================================================
+// DELETE MARKSHEET
+// =========================================================
 
 const deleteMarksheetItem = async (id) => {
 
     try {
 
         await deleteMarksheet(id)
-        showDeleteModal.value=false
-        deleteMarksheetId.value=null
+
+        showDeleteModal.value = false
+        deleteMarksheetId.value = null
 
         await fetchMarksheets()
 
-        successMessage.value = 'Marksheet deleted successfully.'
+        successMessage.value =
+            'Marksheet deleted successfully.'
 
         setTimeout(() => {
             successMessage.value = ''
@@ -77,6 +86,11 @@ const deleteMarksheetItem = async (id) => {
     }
 
 }
+
+// =========================================================
+// DOWNLOAD MARKSHEET
+// =========================================================
+
 const downloadMarksheet = (marksheet) => {
     downloadMarksheetPdf(marksheet)
 }
@@ -94,262 +108,509 @@ onMounted(() => {
 
 <template>
 
-    <div class="p-6">
-
-        <!-- PAGE HEADER -->
-
-        <div class="flex justify-between items-center mb-6">
-
-            <div>
-
-                <h1 class="text-2xl font-bold">
-                    Marksheets
-                </h1>
-
-                <p class="text-gray-500">
-                    Create and manage student marksheets
-                </p>
-
-            </div>
-
-            <div class="flex flex-col items-end gap-3">
-
-    <button
-        type="button"
-        @click="$router.push('/marksheets/create')"
-        class="px-4 py-2 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 transition"
-    >
-        Create Marksheet
-    </button>
-
-    <button
-        type="button"
-        @click="$router.push('/students')"
-        class="px-4 py-2 rounded-lg bg-gray-800 text-white font-medium hover:bg-gray-900 transition"
-    >
-        ← Students
-    </button>
-
-</div>
-
-        </div>
-
-
-        <!-- ERROR -->
-
-        <div
-            v-if="error"
-            class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg"
-        >
-            {{ error }}
-        </div>
-        <div
-    v-if="successMessage"
-    class="mb-4 flex justify-start"
+<div
+    class="p-6 lg:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors"
 >
-    <button
-        type="button"
-        class="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium shadow-sm cursor-default"
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7"
     >
-        ✓ {{ successMessage }}
-    </button>
-</div>
 
+        <div>
 
-        <!-- LOADING -->
+            <h1
+                class="text-2xl font-bold text-gray-900 dark:text-white"
+            >
+                Marksheets
+            </h1>
 
-        <div
-            v-if="loading"
-            class="text-gray-500"
-        >
-            Loading marksheets...
-        </div>
-
-
-        <!-- EMPTY STATE -->
-
-        <div
-            v-else-if="marksheets.length === 0"
-            class="p-8 text-center bg-gray-50 rounded-lg"
-        >
-
-            <p class="text-gray-500">
-                No marksheets found.
+            <p
+                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+            >
+                Create and manage student marksheets
             </p>
 
         </div>
 
 
-        <!-- MARKSHEETS -->
-
         <div
-            v-else
-            class="bg-white rounded-lg shadow overflow-hidden"
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
         >
 
-            <table class="w-full">
+            <!-- CREATE MARKSHEET -->
 
-                <thead class="bg-gray-100">
+            <button
+                type="button"
+                @click="$router.push('/marksheets/create')"
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-purple-600 text-white text-sm font-semibold shadow-sm hover:bg-purple-700 hover:shadow transition-all"
+            >
 
-                    <tr>
+                <span class="text-lg leading-none">
+                    +
+                </span>
 
-                        <th class="px-4 py-3 text-left">
-                            S.N.
-                        </th>
+                Create Marksheet
 
-                        <th class="px-4 py-3 text-left">
-                            Student
-                        </th>
-
-                        <th class="px-4 py-3 text-left">
-                            Class
-                        </th>
-
-                        <th class="px-4 py-3 text-left">
-                            Total
-                        </th>
-
-                        <th class="px-4 py-3 text-left">
-                            Percentage
-                        </th>
-
-                        <th class="px-4 py-3 text-left">
-                            Grade
-                        </th>
-
-                        <th class="px-4 py-3 text-left">
-                            Result
-                        </th>
-
-                        <th class="px-4 py-3 text-left">
-    Actions
-</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    <tr
-                        v-for="(marksheet, index) in marksheets"
-                        :key="marksheet.id"
-                        class="border-t hover:bg-gray-50"
-                    >
-
-                        <td class="px-4 py-3">
-                            {{ index + 1 }}
-                        </td>
-
-                        <td class="px-4 py-3 font-medium">
-                            {{ marksheet.student?.name || '-' }}
-                        </td>
-
-                        <td class="px-4 py-3">
-                            {{ marksheet.student?.class || '-' }}
-                        </td>
-
-                        <td class="px-4 py-3">
-                            {{ marksheet.total }}
-                        </td>
-
-                        <td class="px-4 py-3">
-                            {{ marksheet.percentage }}%
-                        </td>
-
-                        <td class="px-4 py-3">
-                            {{ marksheet.grade || '-' }}
-                        </td>
-
-                        <td class="px-4 py-3">
-                            {{ marksheet.result || '-' }}
-                        </td>
-                        <td class="px-4 py-3">
-    <div class="flex gap-2">
-
-        <button
-            type="button"
-            @click="$router.push(`/marksheets/${marksheet.id}`)"
-            class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition"
-        >
-            View
-        </button>
-
-        <button
-            type="button"
-            @click="$router.push(`/marksheets/${marksheet.id}/edit`)"
-            class="px-3 py-1.5 rounded-lg bg-yellow-500 text-white text-sm hover:bg-yellow-600 transition"
-        >
-            Edit
-        </button>
-
-        <button
-    type="button"
-    @click="downloadMarksheet(marksheet)"
-    class="px-3 py-1.5 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700 transition"
->
-    Download
-</button>
-
-        <button
-    type="button"
-    @click="confirmDeleteMarksheet(marksheet.id)"
-    class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 transition"
->
-    Delete
-</button>
+            </button>
 
 
-    </div>
-</td>
+            <!-- STUDENTS -->
 
-                    </tr>
+            <button
+                type="button"
+                @click="$router.push('/students')"
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-800 dark:bg-gray-700 text-white text-sm font-semibold shadow-sm hover:bg-gray-900 dark:hover:bg-gray-600 transition"
+            >
 
-                </tbody>
+                ← Students
 
-            </table>
+            </button>
 
         </div>
 
     </div>
-    <!-- Delete Confirmation Modal -->
-<div
-    v-if="showDeleteModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
->
+
+
+    <!-- =====================================================
+         ERROR
+    ====================================================== -->
+
     <div
-        class="w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl"
+        v-if="error"
+        class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-lg"
     >
 
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
-            Delete Marksheet
-        </h2>
+        {{ error }}
 
-        <p class="mt-2 text-gray-600 dark:text-gray-400">
-            Are you sure you want to delete this marksheet?
-        </p>
+    </div>
 
-        <div class="mt-6 flex justify-end gap-3">
 
-            <button
-                type="button"
-                @click="showDeleteModal = false"
-                class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-            >
-                Cancel
-            </button>
+    <!-- =====================================================
+         SUCCESS
+    ====================================================== -->
 
-            <button
-                type="button"
-                @click="deleteMarksheetItem(deleteMarksheetId)"
-                class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-            >
-                Delete
-            </button>
+    <div
+        v-if="successMessage"
+        class="mb-4"
+    >
+
+        <div
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-sm font-medium"
+        >
+
+            <span>
+                ✓
+            </span>
+
+            {{ successMessage }}
 
         </div>
 
     </div>
+
+
+    <!-- =====================================================
+         LOADING
+    ====================================================== -->
+
+    <div
+        v-if="loading"
+        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm py-12 transition-colors"
+    >
+
+        <div
+            class="flex flex-col items-center justify-center"
+        >
+
+            <div
+                class="w-8 h-8 border-4 border-gray-200 dark:border-gray-600 border-t-purple-600 rounded-full animate-spin mb-3"
+            ></div>
+
+            <p
+                class="text-sm text-gray-500 dark:text-gray-400"
+            >
+                Loading marksheets...
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         EMPTY STATE
+    ====================================================== -->
+
+    <div
+        v-else-if="marksheets.length === 0"
+        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-colors"
+    >
+
+        <div
+            class="flex flex-col items-center justify-center py-12"
+        >
+
+            <div
+                class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3 text-xl"
+            >
+                📄
+            </div>
+
+            <p
+                class="font-medium text-gray-700 dark:text-gray-200"
+            >
+                No marksheets found
+            </p>
+
+            <p
+                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+            >
+                Create a marksheet to get started.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MARKSHEETS TABLE
+    ====================================================== -->
+
+    <div
+        v-else
+        class="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors"
+    >
+
+        <table class="w-full min-w-[1000px]">
+
+            <!-- TABLE HEADER -->
+
+            <thead
+                class="bg-gray-50 dark:bg-gray-700"
+            >
+
+                <tr>
+
+                    <th
+                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
+                    >
+                        S.N.
+                    </th>
+
+                    <th
+                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
+                    >
+                        Student
+                    </th>
+
+                    <th
+                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
+                    >
+                        Class
+                    </th>
+
+                    <th
+                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
+                    >
+                        Total
+                    </th>
+
+                    <th
+                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
+                    >
+                        Percentage
+                    </th>
+
+                    <th
+                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
+                    >
+                        Grade
+                    </th>
+
+                    <th
+                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
+                    >
+                        Result
+                    </th>
+
+                    <th
+                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
+                    >
+                        Actions
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <!-- TABLE BODY -->
+
+            <tbody>
+
+                <tr
+                    v-for="(marksheet, index) in marksheets"
+                    :key="marksheet.id"
+                    class="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
+                >
+
+                    <!-- S.N. -->
+
+                    <td
+                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
+                    >
+                        {{ index + 1 }}
+                    </td>
+
+
+                    <!-- STUDENT -->
+
+                    <td
+                        class="px-4 py-3 font-medium text-gray-800 dark:text-gray-100"
+                    >
+                        {{ marksheet.student?.name || '-' }}
+                    </td>
+
+
+                    <!-- CLASS -->
+
+                    <td
+                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
+                    >
+                        {{ marksheet.student?.class || '-' }}
+                    </td>
+
+
+                    <!-- TOTAL -->
+
+                    <td
+                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
+                    >
+                        {{ marksheet.total }}
+                    </td>
+
+
+                    <!-- PERCENTAGE -->
+
+                    <td
+                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
+                    >
+
+                        <span
+                            class="font-medium"
+                        >
+                            {{ marksheet.percentage }}%
+                        </span>
+
+                    </td>
+
+
+                    <!-- GRADE -->
+
+                    <td class="px-4 py-3">
+
+                        <span
+                            class="inline-flex items-center justify-center min-w-10 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-semibold"
+                        >
+                            {{ marksheet.grade || '-' }}
+                        </span>
+
+                    </td>
+
+
+                    <!-- RESULT -->
+
+                    <td class="px-4 py-3">
+
+                        <span
+                            class="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium"
+                            :class="
+                                marksheet.result === 'Pass'
+                                    ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                    : marksheet.result === 'Fail'
+                                        ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            "
+                        >
+                            {{ marksheet.result || '-' }}
+                        </span>
+
+                    </td>
+
+
+                    <!-- ACTIONS -->
+
+                    <td class="px-4 py-3">
+
+                        <div
+                            class="flex items-center gap-2"
+                        >
+
+                            <!-- VIEW -->
+
+                            <button
+                                type="button"
+                                @click="
+                                    $router.push(
+                                        `/marksheets/${marksheet.id}`
+                                    )
+                                "
+                                class="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
+                            >
+                                View
+                            </button>
+
+
+                            <!-- EDIT -->
+
+                            <button
+                                type="button"
+                                @click="
+                                    $router.push(
+                                        `/marksheets/${marksheet.id}/edit`
+                                    )
+                                "
+                                class="px-3 py-1.5 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-sm font-medium hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition"
+                            >
+                                Edit
+                            </button>
+
+
+                            <!-- DOWNLOAD -->
+
+                            <button
+                                type="button"
+                                @click="
+                                    downloadMarksheet(
+                                        marksheet
+                                    )
+                                "
+                                class="px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/50 transition"
+                            >
+                                Download
+                            </button>
+
+
+                            <!-- DELETE -->
+
+                            <button
+                                type="button"
+                                @click="
+                                    confirmDeleteMarksheet(
+                                        marksheet.id
+                                    )
+                                "
+                                class="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- =====================================================
+         DELETE CONFIRMATION MODAL
+    ====================================================== -->
+
+    <div
+        v-if="showDeleteModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 px-4"
+    >
+
+        <div
+            class="w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-xl transition-colors"
+        >
+
+            <!-- HEADER -->
+
+            <div
+                class="flex items-center gap-3 mb-4"
+            >
+
+                <div
+                    class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0"
+                >
+                    ⚠️
+                </div>
+
+                <h2
+                    class="text-xl font-semibold text-gray-900 dark:text-white"
+                >
+                    Delete Marksheet
+                </h2>
+
+            </div>
+
+
+            <!-- MESSAGE -->
+
+            <p
+                class="text-gray-600 dark:text-gray-300"
+            >
+                Are you sure you want to delete this marksheet?
+            </p>
+
+            <p
+                class="text-sm text-gray-500 dark:text-gray-400 mt-2"
+            >
+                This action cannot be undone.
+            </p>
+
+
+            <!-- ACTIONS -->
+
+            <div
+                class="mt-6 flex justify-end gap-3"
+            >
+
+                <!-- CANCEL -->
+
+                <button
+                    type="button"
+                    @click="
+                        showDeleteModal = false
+                    "
+                    class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                >
+                    Cancel
+                </button>
+
+
+                <!-- DELETE -->
+
+                <button
+                    type="button"
+                    @click="
+                        deleteMarksheetItem(
+                            deleteMarksheetId
+                        )
+                    "
+                    class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                >
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 </template>

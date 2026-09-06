@@ -12,6 +12,7 @@ import CreateMarksheet from './components/marksheets/CreateMarksheet.vue'
 import ViewMarksheet from './components/marksheets/ViewMarksheet.vue'
 import EditMarksheet from './components/marksheets/EditMarksheet.vue'
 import ParentMarksheet from './components/parents/ParentMarksheet.vue'
+import ParentLogin from './components/parents/ParentLogin.vue'
 
 const routes = [
     {
@@ -19,6 +20,10 @@ const routes = [
         component: Login
     },
 
+    {
+    path: '/parents/login',
+    component: ParentLogin
+},
     {
         path: '/register',
         component: Register
