@@ -42,12 +42,28 @@ class Student extends Model
 
     // Student can have many subjects
     public function subjects()
-    {
-        return $this->belongsToMany(
-            Subject::class,
-            'student_subject',
-            'student_id',
-            'subject_id'
-        );
-    }
+{
+    return $this->belongsToMany(
+        Subject::class,
+        'student_subject',
+        'student_id',
+        'subject_id'
+    )->withPivot('subject_name');
+}
+
+public function studentSubjectAssignments()
+{
+    return $this->hasMany(
+        StudentSubject::class,
+        'student_id'
+    );
+}
+
+public function manualSubjects()
+{
+    return $this->hasMany(
+        StudentSubject::class,
+        'student_id'
+    )->whereNull('subject_id');
+}
 }

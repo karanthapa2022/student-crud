@@ -98,18 +98,22 @@ export const useParentStore = defineStore('parent', {
 
                 }
 
-            } catch (error) {
+            
+                        } catch (error) {
 
-                console.error(
-                    'Error fetching parents:',
-                    error
-                )
+    console.log('========== PARENT CREATE ERROR ==========')
+    console.log('STATUS:', error.response?.status)
+    console.log('DATA:', error.response?.data)
+    console.log('ERRORS:', error.response?.data?.errors)
+    console.log('MESSAGE:', error.response?.data?.message)
+    console.log('=========================================')
 
-                this.error =
-                    error.response?.data?.message ||
-                    'Unable to load parents.'
+    this.error =
+        error.response?.data?.message ||
+        'Error creating parent.'
 
-            } finally {
+    throw error
+} finally {
 
                 this.loading = false
 

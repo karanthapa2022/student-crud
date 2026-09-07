@@ -1,6 +1,7 @@
 <script setup>
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { downloadMarksheetPdf } from '../../utils/marksheetPdf'
 
 import {
@@ -12,7 +13,23 @@ const marksheets = ref([])
 const loading = ref(false)
 const error = ref('')
 const successMessage = ref('')
+const router= useRouter()
 
+// =========================================================
+// CURRENT USER
+// =========================================================
+
+const user = ref(
+    JSON.parse(localStorage.getItem('user') || 'null')
+)
+
+const isAdmin = computed(() => {
+    return user.value?.role === 'admin'
+})
+
+const canEdit = computed(() => {
+    return ['admin', 'teacher'].includes(user.value?.role)
+})
 const showDeleteModal = ref(false)
 const deleteMarksheetId = ref(null)
 
@@ -94,6 +111,12 @@ const deleteMarksheetItem = async (id) => {
 const downloadMarksheet = (marksheet) => {
     downloadMarksheetPdf(marksheet)
 }
+const logout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+
+    router.push('/login')
+}
 
 // =========================================================
 // MOUNT
@@ -144,6 +167,7 @@ onMounted(() => {
             <!-- CREATE MARKSHEET -->
 
             <button
+                v-if="canEdit"
                 type="button"
                 @click="$router.push('/marksheets/create')"
                 class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-purple-600 text-white text-sm font-semibold shadow-sm hover:bg-purple-700 hover:shadow transition-all"
@@ -158,17 +182,25 @@ onMounted(() => {
             </button>
 
 
-            <!-- STUDENTS -->
+            <!-- DASHBOARD — ADMIN ONLY -->
 
-            <button
-                type="button"
-                @click="$router.push('/students')"
-                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-800 dark:bg-gray-700 text-white text-sm font-semibold shadow-sm hover:bg-gray-900 dark:hover:bg-gray-600 transition"
-            >
+<button
+    v-if="isAdmin"
+    type="button"
+    @click="$router.push('/admin/dashboard')"
+    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-700 text-white text-sm font-semibold shadow-sm hover:bg-gray-800 dark:hover:bg-gray-600 transition-all"
+>
+    ← Dashboard
+</button>
 
-                ← Students
+<!-- Admin, Teacher & Parent -->
+    <button
+        @click="logout"
+        class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+    >
+        Logout
+    </button>
 
-            </button>
 
         </div>
 
@@ -469,6 +501,7 @@ onMounted(() => {
                             <!-- EDIT -->
 
                             <button
+                                v-if="canEdit"
                                 type="button"
                                 @click="
                                     $router.push(
@@ -498,17 +531,18 @@ onMounted(() => {
 
                             <!-- DELETE -->
 
-                            <button
-                                type="button"
-                                @click="
-                                    confirmDeleteMarksheet(
-                                        marksheet.id
-                                    )
-                                "
-                                class="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition"
-                            >
-                                Delete
-                            </button>
+<button
+    v-if="isAdmin"
+    type="button"
+    @click="
+        confirmDeleteMarksheet(
+            marksheet.id
+        )
+    "
+    class="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition"
+>
+    Delete
+</button>
 
                         </div>
 

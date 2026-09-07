@@ -9,6 +9,9 @@ class MarksheetItem extends Model
     protected $fillable = [
         'marksheet_id',
         'subject_id',
+        'subject_name',
+        'full_marks',
+        'pass_marks',
         'marks',
     ];
 

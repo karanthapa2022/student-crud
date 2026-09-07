@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\StudentSubject;
 
 class StudentController extends Controller
 {
@@ -18,7 +19,8 @@ class StudentController extends Controller
         $query = Student::with([
             'parent',
             'address',
-            'subjects'
+            'subjects',
+            'studentSubjectAssignments.subject',
         ]);
 
         // Search
@@ -29,9 +31,8 @@ class StudentController extends Controller
             $query->where(function ($q) use ($search) {
 
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
-
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -45,9 +46,18 @@ class StudentController extends Controller
 
         $students = $query
             ->latest()
-            ->paginate(
-                $request->get('per_page', 10)
+            ->paginate(10)
+            ->withQueryString();
+
+        $students->getCollection()->transform(function ($student) {
+
+            $student->setRelation(
+                'subjects',
+                $this->formatStudentSubjects($student)
             );
+
+            return $student;
+        });
 
         return response()->json($students);
     }
@@ -65,9 +75,9 @@ class StudentController extends Controller
 
             'class' => 'required|string|max:100',
 
-            'symbol_no'=>'nullable|string|max:100|unique:students,symbol_no',
+            'symbol_no' => 'nullable|string|max:100|unique:students,symbol_no',
 
-            'date_of_birth' =>'nullable|date',
+            'date_of_birth' => 'nullable|date',
 
             'email' => 'required|email|unique:students,email',
 
@@ -81,14 +91,14 @@ class StudentController extends Controller
 
             'address_id' => 'nullable|exists:addresses,id',
 
-            'subjects' => 'nullable |array',
+            'subjects' => 'nullable|array',
 
             'subjects.*' => 'exists:subjects,id',
         ]);
 
 
         // Upload photo
-        if ($request->hasFile('photo')) {                                               
+        if ($request->hasFile('photo')) {
 
             $validated['photo'] =
                 $request->file('photo')
@@ -131,8 +141,14 @@ class StudentController extends Controller
         $student->load([
             'parent',
             'address',
-            'subjects'
+            'subjects',
+            'studentSubjectAssignments.subject',
         ]);
+
+        $student->setRelation(
+            'subjects',
+            $this->formatStudentSubjects($student)
+        );
 
         return response()->json($student);
     }
@@ -152,10 +168,11 @@ class StudentController extends Controller
             'class' =>
                 'required|string|max:100',
 
-            'symbol_no'=>
-                'nullable|string|max:100|unique:students,symbol_no,'. $student->id, 
-                
-            'date_of_birth' =>'nullable|date',
+            'symbol_no' =>
+                'nullable|string|max:100|unique:students,symbol_no,' . $student->id,
+
+            'date_of_birth' =>
+                'nullable|date',
 
             'email' =>
                 'required|email|unique:students,email,' . $student->id,
@@ -178,12 +195,21 @@ class StudentController extends Controller
             'subjects' =>
                 'nullable|array',
 
-            'subjects.*' =>
-                'exists:subjects,id',
+            'subjects.*.subject_id' =>
+                'nullable|integer|exists:subjects,id',
+
+            'subjects.*.subject_name' =>
+                'required|string|max:255',
+
+            'subjects.*.subject_code' =>
+                'nullable|string|max:100',
         ]);
 
 
-        // Replace photo
+        // =====================================================
+        // REPLACE PHOTO
+        // =====================================================
+
         if ($request->hasFile('photo')) {
 
             if (
@@ -194,34 +220,59 @@ class StudentController extends Controller
                     ->delete($student->photo);
             }
 
-
             $validated['photo'] =
                 $request->file('photo')
                     ->store('students', 'public');
         }
 
 
+        // =====================================================
+        // UPDATE STUDENT
+        // =====================================================
+
         $student->update($validated);
 
 
-        // Update subjects
+        // =====================================================
+        // UPDATE SUBJECTS
+        // =====================================================
+
         if ($request->has('subjects')) {
 
-    $student->subjects()->sync(
-        $request->input('subjects', [])
-    );
+            // Remove existing assignments
+            $student->studentSubjectAssignments()->delete();
 
-} else {
+            // Add updated assignments
+            foreach ($validated['subjects'] ?? [] as $subjectData) {
 
-    $student->subjects()->sync([]);
+                StudentSubject::create([
+                    'student_id' => $student->id,
+                    'subject_id' => $subjectData['subject_id'] ?? null,
+                    'subject_name' => $subjectData['subject_name'],
+                    'subject_code' => $subjectData['subject_code'] ?? null,
+                ]);
+            }
+        } else {
 
-}
+            // No subjects submitted
+            $student->studentSubjectAssignments()->delete();
+        }
+
+
+        // =====================================================
+        // LOAD UPDATED STUDENT
+        // =====================================================
 
         $student->load([
             'parent',
             'address',
-            'subjects'
+            'studentSubjectAssignments.subject',
         ]);
+
+        $student->setRelation(
+            'subjects',
+            $this->formatStudentSubjects($student)
+        );
 
 
         return response()->json([
@@ -277,13 +328,11 @@ class StudentController extends Controller
 
         $student->restore();
 
-
         $student->load([
             'parent',
             'address',
             'subjects'
         ]);
-
 
         return response()->json([
             'message' => 'Student restored successfully.',
@@ -301,7 +350,6 @@ class StudentController extends Controller
         $student = Student::onlyTrashed()
             ->findOrFail($id);
 
-
         if (
             $student->photo &&
             Storage::disk('public')->exists($student->photo)
@@ -310,11 +358,9 @@ class StudentController extends Controller
                 ->delete($student->photo);
         }
 
-
         $student->subjects()->detach();
 
         $student->forceDelete();
-
 
         return response()->json([
             'message' => 'Student permanently deleted.'
@@ -333,12 +379,10 @@ class StudentController extends Controller
             'ids.*' => 'integer|exists:students,id',
         ]);
 
-
         Student::whereIn(
             'id',
             $validated['ids']
         )->delete();
-
 
         return response()->json([
             'message' => 'Students moved to trash successfully.'
@@ -357,14 +401,12 @@ class StudentController extends Controller
             'ids.*' => 'integer',
         ]);
 
-
         Student::onlyTrashed()
             ->whereIn(
                 'id',
                 $validated['ids']
             )
             ->restore();
-
 
         return response()->json([
             'message' => 'Students restored successfully.'
@@ -383,14 +425,9 @@ class StudentController extends Controller
             'ids.*' => 'integer',
         ]);
 
-
         $students = Student::onlyTrashed()
-            ->whereIn(
-                'id',
-                $validated['ids']
-            )
+            ->whereIn('id', $validated['ids'])
             ->get();
-
 
         foreach ($students as $student) {
 
@@ -406,7 +443,6 @@ class StudentController extends Controller
 
             $student->forceDelete();
         }
-
 
         return response()->json([
             'message' => 'Students permanently deleted.'
@@ -432,14 +468,12 @@ class StudentController extends Controller
                 'required|in:active,inactive',
         ]);
 
-
         Student::whereIn(
             'id',
             $validated['ids']
         )->update([
             'status' => $validated['status']
         ]);
-
 
         return response()->json([
             'message' => 'Students updated successfully.'
@@ -465,11 +499,40 @@ class StudentController extends Controller
             'inactive'
         )->count();
 
-
         return response()->json([
             'total' => $total,
             'active' => $active,
             'inactive' => $inactive
         ]);
+    }
+
+
+    // =========================================================
+    // FORMAT STUDENT SUBJECTS
+    // =========================================================
+
+    private function formatStudentSubjects(Student $student)
+    {
+        return $student->studentSubjectAssignments
+            ->map(function ($assignment) {
+
+                return [
+                    'id' => $assignment->subject_id,
+
+                    'name' => $assignment->subject_name
+                        ?: ($assignment->subject?->name ?? ''),
+
+                    'code' => $assignment->subject?->code,
+
+                    'description' => $assignment->subject?->description,
+
+                    'pivot' => [
+                        'subject_name' => $assignment->subject_name,
+                        'subject_code' => $assignment->subject_code,
+                    ],
+                ];
+
+            })
+            ->values();
     }
 }

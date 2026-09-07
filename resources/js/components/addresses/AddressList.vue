@@ -5,22 +5,25 @@ import { nepalLocations } from '../../data/nepalLocations'
 
 const addressStore = useAddressStore()
 
-// search and filter
+// =========================================================
+// SEARCH AND FILTER
+// =========================================================
 
 const searchQuery = ref('')
 const provinceFilter = ref('all')
+
 watch(
     [
         searchQuery,
         provinceFilter
-    ],()=>{
+    ],
+    () => {
         addressStore.fetchAddresses(
             1,
             searchQuery.value,
             provinceFilter.value
         )
     }
-
 )
 
 // =========================================================
@@ -39,6 +42,7 @@ const form = ref({
     city: '',
     street: ''
 })
+
 watch(
     () => form.value.province,
     () => {
@@ -67,11 +71,13 @@ const successMessage = ref('')
 // =========================================================
 
 onMounted(() => {
+
     addressStore.fetchAddresses(
         1,
         searchQuery.value,
         provinceFilter.value
     )
+
 })
 
 // =========================================================
@@ -79,6 +85,7 @@ onMounted(() => {
 // =========================================================
 
 const resetForm = () => {
+
     form.value = {
         province: '',
         district: '',
@@ -90,6 +97,7 @@ const resetForm = () => {
 
     isEditing.value = false
     editingId.value = null
+
 }
 
 // =========================================================
@@ -97,8 +105,11 @@ const resetForm = () => {
 // =========================================================
 
 const openAddModal = () => {
+
     resetForm()
+
     showModal.value = true
+
 }
 
 // =========================================================
@@ -106,8 +117,11 @@ const openAddModal = () => {
 // =========================================================
 
 const closeModal = () => {
+
     showModal.value = false
+
     resetForm()
+
 }
 
 // =========================================================
@@ -117,6 +131,7 @@ const closeModal = () => {
 const openEditModal = (address) => {
 
     isEditing.value = true
+
     editingId.value = address.id
 
     form.value = {
@@ -129,6 +144,7 @@ const openEditModal = (address) => {
     }
 
     showModal.value = true
+
 }
 
 // =========================================================
@@ -157,6 +173,7 @@ const saveAddress = async () => {
 
             successMessage.value =
                 'Address added successfully.'
+
         }
 
         closeModal()
@@ -173,6 +190,7 @@ const saveAddress = async () => {
         )
 
     }
+
 }
 
 // =========================================================
@@ -181,7 +199,11 @@ const saveAddress = async () => {
 
 const deleteAddress = async (id) => {
 
-    if (!confirm('Are you sure you want to delete this address?')) {
+    if (
+        !confirm(
+            'Are you sure you want to delete this address?'
+        )
+    ) {
         return
     }
 
@@ -204,6 +226,7 @@ const deleteAddress = async (id) => {
         )
 
     }
+
 }
 
 // =========================================================
@@ -219,10 +242,12 @@ const changePage = (page) => {
         return
     }
 
-    addressStore.fetchAddresses(page,
+    addressStore.fetchAddresses(
+        page,
         searchQuery.value,
         provinceFilter.value
     )
+
 }
 
 const paginationPages = computed(() => {
@@ -238,68 +263,136 @@ const paginationPages = computed(() => {
     }
 
     return pages
+
 })
+
 </script>
 
 
 <template>
 
-    <div class="min-h-screen bg-gray-100 p-6">
+    <div
+        class="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors"
+    >
 
         <!-- ================================================= -->
         <!-- HEADER -->
         <!-- ================================================= -->
 
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6"
+        >
 
             <div>
-                <h1 class="text-3xl font-bold text-gray-800">
+
+                <h1
+                    class="text-3xl font-bold text-gray-900 dark:text-white"
+                >
                     Addresses
                 </h1>
 
-                <p class="text-gray-500 mt-1">
+                <p
+                    class="text-gray-500 dark:text-gray-400 mt-1"
+                >
                     Manage student addresses
                 </p>
+
             </div>
 
-            
 
-            <button
-                @click="openAddModal"
-                class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition"
+            <!-- HEADER ACTIONS -->
+
+            <div
+                class="flex flex-col sm:flex-row gap-3"
             >
-                + Add Address
-            </button>
+
+                <!-- ADMIN DASHBOARD -->
+
+                <button
+                    type="button"
+                    @click="$router.push('/admin/dashboard')"
+                    class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition shadow-sm"
+                >
+                    Dashboard
+                </button>
+
+
+                <!-- ADD ADDRESS -->
+
+                <button
+                    type="button"
+                    @click="openAddModal"
+                    class="w-full sm:w-auto bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition shadow-sm"
+                >
+                    + Add Address
+                </button>
+
+            </div>
 
         </div>
 
+
+        <!-- ================================================= -->
         <!-- SEARCH & FILTER -->
-<div class="flex gap-4 mb-6">
+        <!-- ================================================= -->
 
-    <!-- SEARCH -->
-    <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Search province, district, municipality, city or street..."
-        class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-    />
+        <div
+            class="flex flex-col md:flex-row gap-4 mb-6"
+        >
 
-    <!-- PROVINCE FILTER -->
-    <select
-        v-model="provinceFilter"
-        class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-    >
-        <option value="all">All Provinces</option>
-        <option value="Koshi">Koshi</option>
-        <option value="Madhesh">Madhesh</option>
-        <option value="Bagmati">Bagmati</option>
-        <option value="Gandaki">Gandaki</option>
-        <option value="Lumbini">Lumbini</option>
-        <option value="Karnali">Karnali</option>
-        <option value="Sudurpashchim">Sudurpashchim</option>
-    </select>
+            <!-- SEARCH -->
 
-</div>
+            <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search province, district, municipality, city or street..."
+                class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+            />
+
+
+            <!-- PROVINCE FILTER -->
+
+            <select
+                v-model="provinceFilter"
+                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+            >
+
+                <option value="all">
+                    All Provinces
+                </option>
+
+                <option value="Koshi">
+                    Koshi
+                </option>
+
+                <option value="Madhesh">
+                    Madhesh
+                </option>
+
+                <option value="Bagmati">
+                    Bagmati
+                </option>
+
+                <option value="Gandaki">
+                    Gandaki
+                </option>
+
+                <option value="Lumbini">
+                    Lumbini
+                </option>
+
+                <option value="Karnali">
+                    Karnali
+                </option>
+
+                <option value="Sudurpashchim">
+                    Sudurpashchim
+                </option>
+
+            </select>
+
+        </div>
+
 
         <!-- ================================================= -->
         <!-- SUCCESS MESSAGE -->
@@ -307,7 +400,7 @@ const paginationPages = computed(() => {
 
         <div
             v-if="successMessage"
-            class="mb-5 rounded-lg bg-green-100 border border-green-300 text-green-700 px-4 py-3"
+            class="mb-5 rounded-lg bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3"
         >
             {{ successMessage }}
         </div>
@@ -319,7 +412,7 @@ const paginationPages = computed(() => {
 
         <div
             v-if="addressStore.error"
-            class="mb-5 rounded-lg bg-red-100 border border-red-300 text-red-700 px-4 py-3"
+            class="mb-5 rounded-lg bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3"
         >
             {{ addressStore.error }}
         </div>
@@ -329,19 +422,21 @@ const paginationPages = computed(() => {
         <!-- TABLE -->
         <!-- ================================================= -->
 
-        <div class="bg-white rounded-xl shadow overflow-hidden">
+        <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden border border-gray-200 dark:border-gray-700 transition-colors"
+        >
 
-            <!-- Loading -->
+            <!-- LOADING -->
 
             <div
                 v-if="addressStore.loading"
-                class="p-10 text-center text-gray-500"
+                class="p-10 text-center text-gray-500 dark:text-gray-400"
             >
                 Loading addresses...
             </div>
 
 
-            <!-- Table -->
+            <!-- TABLE -->
 
             <div
                 v-else
@@ -350,39 +445,59 @@ const paginationPages = computed(() => {
 
                 <table class="w-full">
 
-                    <thead class="bg-gray-50 border-b">
+                    <!-- TABLE HEADER -->
+
+                    <thead
+                        class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600"
+                    >
 
                         <tr>
 
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                            <th
+                                class="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
+                            >
                                 S.N.
                             </th>
 
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                            <th
+                                class="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
+                            >
                                 Province
                             </th>
 
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                            <th
+                                class="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
+                            >
                                 District
                             </th>
 
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                            <th
+                                class="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
+                            >
                                 Municipality/VDC
                             </th>
 
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                            <th
+                                class="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
+                            >
                                 Ward
                             </th>
 
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                            <th
+                                class="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
+                            >
                                 City
                             </th>
 
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">
+                            <th
+                                class="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
+                            >
                                 Street
                             </th>
 
-                            <th class="px-6 py-4 text-center text-sm font-semibold text-gray-600">
+                            <th
+                                class="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-200"
+                            >
                                 Actions
                             </th>
 
@@ -391,59 +506,111 @@ const paginationPages = computed(() => {
                     </thead>
 
 
-                    <tbody class="divide-y">
+                    <!-- TABLE BODY -->
+
+                    <tbody
+                        class="divide-y divide-gray-100 dark:divide-gray-700"
+                    >
 
                         <tr
                             v-for="(address, index) in addressStore.addresses"
                             :key="address.id"
-                            class="hover:bg-gray-50"
+                            class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                         >
 
-                            <td class="px-6 py-4 text-sm text-gray-600">
+                            <!-- S.N. -->
+
+                            <td
+                                class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300"
+                            >
+
                                 {{
                                     addressStore.pagination.from +
                                     index
                                 }}
+
                             </td>
 
-                            <td class="px-6 py-4 text-sm text-gray-800">
+
+                            <!-- PROVINCE -->
+
+                            <td
+                                class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100"
+                            >
                                 {{ address.province }}
                             </td>
 
-                            <td class="px-6 py-4 text-sm text-gray-800">
+
+                            <!-- DISTRICT -->
+
+                            <td
+                                class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100"
+                            >
                                 {{ address.district }}
                             </td>
 
-                            <td class="px-6 py-4 text-sm text-gray-800">
+
+                            <!-- MUNICIPALITY -->
+
+                            <td
+                                class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100"
+                            >
                                 {{ address.municipality }}
                             </td>
 
-                            <td class="px-6 py-4 text-sm text-gray-800">
+
+                            <!-- WARD -->
+
+                            <td
+                                class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100"
+                            >
                                 {{ address.ward }}
                             </td>
 
-                            <td class="px-6 py-4 text-sm text-gray-800">
+
+                            <!-- CITY -->
+
+                            <td
+                                class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100"
+                            >
                                 {{ address.city || '-' }}
                             </td>
 
-                            <td class="px-6 py-4 text-sm text-gray-800">
+
+                            <!-- STREET -->
+
+                            <td
+                                class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100"
+                            >
                                 {{ address.street || '-' }}
                             </td>
 
+
+                            <!-- ACTIONS -->
+
                             <td class="px-6 py-4">
 
-                                <div class="flex justify-center gap-2">
+                                <div
+                                    class="flex justify-center gap-2"
+                                >
+
+                                    <!-- EDIT -->
 
                                     <button
+                                        type="button"
                                         @click="openEditModal(address)"
-                                        class="px-3 py-1.5 text-sm rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                        class="px-3 py-1.5 text-sm rounded-lg bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition"
                                     >
                                         Edit
                                     </button>
 
+
+                                    <!-- DELETE -->
+
                                     <button
+                                        type="button"
                                         @click="deleteAddress(address.id)"
-                                        class="px-3 py-1.5 text-sm rounded-lg bg-red-100 text-red-700 hover:bg-red-200"
+                                        class="px-3 py-1.5 text-sm rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 transition"
                                     >
                                         Delete
                                     </button>
@@ -455,7 +622,7 @@ const paginationPages = computed(() => {
                         </tr>
 
 
-                        <!-- Empty -->
+                        <!-- EMPTY -->
 
                         <tr
                             v-if="addressStore.addresses.length === 0"
@@ -463,7 +630,7 @@ const paginationPages = computed(() => {
 
                             <td
                                 colspan="8"
-                                class="px-6 py-12 text-center text-gray-500"
+                                class="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                             >
                                 No addresses found.
                             </td>
@@ -488,35 +655,56 @@ const paginationPages = computed(() => {
             class="flex flex-wrap justify-center items-center gap-2 mt-6"
         >
 
+            <!-- PREVIOUS -->
+
             <button
-                @click="changePage(addressStore.pagination.currentPage - 1)"
-                :disabled="addressStore.pagination.currentPage === 1"
-                class="px-4 py-2 rounded-lg border bg-white disabled:opacity-50"
+                type="button"
+                @click="
+                    changePage(
+                        addressStore.pagination.currentPage - 1
+                    )
+                "
+                :disabled="
+                    addressStore.pagination.currentPage === 1
+                "
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition"
             >
                 Previous
             </button>
 
+
+            <!-- PAGE NUMBERS -->
+
             <button
                 v-for="page in paginationPages"
                 :key="page"
+                type="button"
                 @click="changePage(page)"
                 :class="[
-                    'px-4 py-2 rounded-lg border',
+                    'px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 transition',
                     page === addressStore.pagination.currentPage
                         ? 'bg-blue-600 text-white'
-                        : 'bg-white hover:bg-gray-50'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                 ]"
             >
                 {{ page }}
             </button>
 
+
+            <!-- NEXT -->
+
             <button
-                @click="changePage(addressStore.pagination.currentPage + 1)"
+                type="button"
+                @click="
+                    changePage(
+                        addressStore.pagination.currentPage + 1
+                    )
+                "
                 :disabled="
                     addressStore.pagination.currentPage ===
                     addressStore.pagination.lastPage
                 "
-                class="px-4 py-2 rounded-lg border bg-white disabled:opacity-50"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition"
             >
                 Next
             </button>
@@ -534,24 +722,32 @@ const paginationPages = computed(() => {
         >
 
             <div
-                class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700 transition-colors"
             >
 
-                <!-- Modal Header -->
+                <!-- MODAL HEADER -->
 
-                <div class="flex items-center justify-between px-6 py-5 border-b">
+                <div
+                    class="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-gray-700"
+                >
 
-                    <h2 class="text-xl font-bold text-gray-800">
+                    <h2
+                        class="text-xl font-bold text-gray-900 dark:text-white"
+                    >
+
                         {{
                             isEditing
                                 ? 'Edit Address'
                                 : 'Add Address'
                         }}
+
                     </h2>
 
+
                     <button
+                        type="button"
                         @click="closeModal"
-                        class="text-gray-500 hover:text-gray-800 text-2xl"
+                        class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white text-2xl transition"
                     >
                         ×
                     </button>
@@ -559,71 +755,98 @@ const paginationPages = computed(() => {
                 </div>
 
 
-                <!-- Form -->
+                <!-- FORM -->
 
                 <form
                     @submit.prevent="saveAddress"
                     class="p-6 space-y-5"
                 >
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 gap-5"
+                    >
 
-                        <!-- Province -->
+                        <!-- PROVINCE -->
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
                                 Province
                             </label>
 
                             <select
-    v-model="form.province"
-    required
-    class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
->
-    <option value="">Select province</option>
+                                v-model="form.province"
+                                required
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
+                            >
 
-    <option
-        v-for="(districts, province) in nepalLocations"
-        :key="province"
-        :value="province"
-    >
-        {{ province }}
-    </option>
-</select>
+                                <option value="">
+                                    Select province
+                                </option>
+
+                                <option
+                                    v-for="(
+                                        districts,
+                                        province
+                                    ) in nepalLocations"
+                                    :key="province"
+                                    :value="province"
+                                >
+                                    {{ province }}
+                                </option>
+
+                            </select>
 
                         </div>
 
 
-                       <!-- District -->
-<div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-        District
-    </label>
-
-    <select
-        v-model="form.district"
-        required
-        class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
-    >
-        <option value="">Select district</option>
-
-        <option
-            v-for="(value, district) in nepalLocations[form.province] || {}"
-            :key="district"
-            :value="district"
-        >
-            {{ district }}
-        </option>
-    </select>
-</div>
-
-
-                        <!-- Municipality -->
+                        <!-- DISTRICT -->
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
+                                District
+                            </label>
+
+                            <select
+                                v-model="form.district"
+                                required
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
+                            >
+
+                                <option value="">
+                                    Select district
+                                </option>
+
+                                <option
+                                    v-for="(
+                                        value,
+                                        district
+                                    ) in nepalLocations[
+                                        form.province
+                                    ] || {}"
+                                    :key="district"
+                                    :value="district"
+                                >
+                                    {{ district }}
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- MUNICIPALITY -->
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
                                 Municipality
                             </label>
 
@@ -631,18 +854,20 @@ const paginationPages = computed(() => {
                                 v-model="form.municipality"
                                 type="text"
                                 required
-                                class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
                                 placeholder="Enter municipality"
                             />
 
                         </div>
 
 
-                        <!-- Ward -->
+                        <!-- WARD -->
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
                                 Ward
                             </label>
 
@@ -650,43 +875,47 @@ const paginationPages = computed(() => {
                                 v-model="form.ward"
                                 type="text"
                                 required
-                                class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
                                 placeholder="Enter ward number"
                             />
 
                         </div>
 
 
-                        <!-- City -->
+                        <!-- CITY -->
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
                                 City
                             </label>
 
                             <input
                                 v-model="form.city"
                                 type="text"
-                                class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
                                 placeholder="Enter city"
                             />
 
                         </div>
 
 
-                        <!-- Street -->
+                        <!-- STREET -->
 
                         <div>
 
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
                                 Street
                             </label>
 
                             <input
                                 v-model="form.street"
                                 type="text"
-                                class="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
                                 placeholder="Enter street"
                             />
 
@@ -695,28 +924,37 @@ const paginationPages = computed(() => {
                     </div>
 
 
-                    <!-- Buttons -->
+                    <!-- MODAL BUTTONS -->
 
-                    <div class="flex justify-end gap-3 pt-4 border-t">
+                    <div
+                        class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700"
+                    >
+
+                        <!-- CANCEL -->
 
                         <button
                             type="button"
                             @click="closeModal"
-                            class="px-5 py-2.5 rounded-lg border hover:bg-gray-50"
+                            class="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
                         >
                             Cancel
                         </button>
 
+
+                        <!-- SUBMIT -->
+
                         <button
                             type="submit"
                             :disabled="addressStore.loading"
-                            class="px-5 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                            class="px-5 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition"
                         >
+
                             {{
                                 isEditing
                                     ? 'Update Address'
                                     : 'Add Address'
                             }}
+
                         </button>
 
                     </div>

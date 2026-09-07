@@ -75,7 +75,8 @@ const form = ref({
     name: '',
     email: '',
     phone: '',
-    relationship: ''
+    relationship: '',
+    password: ''
 })
 
 const errorMessage = ref('')
@@ -89,11 +90,12 @@ const openAddModal = () => {
     editingParent.value = null
 
     form.value = {
-        name: '',
-        email: '',
-        phone: '',
-        relationship: ''
-    }
+    name: '',
+    email: '',
+    phone: '',
+    relationship: '',
+    password: ''
+}
 
     errorMessage.value = ''
 
@@ -412,20 +414,33 @@ onMounted(() => {
 
         </div>
 
+        <div class="flex flex-col sm:flex-row gap-3">
 
-        <button
-            @click="openAddModal"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-green-700 hover:shadow transition-all"
-        >
+    <!-- ADMIN DASHBOARD -->
+    <button
+        type="button"
+        @click="$router.push('/admin/dashboard')"
+        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition shadow-sm"
+    >
+        Dashboard
+    </button>
 
-            <span class="text-lg leading-none">
-                +
-            </span>
+    <!-- ADD PARENT -->
+    <button
+        type="button"
+        @click="openAddModal"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-green-700 hover:shadow transition-all"
+    >
 
-            Add Parent
+        <span class="text-lg leading-none">
+            +
+        </span>
 
-        </button>
+        Add Parent
 
+    </button>
+
+</div>
     </div>
 
 
@@ -955,6 +970,25 @@ onMounted(() => {
                 >
 
             </div>
+
+            <!-- PASSWORD -->
+
+<div class="mb-4" v-if="!editingParent">
+
+    <label
+        class="block mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300"
+    >
+        Password
+    </label>
+
+    <input
+        v-model="form.password"
+        type="password"
+        placeholder="Enter password (minimum 8 characters)"
+        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+    >
+
+</div>
 
 
             <!-- PHONE -->

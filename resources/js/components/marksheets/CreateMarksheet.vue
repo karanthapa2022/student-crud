@@ -2,34 +2,115 @@
 
 import { ref, onMounted, computed } from 'vue'
 import { useStudentStore } from '../../stores/students/student'
-import { useSubjectStore } from '../../stores/subjects/subject'
 import { createMarksheet } from '../../services/marksheets/marksheetApi'
 
 const studentStore = useStudentStore()
-const subjectStore = useSubjectStore()
 
 const selectedStudent = ref(null)
-const marks = ref({})
+
+const subjects = ref([
+    {
+        subject_name: '',
+        full_marks: 100,
+        pass_marks: 40,
+        marks: ''
+    }
+])
+
+const saving = ref(false)
+const error = ref('')
+const successMessage = ref('')
+
+
+// =========================================================
+// ADD SUBJECT
+// =========================================================
+
+const addSubject = () => {
+
+    subjects.value.push({
+        subject_name: '',
+        full_marks: 100,
+        pass_marks: 40,
+        marks: ''
+    })
+
+}
+
+
+// =========================================================
+// REMOVE SUBJECT
+// =========================================================
+
+const removeSubject = (index) => {
+
+    if (subjects.value.length === 1) {
+        return
+    }
+
+    subjects.value.splice(index, 1)
+
+}
+
+
+// =========================================================
+// TOTAL FULL MARKS
+// =========================================================
+
+const totalFullMarks = computed(() => {
+
+    return subjects.value.reduce((total, subject) => {
+
+        return total + (Number(subject.full_marks) || 0)
+
+    }, 0)
+
+})
+
+
+// =========================================================
+// TOTAL OBTAINED MARKS
+// =========================================================
 
 const totalMarks = computed(() => {
-    return Object.values(marks.value)
-        .reduce((total, mark) => total + (Number(mark) || 0), 0)
+
+    return subjects.value.reduce((total, subject) => {
+
+        const value = String(subject.marks)
+            .trim()
+            .toUpperCase()
+
+        if (value === 'A' || value === '') {
+            return total
+        }
+
+        return total + (Number(value) || 0)
+
+    }, 0)
+
 })
 
-const totalSubjects = computed(() => {
-    return subjectStore.subjects.length
-})
+
+// =========================================================
+// PERCENTAGE
+// =========================================================
 
 const percentage = computed(() => {
 
-    if (totalSubjects.value === 0) {
-        return 0
+    if (totalFullMarks.value <= 0) {
+        return '0.00'
     }
 
     return (
-        (totalMarks.value / (totalSubjects.value * 100)) * 100
+        (totalMarks.value / totalFullMarks.value) * 100
     ).toFixed(2)
+
 })
+
+
+// =========================================================
+// GRADE
+// =========================================================
 
 const grade = computed(() => {
 
@@ -50,25 +131,48 @@ const grade = computed(() => {
     }
 
     return 'F'
+
 })
+
+
+// =========================================================
+// RESULT
+// =========================================================
 
 const result = computed(() => {
 
-    const subjectMarks = Object.values(marks.value)
-
-    if (subjectMarks.length === 0) {
+    if (subjects.value.length === 0) {
         return 'Fail'
     }
 
-    const hasFailedSubject = subjectMarks.some(mark => {
+    const hasIncompleteSubject = subjects.value.some(subject => {
 
-        const value = String(mark).trim().toUpperCase()
+        return (
+            !String(subject.subject_name).trim() ||
+            subject.full_marks === '' ||
+            subject.pass_marks === '' ||
+            subject.marks === ''
+        )
 
-        if (value === 'A') {
+    })
+
+    if (hasIncompleteSubject) {
+        return 'Fail'
+    }
+
+    const hasFailedSubject = subjects.value.some(subject => {
+
+        const marks = String(subject.marks)
+            .trim()
+            .toUpperCase()
+
+        const passMarks = Number(subject.pass_marks) || 0
+
+        if (marks === 'A') {
             return true
         }
 
-        return Number(value) < 40
+        return Number(marks) < passMarks
 
     })
 
@@ -78,9 +182,137 @@ const result = computed(() => {
 
 })
 
-const saving = ref(false)
-const error = ref('')
-const successMessage = ref('')
+
+// =========================================================
+// VALIDATE SUBJECTS
+// =========================================================
+
+const validateSubjects = () => {
+
+    const names = []
+
+    for (let index = 0; index < subjects.value.length; index++) {
+
+        const subject = subjects.value[index]
+
+        const subjectNumber = index + 1
+
+        const name = String(subject.subject_name).trim()
+
+        if (!name) {
+            error.value =
+                `Please enter the subject name for subject ${subjectNumber}.`
+
+            return false
+        }
+
+        if (
+            subject.full_marks === '' ||
+            subject.full_marks === null ||
+            subject.full_marks === undefined
+        ) {
+            error.value =
+                `Please enter full marks for ${name}.`
+
+            return false
+        }
+
+        if (Number(subject.full_marks) <= 0) {
+            error.value =
+                `Full marks must be greater than 0 for ${name}.`
+
+            return false
+        }
+
+        if (
+            subject.pass_marks === '' ||
+            subject.pass_marks === null ||
+            subject.pass_marks === undefined
+        ) {
+            error.value =
+                `Please enter pass marks for ${name}.`
+
+            return false
+        }
+
+        if (Number(subject.pass_marks) < 0) {
+            error.value =
+                `Pass marks cannot be negative for ${name}.`
+
+            return false
+        }
+
+        if (
+            Number(subject.pass_marks) >
+            Number(subject.full_marks)
+        ) {
+            error.value =
+                `Pass marks cannot be greater than full marks for ${name}.`
+
+            return false
+        }
+
+        if (
+            subject.marks === '' ||
+            subject.marks === null ||
+            subject.marks === undefined
+        ) {
+            error.value =
+                `Please enter obtained marks for ${name}.`
+
+            return false
+        }
+
+        const marks = String(subject.marks)
+            .trim()
+            .toUpperCase()
+
+        if (marks !== 'A') {
+
+            if (
+                !isFinite(Number(marks)) ||
+                Number(marks) < 0
+            ) {
+                error.value =
+                    `Please enter valid marks for ${name}, or A for absent.`
+
+                return false
+            }
+
+            if (
+                Number(marks) >
+                Number(subject.full_marks)
+            ) {
+                error.value =
+                    `Obtained marks cannot be greater than full marks for ${name}.`
+
+                return false
+            }
+
+        }
+
+        const normalizedName = name.toLowerCase()
+
+        if (names.includes(normalizedName)) {
+
+            error.value =
+                `The subject "${name}" has been added more than once.`
+
+            return false
+        }
+
+        names.push(normalizedName)
+
+    }
+
+    return true
+
+}
+
+
+// =========================================================
+// SAVE MARKSHEET
+// =========================================================
 
 const saveMarksheet = async () => {
 
@@ -88,35 +320,38 @@ const saveMarksheet = async () => {
     successMessage.value = ''
 
     if (!selectedStudent.value) {
-        error.value = 'Please select a student.'
+
+        error.value =
+            'Please select a student.'
+
         return
+
     }
 
-    const items = Object.entries(marks.value)
-        .filter(([_, mark]) =>
-            mark !== '' &&
-            mark !== null &&
-            mark !== undefined
-        )
-        .map(([subjectId, mark]) => {
-
-            const value = String(mark).trim().toUpperCase()
-
-            return {
-                subject_id: Number(subjectId),
-                marks: value === 'A' ? 'A' : Number(value)
-            }
-
-        })
-
-    if (items.length !== subjectStore.subjects.length) {
-        error.value = 'Please enter marks for every subject.'
+    if (!validateSubjects()) {
         return
     }
 
     saving.value = true
 
     try {
+
+        const items = subjects.value.map(subject => {
+
+            const marks = String(subject.marks)
+                .trim()
+                .toUpperCase()
+
+            return {
+                subject_name: String(subject.subject_name).trim(),
+                full_marks: Number(subject.full_marks),
+                pass_marks: Number(subject.pass_marks),
+                marks: marks === 'A'
+                    ? 'A'
+                    : Number(marks)
+            }
+
+        })
 
         await createMarksheet({
             student_id: selectedStudent.value.id,
@@ -127,17 +362,37 @@ const saveMarksheet = async () => {
             'Marksheet saved successfully.'
 
         selectedStudent.value = null
-        marks.value = {}
+
+        subjects.value = [
+            {
+                subject_name: '',
+                full_marks: 100,
+                pass_marks: 40,
+                marks: ''
+            }
+        ]
 
         setTimeout(() => {
+
             successMessage.value = ''
+
         }, 3000)
 
     } catch (err) {
 
         console.error(err)
 
-        error.value = 'Failed to save marksheet.'
+        if (err.response?.data?.message) {
+
+            error.value =
+                err.response.data.message
+
+        } else {
+
+            error.value =
+                'Failed to save marksheet.'
+
+        }
 
     } finally {
 
@@ -147,9 +402,15 @@ const saveMarksheet = async () => {
 
 }
 
+
+// =========================================================
+// LOAD STUDENTS
+// =========================================================
+
 onMounted(async () => {
-    await subjectStore.fetchSubjects()
+
     await studentStore.fetchStudents()
+
 })
 
 </script>
@@ -162,7 +423,7 @@ onMounted(async () => {
 >
 
     <div
-        class="w-full max-w-6xl mx-auto"
+        class="w-full max-w-7xl mx-auto"
     >
 
         <!-- =================================================
@@ -351,19 +612,36 @@ onMounted(async () => {
 
             <div class="p-6">
 
-                <div class="mb-5">
+                <div
+                    class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5"
+                >
 
-                    <h2
-                        class="text-xl font-semibold text-gray-900 dark:text-white"
-                    >
-                        Subjects & Marks
-                    </h2>
+                    <div>
 
-                    <p
-                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                        <h2
+                            class="text-xl font-semibold text-gray-900 dark:text-white"
+                        >
+                            Subjects & Marks
+                        </h2>
+
+                        <p
+                            class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                        >
+                            Add the subjects and marking scheme for this marksheet.
+                        </p>
+
+                    </div>
+
+
+                    <!-- ADD SUBJECT -->
+
+                    <button
+                        type="button"
+                        @click="addSubject"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold shadow-sm hover:bg-green-700 transition"
                     >
-                        Enter the marks obtained for each subject.
-                    </p>
+                        + Add Subject
+                    </button>
 
                 </div>
 
@@ -375,7 +653,7 @@ onMounted(async () => {
                 >
 
                     <table
-                        class="w-full min-w-[650px]"
+                        class="w-full min-w-[1000px]"
                     >
 
                         <!-- HEADER -->
@@ -387,7 +665,7 @@ onMounted(async () => {
                             <tr>
 
                                 <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
+                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 w-16"
                                 >
                                     S.N.
                                 </th>
@@ -399,9 +677,27 @@ onMounted(async () => {
                                 </th>
 
                                 <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
+                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 w-40"
                                 >
-                                    Marks
+                                    Full Marks
+                                </th>
+
+                                <th
+                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 w-40"
+                                >
+                                    Pass Marks
+                                </th>
+
+                                <th
+                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 w-48"
+                                >
+                                    Obtained Marks
+                                </th>
+
+                                <th
+                                    class="px-4 py-3 text-center text-sm font-semibold text-gray-600 dark:text-gray-200 w-24"
+                                >
+                                    Action
                                 </th>
 
                             </tr>
@@ -414,15 +710,15 @@ onMounted(async () => {
                         <tbody>
 
                             <tr
-                                v-for="(subject, index) in subjectStore.subjects"
-                                :key="subject.id"
+                                v-for="(subject, index) in subjects"
+                                :key="index"
                                 class="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
                             >
 
                                 <!-- S.N. -->
 
                                 <td
-                                    class="px-4 py-3 text-gray-700 dark:text-gray-300"
+                                    class="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium"
                                 >
                                     {{ index + 1 }}
                                 </td>
@@ -431,65 +727,87 @@ onMounted(async () => {
                                 <!-- SUBJECT -->
 
                                 <td
-                                    class="px-4 py-3 font-medium text-gray-800 dark:text-gray-100"
+                                    class="px-4 py-3"
                                 >
-                                    {{ subject.name }}
+
+                                    <input
+                                        v-model="subject.subject_name"
+                                        type="text"
+                                        placeholder="e.g. Mathematics"
+                                        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                    >
+
                                 </td>
 
 
-                                <!-- MARKS -->
+                                <!-- FULL MARKS -->
 
                                 <td
                                     class="px-4 py-3"
                                 >
 
                                     <input
-                                        v-model="marks[subject.id]"
-                                        type="text"
-                                        inputmode="decimal"
-                                        placeholder="Enter marks or A"
-                                        class="w-full max-w-xs px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                        v-model="subject.full_marks"
+                                        type="number"
+                                        min="1"
+                                        step="0.01"
+                                        placeholder="100"
+                                        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                                     >
 
                                 </td>
 
-                            </tr>
 
-
-                            <!-- NO SUBJECTS -->
-
-                            <tr
-                                v-if="subjectStore.subjects.length === 0"
-                            >
+                                <!-- PASS MARKS -->
 
                                 <td
-                                    colspan="3"
-                                    class="px-4 py-10 text-center text-gray-500 dark:text-gray-400"
+                                    class="px-4 py-3"
                                 >
 
-                                    <div
-                                        class="flex flex-col items-center"
+                                    <input
+                                        v-model="subject.pass_marks"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="40"
+                                        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                                     >
 
-                                        <div
-                                            class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3 text-xl"
-                                        >
-                                            📚
-                                        </div>
+                                </td>
 
-                                        <p
-                                            class="font-medium text-gray-700 dark:text-gray-300"
-                                        >
-                                            No subjects found
-                                        </p>
 
-                                        <p
-                                            class="text-sm mt-1"
-                                        >
-                                            Add subjects before creating a marksheet.
-                                        </p>
+                                <!-- OBTAINED MARKS -->
 
-                                    </div>
+                                <td
+                                    class="px-4 py-3"
+                                >
+
+                                    <input
+                                        v-model="subject.marks"
+                                        type="text"
+                                        inputmode="decimal"
+                                        placeholder="e.g. 78 or A"
+                                        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                    >
+
+                                </td>
+
+
+                                <!-- REMOVE -->
+
+                                <td
+                                    class="px-4 py-3 text-center"
+                                >
+
+                                    <button
+                                        type="button"
+                                        @click="removeSubject(index)"
+                                        :disabled="subjects.length === 1"
+                                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title="Remove subject"
+                                    >
+                                        🗑️
+                                    </button>
 
                                 </td>
 
@@ -526,10 +844,10 @@ onMounted(async () => {
 
 
                     <div
-                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
                     >
 
-                        <!-- TOTAL -->
+                        <!-- TOTAL MARKS -->
 
                         <div
                             class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
@@ -544,7 +862,7 @@ onMounted(async () => {
                             <p
                                 class="mt-1 text-2xl font-bold text-gray-900 dark:text-white"
                             >
-                                {{ totalMarks }}
+                                {{ totalMarks }} / {{ totalFullMarks }}
                             </p>
 
                         </div>
@@ -587,6 +905,27 @@ onMounted(async () => {
                                 class="mt-1 text-2xl font-bold text-purple-700 dark:text-purple-200"
                             >
                                 {{ grade }}
+                            </p>
+
+                        </div>
+
+
+                        <!-- SUBJECT COUNT -->
+
+                        <div
+                            class="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800"
+                        >
+
+                            <p
+                                class="text-xs font-medium uppercase tracking-wide text-blue-600 dark:text-blue-300"
+                            >
+                                Subjects
+                            </p>
+
+                            <p
+                                class="mt-1 text-2xl font-bold text-blue-700 dark:text-blue-200"
+                            >
+                                {{ subjects.length }}
                             </p>
 
                         </div>

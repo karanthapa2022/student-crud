@@ -257,20 +257,35 @@ onMounted(() => {
             </div>
 
 
-            <!-- ADD SUBJECT -->
+            <!-- HEADER ACTIONS -->
 
-            <button
-                @click="openAddModal"
-                class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold shadow-sm hover:bg-green-700 transition"
-            >
+<div class="flex flex-col sm:flex-row gap-3">
 
-                <span class="mr-1">
-                    +
-                </span>
+    <!-- ADMIN DASHBOARD -->
+    <button
+        type="button"
+        @click="$router.push('/admin/dashboard')"
+        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition shadow-sm"
+    >
+        Dashboard
+    </button>
 
-                Add Subject
+    <!-- ADD SUBJECT -->
+    <button
+        type="button"
+        @click="openAddModal"
+        class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold shadow-sm hover:bg-green-700 transition"
+    >
 
-            </button>
+        <span class="mr-1">
+            +
+        </span>
+
+        Add Subject
+
+    </button>
+
+</div>
 
         </div>
 

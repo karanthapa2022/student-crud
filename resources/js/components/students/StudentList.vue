@@ -217,12 +217,14 @@ const editStudent = (student) => {
 
         ...student,
 
-        // Convert subject objects into subject IDs
-        subjects: student.subjects
-            ? student.subjects.map(
-                subject => subject.id
-            )
-            : [],
+        // Keep subject ID and name so subjects can be edited manually
+       subjects: student.subjects
+    ? student.subjects.map(subject => ({
+        subject_id: subject.id ?? null,
+        subject_name: subject.pivot?.subject_name || subject.name || '',
+        subject_code: subject.pivot?.subject_code || ''
+    }))
+    : [],
 
         newPhoto: null
 
@@ -918,18 +920,29 @@ if (editingStudent.value.address_id) {
 
 
 
-// Add selected subjects
+// Add editable subjects
 console.log(
     'EDITING SUBJECTS:',
     editingStudent.value.subjects
 )
+
 if (Array.isArray(editingStudent.value.subjects)) {
 
-    editingStudent.value.subjects.forEach(subjectId => {
+    editingStudent.value.subjects.forEach((subject, index) => {
 
         formData.append(
-            'subjects[]',
-            subjectId
+            `subjects[${index}][subject_id]`,
+            subject.subject_id ?? ''
+        )
+
+        formData.append(
+            `subjects[${index}][subject_name]`,
+            subject.subject_name
+        )
+
+        formData.append(
+            `subjects[${index}][subject_code]`,
+            subject.subject_code ?? ''
         )
 
     })
@@ -1351,6 +1364,15 @@ onBeforeUnmount(() => {
             <div
                 class="flex flex-col sm:flex-row gap-3"
             >
+
+            <!-- ADMIN DASHBOARD -->
+    <button
+        type="button"
+        @click="router.push('/admin/dashboard')"
+        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition shadow-sm"
+    >
+        Dashboard
+    </button>
 
                 <button
                     type="button"
@@ -2140,16 +2162,31 @@ onBeforeUnmount(() => {
         class="flex flex-wrap justify-end gap-2"
     >
 
-        <span
-            v-for="subject in viewingStudent.subjects"
-            :key="subject.id"
-            class="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded-full text-sm"
-        >
+        <div
+    v-for="(subject, index) in viewingStudent.subjects"
+    :key="index"
+    class="grid grid-cols-12 gap-3 items-center border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3"
+>
+    <!-- SUBJECT -->
+
+    <div class="col-span-6">
+        <p class="font-medium text-gray-800 dark:text-white">
             {{ subject.name }}
-            <span class="text-xs opacity-75">
-                ({{ subject.code }})
-            </span>
-        </span>
+        </p>
+    </div>
+
+    <!-- SUBJECT CODE -->
+
+    <div class="col-span-5">
+        <p class="text-gray-600 dark:text-gray-300">
+            {{ subject.pivot?.subject_code || '—' }}
+        </p>
+    </div>
+
+    <!-- EMPTY -->
+
+    <div class="col-span-1"></div>
+</div>
 
     </div>
 
@@ -2352,34 +2389,116 @@ onBeforeUnmount(() => {
 
 
 
+
+
 <!-- SUBJECTS -->
 
 <div class="md:col-span-2">
 
-    <label
-        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-    >
-        Subjects
-    </label>
+    <div class="flex items-center justify-between mb-3">
 
-    <select
-        v-model="editingStudent.subjects"
-        multiple
-        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-    >
-
-        <option
-            v-for="subject in subjectStore.subjects"
-            :key="subject.id"
-            :value="subject.id"
+        <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
-            {{ subject.name }} ({{ subject.code }})
-        </option>
+            Subjects
+        </label>
 
-    </select>
+        <button
+            type="button"
+            @click="editingStudent.subjects.push({
+                subject_id: null,
+                subject_name: '',
+                subject_code: ''
+            })"
+            class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition"
+        >
+            + Add Subject
+        </button>
 
-    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-        Hold Command (⌘) and click to select multiple subjects.
+    </div>
+
+    <!-- HEADERS -->
+
+    <div
+        v-if="editingStudent.subjects.length"
+        class="grid grid-cols-12 gap-3 mb-2"
+    >
+
+        <div
+            class="col-span-6 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"
+        >
+            Subject
+        </div>
+
+        <div
+            class="col-span-5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"
+        >
+            Subject Code
+        </div>
+
+        <div class="col-span-1"></div>
+
+    </div>
+
+    <!-- SUBJECT ROWS -->
+
+    <div
+        v-if="editingStudent.subjects.length"
+        class="space-y-3"
+    >
+
+        <div
+            v-for="(subject, index) in editingStudent.subjects"
+            :key="index"
+            class="grid grid-cols-12 gap-3 items-center"
+        >
+
+            <!-- SUBJECT NAME -->
+
+            <input
+                v-model="subject.subject_name"
+                type="text"
+                placeholder="Enter subject name"
+                class="col-span-6 border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+
+            <!-- SUBJECT CODE -->
+
+            <input
+                v-model="subject.subject_code"
+                type="text"
+                placeholder="Subject code"
+                class="col-span-5 border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+
+            <!-- REMOVE -->
+
+            <button
+                type="button"
+                @click="editingStudent.subjects.splice(index, 1)"
+                class="col-span-1 px-3 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition"
+                title="Remove subject"
+            >
+                ✕
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- NO SUBJECTS -->
+
+    <div
+        v-else
+        class="border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-6 text-center"
+    >
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+            No subjects assigned.
+        </p>
+    </div>
+
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+        Subject names and subject codes can be edited manually.
     </p>
 
 </div>
