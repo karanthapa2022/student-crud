@@ -1,155 +1,135 @@
+
 import axios from 'axios'
 
 const api = axios.create({
     baseURL: 'http://127.0.0.1:8000/api',
+    headers: {
+        Accept: 'application/json'
+    }
 })
 
-
 // =========================================================
-// PARENT LOGIN
-// =========================================================
-
-export const parentLogin = (credentials) => {
-
-    return api.post('/parent/login', credentials, {
-        headers: {
-            Accept: 'application/json'
-        }
-    })
-
-}
-// =========================================================
-// GET ALL PARENTS
+// GET ALL TEACHERS
 // =========================================================
 
-export const getParents = (page = 1,
-    search='',
-    relationshipFilter='all'
+export const getTeachers = (
+    page = 1,
+    search = ''
 ) => {
 
     const token = localStorage.getItem('token')
 
-    return api.get('/parents', {
+    return api.get('/teachers', {
         params: {
             page,
-            search,
-            relationship_filter: relationshipFilter
+            search
         },
         headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json'
         }
     })
-
 }
 
 
 // =========================================================
-// GET SINGLE PARENT
+// GET SINGLE TEACHER
 // =========================================================
 
-export const getParent = (id) => {
+export const getTeacher = (id) => {
 
     const token = localStorage.getItem('token')
 
-    return api.get(`/parents/${id}`, {
+    return api.get(`/teachers/${id}`, {
         headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json'
         }
     })
-
 }
 
 
 // =========================================================
-// CREATE PARENT
+// CREATE TEACHER
 // =========================================================
 
-export const createParent = (parentData) => {
+export const createTeacher = (teacherData) => {
 
     const token = localStorage.getItem('token')
 
-    return api.post('/parents', parentData, {
+    return api.post('/teachers', teacherData, {
         headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json'
         }
     })
-
 }
 
 
 // =========================================================
-// UPDATE PARENT
+// UPDATE TEACHER
 // =========================================================
 
-export const updateParent = (id, parentData) => {
+export const updateTeacher = (id, teacherData) => {
 
     const token = localStorage.getItem('token')
 
-    return api.put(`/parents/${id}`, parentData, {
+    return api.put(`/teachers/${id}`, teacherData, {
         headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json'
         }
     })
-
 }
 
 
 // =========================================================
-// DELETE PARENT
+// DELETE TEACHER
 // =========================================================
 
-export const deleteParent = (id) => {
+export const deleteTeacher = (id) => {
 
     const token = localStorage.getItem('token')
 
-    return api.delete(`/parents/${id}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/json'
-        }
-    })
-
-}
-
-// =========================================================
-// UPDATE PARENT'S CHILDREN
-// =========================================================
-
-export const updateParentChildren = (id, studentIds) => {
-
-    const token = localStorage.getItem('token')
-
-    return api.put(`/parents/${id}/children`, {
-        student_ids: studentIds
-    }, {
+    return api.delete(`/teachers/${id}`, {
         headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json'
         }
     })
     
-
 }
 
 
+// =========================================================
+// GET ALL SUBJECTS
+// =========================================================
 
-export const changeParentPassword = (
-    parentId,
-    password,
-    passwordConfirmation
-) => {
+export const getSubjects = () => {
+
+    const token = localStorage.getItem('token')
+
+    return api.get('/subjects', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json'
+        }
+    })
+}
+
+
+// =========================================================
+// ASSIGN SUBJECTS TO TEACHER
+// =========================================================
+
+export const assignTeacherSubjects = (teacherId, subjectIds) => {
 
     const token = localStorage.getItem('token')
 
     return api.put(
-        `/parents/${parentId}/change-password`,
+        `/teachers/${teacherId}/subjects`,
         {
-            password,
-            password_confirmation: passwordConfirmation
+            subject_ids: subjectIds
         },
         {
             headers: {
@@ -159,4 +139,5 @@ export const changeParentPassword = (
         }
     )
 }
+
 

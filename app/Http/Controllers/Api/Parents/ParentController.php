@@ -181,4 +181,34 @@ class ParentController extends Controller
             'message' => 'Parent deleted successfully.',
         ]);
     }
+    
+// =========================================================
+// CHANGE PARENT PASSWORD
+// =========================================================
+
+public function changePassword(Request $request, $parent)
+{
+    $request->validate([
+        'password' => 'required|string|min:8|confirmed',
+    ]);
+
+    $parentModel = StudentParent::findOrFail($parent);
+
+    $user = $parentModel->user;
+
+    if (!$user) {
+        return response()->json([
+            'message' => 'No login account is associated with this parent.'
+        ], 404);
+    }
+
+    $user->password = Hash::make($request->password);
+    $user->save();
+
+    return response()->json([
+        'message' => 'Parent password changed successfully.'
+    ]);
+}
+
+
 }

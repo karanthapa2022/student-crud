@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import ParentList from './components/parents/ParentList.vue'
 import AddressList from './components/addresses/AddressList.vue'
+import ParentDashboard from './components/parents/ParentDashboard.vue'
 import Login from './components/Login.vue'
 import Register from './components/Register.vue'
 import StudentList from './components/students/StudentList.vue'
@@ -15,6 +16,12 @@ import EditMarksheet from './components/marksheets/EditMarksheet.vue'
 import ParentMarksheet from './components/parents/ParentMarksheet.vue'
 import ParentLogin from './components/parents/ParentLogin.vue'
 import AdminDashboard from './components/AdminDashboard.vue'
+import ParentProfile from './components/parents/ParentProfile.vue'
+import TeacherList from './components/teachers/TeacherList.vue'
+import TeacherDashboard from './components/teachers/TeacherDashboard.vue'
+import TeacherStudents from './components/teachers/TeacherStudents.vue'
+import TeacherSubjects from './components/teachers/TeacherSubjects.vue'
+import TeacherMarksheets from './components/teachers/TeacherMarksheets.vue'
 
 const routes = [
 
@@ -60,6 +67,30 @@ const routes = [
         }
     },
 
+    {
+    path: '/teacher/students',
+    component: TeacherStudents,
+    meta: {
+        requiresAuth: true,
+        roles: ['teacher']
+    }
+},
+
+{
+    path: '/teacher/subjects',
+    component: TeacherSubjects,
+    meta: {
+        requiresAuth: true,
+        roles: ['teacher']
+    }
+},
+
+{
+    path: '/teacher/marksheets',
+    component: TeacherMarksheets,
+    meta: { requiresAuth: true, roles: ['teacher'] }
+},
+
     // =====================================================
     // STUDENTS
     // ADMIN ONLY
@@ -89,6 +120,34 @@ const routes = [
         }
     },
 
+    {
+    path: '/teachers',
+    component: TeacherList,
+    meta: {
+        requiresAuth: true,
+        roles: ['admin']
+    }
+},
+{
+    path: '/teacher/dashboard',
+    component: TeacherDashboard,
+    meta: {
+        requiresAuth: true,
+        roles: ['teacher']
+    }
+},
+
+
+    //Parent Dashboard
+    //parent Only
+    {
+        path:'/parents/dashboard',
+        component: ParentDashboard,
+        meta:{
+            requiresAuth: true,
+            roles: ['parent']
+        }
+    },
 
     // =====================================================
     // PARENT MARKSHEET
@@ -96,13 +155,22 @@ const routes = [
     // =====================================================
 
     {
-        path: '/parents/marksheet',
-        component: ParentMarksheet,
-        meta: {
-            requiresAuth: true,
-            roles: ['parent']
-        }
-    },
+    path: '/parents/marksheet/:studentId',
+    component: ParentMarksheet,
+    meta: {
+        requiresAuth: true,
+        roles: ['parent']
+    }
+},
+
+{
+    path: '/parents/profile',
+    component: ParentProfile,
+    meta: {
+        requiresAuth: true,
+        roles: ['parent']
+    }
+},
 
 
     // =====================================================
@@ -225,53 +293,183 @@ const router = createRouter({
 // AUTHENTICATION + ROLE GUARD
 // =========================================================
 
+
+
+
 router.beforeEach((to) => {
 
-    const token = localStorage.getItem('token')
+    // =========================================================
+    // AUTHENTICATION DATA
+    // =========================================================
 
-    const storedUser = localStorage.getItem('user')
+    const adminToken = localStorage.getItem('token')
+    const adminUserData = localStorage.getItem('user')
 
-    const user = storedUser
-        ? JSON.parse(storedUser)
-        : null
+    const teacherToken = localStorage.getItem('teacher_token')
+    const teacherUserData = localStorage.getItem('teacher_user')
+
+    const parentToken = localStorage.getItem('parent_token')
+    const parentUserData = localStorage.getItem('parent_user')
 
 
-    // =====================================================
-    // NOT LOGGED IN
-    // =====================================================
+    // =========================================================
+    // PARSE USERS
+    // =========================================================
 
-    if (to.meta.requiresAuth && !token) {
+    let adminUser = null
+    let teacherUser = null
+    let parentUser = null
+
+    try {
+
+        adminUser = adminUserData
+            ? JSON.parse(adminUserData)
+            : null
+
+    } catch (error) {
+
+        console.error('Invalid admin user data:', error)
+
+        localStorage.removeItem('user')
+        localStorage.removeItem('token')
+
+    }
+
+
+    try {
+
+        teacherUser = teacherUserData
+            ? JSON.parse(teacherUserData)
+            : null
+
+    } catch (error) {
+
+        console.error('Invalid teacher user data:', error)
+
+        localStorage.removeItem('teacher_user')
+        localStorage.removeItem('teacher_token')
+
+    }
+
+
+    try {
+
+        parentUser = parentUserData
+            ? JSON.parse(parentUserData)
+            : null
+
+    } catch (error) {
+
+        console.error('Invalid parent user data:', error)
+
+        localStorage.removeItem('parent_user')
+        localStorage.removeItem('parent_token')
+
+    }
+
+
+    // =========================================================
+    // DETERMINE CURRENT USER
+    // =========================================================
+
+    let currentUser = null
+    let currentToken = null
+
+    /*
+     * Priority is important here.
+     *
+     * Teacher routes should use teacher authentication.
+     * Parent routes should use parent authentication.
+     * Admin routes should use admin authentication.
+     */
+
+    if (
+        teacherToken &&
+        teacherUser &&
+        teacherUser.role === 'teacher'
+    ) {
+
+        currentUser = teacherUser
+        currentToken = teacherToken
+
+    } else if (
+        parentToken &&
+        parentUser &&
+        parentUser.role === 'parent'
+    ) {
+
+        currentUser = parentUser
+        currentToken = parentToken
+
+    } else if (
+        adminToken &&
+        adminUser &&
+        adminUser.role === 'admin'
+    ) {
+
+        currentUser = adminUser
+        currentToken = adminToken
+
+    }
+
+
+    // =========================================================
+    // PUBLIC ROUTES
+    // =========================================================
+
+    if (!to.meta.requiresAuth) {
+        return true
+    }
+
+
+    // =========================================================
+    // NO AUTHENTICATION
+    // =========================================================
+
+    if (!currentToken || !currentUser) {
+
+        if (
+            to.meta.roles?.includes('parent') &&
+            !to.meta.roles?.includes('admin') &&
+            !to.meta.roles?.includes('teacher')
+        ) {
+
+            return '/parents/login'
+
+        }
+
         return '/login'
     }
 
 
-    // =====================================================
+    // =========================================================
     // ROLE PROTECTION
-    // =====================================================
+    // =========================================================
 
     if (
         to.meta.roles &&
-        (!user || !to.meta.roles.includes(user.role))
+        !to.meta.roles.includes(currentUser.role)
     ) {
 
-        // Parent trying to access admin/teacher page
-        if (user?.role === 'parent') {
-            return '/marksheets'
+        if (currentUser.role === 'teacher') {
+            return '/teacher/dashboard'
         }
 
-        // Teacher trying to access admin-only page
-        if (user?.role === 'teacher') {
-            return '/marksheets'
+        if (currentUser.role === 'parent') {
+            return '/parents/dashboard'
         }
 
-        // Admin or unknown user
-        return '/profile'
+        if (currentUser.role === 'admin') {
+            return '/admin/dashboard'
+        }
+
+        return '/login'
     }
 
 
-    // =====================================================
-    // ALLOW NAVIGATION
-    // =====================================================
+    // =========================================================
+    // AUTHORIZED
+    // =========================================================
 
     return true
 })

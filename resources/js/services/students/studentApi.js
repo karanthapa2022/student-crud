@@ -24,12 +24,62 @@ const api = axios.create({
 // AUTH TOKEN
 // =========================================================
 
+const getAuthToken = () => {
+
+    // =====================================================
+    // TEACHER
+    // =====================================================
+
+    const teacherToken =
+        localStorage.getItem('teacher_token')
+
+    const teacherUser =
+        localStorage.getItem('teacher_user')
+
+    if (teacherToken && teacherUser) {
+
+        try {
+
+            const user =
+                JSON.parse(teacherUser)
+
+            if (user.role === 'teacher') {
+
+                return teacherToken
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                'Invalid teacher user data:',
+                error
+            )
+
+        }
+
+    }
+
+
+    // =====================================================
+    // ADMIN
+    // =====================================================
+
+    return localStorage.getItem('token')
+
+}
+
+
+// =========================================================
+// AXIOS INTERCEPTOR
+// =========================================================
+
 api.interceptors.request.use(
 
     (config) => {
 
         const token =
-            localStorage.getItem('token')
+            getAuthToken()
 
         if (token) {
 
@@ -233,3 +283,4 @@ export const forceDeleteStudent = (id) => {
 // =========================================================
 
 export default api
+

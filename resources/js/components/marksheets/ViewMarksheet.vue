@@ -7,6 +7,14 @@ import { getMarksheet } from '../../services/marksheets/marksheetApi'
 const route = useRoute()
 const router = useRouter()
 
+const goBackToMarksheets = () => {
+    if (localStorage.getItem('teacher_token')) {
+        router.push('/teacher/marksheets')
+    } else {
+        router.push('/marksheets')
+    }
+}
+
 const marksheet = ref(null)
 const loading = ref(false)
 const error = ref('')
@@ -78,7 +86,7 @@ onMounted(() => {
 
         <button
             type="button"
-            @click="router.push('/marksheets')"
+            @click="goBackToMarksheets"
             class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-gray-800 dark:bg-gray-700 text-white text-sm font-semibold shadow-sm hover:bg-gray-900 dark:hover:bg-gray-600 transition"
         >
             ← Back to Marksheets

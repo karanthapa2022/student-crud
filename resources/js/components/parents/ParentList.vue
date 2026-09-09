@@ -1,12 +1,13 @@
+
 <script setup>
 
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useParentStore } from '../../stores/parents/parent'
 import {
     getParent,
-    updateParentChildren
+    updateParentChildren,
+    changeParentPassword
 } from '../../services/parents/parentApi'
-import { getStudents } from '../../services/students/studentApi'
 
 const parentStore = useParentStore()
 
@@ -28,48 +29,34 @@ watch(
     }
 )
 
+
 // =========================================================
-// MODALS
+// DARK MODE
+// =========================================================
+
+const darkMode = ref(false)
+
+const toggleDarkMode = () => {
+    darkMode.value = !darkMode.value
+
+    document.documentElement.classList.toggle(
+        'dark',
+        darkMode.value
+    )
+
+    localStorage.setItem(
+        'theme',
+        darkMode.value ? 'dark' : 'light'
+    )
+}
+
+
+// =========================================================
+// ADD / EDIT FORM
 // =========================================================
 
 const showModal = ref(false)
 const editingParent = ref(null)
-
-const showViewModal = ref(false)
-const viewingParent = ref(null)
-
-// =========================================================
-// STUDENT ASSIGNMENT
-// =========================================================
-
-const students = ref([])
-const selectedStudentIds = ref([])
-const studentSearchQuery = ref('')
-
-const filteredStudents = computed(() => {
-
-    const search = studentSearchQuery.value
-        .toLowerCase()
-        .trim()
-
-    if (!search) {
-        return students.value
-    }
-
-    return students.value.filter(student =>
-        student.name?.toLowerCase().includes(search) ||
-        String(student.class || '')
-            .toLowerCase()
-            .includes(search) ||
-        String(student.email || '')
-            .toLowerCase()
-            .includes(search)
-    )
-})
-
-// =========================================================
-// FORM
-// =========================================================
 
 const form = ref({
     name: '',
@@ -81,6 +68,41 @@ const form = ref({
 
 const errorMessage = ref('')
 
+
+// =========================================================
+// VIEW PARENT
+// =========================================================
+
+const showViewModal = ref(false)
+const viewingParent = ref(null)
+
+
+// =========================================================
+// REASSIGN CHILD
+// =========================================================
+
+const showReassignModal = ref(false)
+const reassigningChild = ref(null)
+const reassignParentId = ref('')
+
+
+// =========================================================
+// PASSWORD CHANGE
+// =========================================================
+
+const showPasswordModal = ref(false)
+const passwordParent = ref(null)
+
+const passwordForm = ref({
+    password: '',
+    password_confirmation: ''
+})
+
+const passwordError = ref('')
+const passwordSuccess = ref('')
+const changingPassword = ref(false)
+
+
 // =========================================================
 // OPEN ADD MODAL
 // =========================================================
@@ -90,163 +112,43 @@ const openAddModal = () => {
     editingParent.value = null
 
     form.value = {
-    name: '',
-    email: '',
-    phone: '',
-    relationship: '',
-    password: ''
-}
+        name: '',
+        email: '',
+        phone: '',
+        relationship: '',
+        password: ''
+    }
 
     errorMessage.value = ''
 
     showModal.value = true
 }
 
+
 // =========================================================
 // OPEN EDIT MODAL
 // =========================================================
 
-const openEditModal = async (parent) => {
+const openEditModal = (parent) => {
 
-    try {
+    editingParent.value = parent
 
-        const response = await getParent(parent.id)
-
-        editingParent.value = response.data
-
-        // Load students
-        const studentsResponse = await getStudents(
-            1,
-            '',
-            'all'
-        )
-
-        students.value =
-            studentsResponse.data.data || []
-
-        // Select students currently assigned
-        selectedStudentIds.value =
-            (response.data.students || []).map(
-                student => student.id
-            )
-
-        studentSearchQuery.value = ''
-
-        form.value = {
-            name: response.data.name || '',
-            email: response.data.email || '',
-            phone: response.data.phone || '',
-            relationship:
-                response.data.relationship || ''
-        }
-
-        errorMessage.value = ''
-
-        showModal.value = true
-
-    } catch (error) {
-
-        console.error(
-            'Error fetching parent/students:',
-            error
-        )
-
-        alert('Unable to load parent details.')
-    }
-}
-
-// =========================================================
-// REASSIGNMENT MODAL
-// =========================================================
-
-const showReassignModal = ref(false)
-const reassigningStudent = ref(null)
-
-const toggleStudentSelection = (student) => {
-
-    const isSelected =
-        selectedStudentIds.value.includes(student.id)
-
-    // Unchecking
-    if (isSelected) {
-
-        selectedStudentIds.value =
-            selectedStudentIds.value.filter(
-                id => id !== student.id
-            )
-
-        return
+    form.value = {
+        name: parent.name || '',
+        email: parent.email || '',
+        phone: parent.phone || '',
+        relationship: parent.relationship || '',
+        password: ''
     }
 
-    // Student belongs to another parent
-    if (
-        student.parent &&
-        student.parent.id !== editingParent.value?.id
-    ) {
+    errorMessage.value = ''
 
-        reassigningStudent.value = student
-        showReassignModal.value = true
-
-        return
-    }
-
-    // Student has no parent
-    selectedStudentIds.value.push(student.id)
+    showModal.value = true
 }
 
-const confirmReassignment = () => {
-
-    if (!reassigningStudent.value) {
-        return
-    }
-
-    selectedStudentIds.value.push(
-        reassigningStudent.value.id
-    )
-
-    showReassignModal.value = false
-    reassigningStudent.value = null
-}
-
-const cancelReassignment = () => {
-
-    showReassignModal.value = false
-    reassigningStudent.value = null
-}
 
 // =========================================================
-// OPEN VIEW MODAL
-// =========================================================
-
-const openViewModal = async (parent) => {
-
-    try {
-
-        const response = await getParent(parent.id)
-
-        viewingParent.value = response.data
-
-        showViewModal.value = true
-
-    } catch (error) {
-
-        console.error(
-            'Error fetching parent:',
-            error
-        )
-
-        alert('Unable to load parent details.')
-    }
-}
-
-const closeViewModal = () => {
-
-    showViewModal.value = false
-    viewingParent.value = null
-}
-
-// =========================================================
-// CLOSE EDIT MODAL
+// CLOSE ADD / EDIT MODAL
 // =========================================================
 
 const closeModal = () => {
@@ -257,12 +159,15 @@ const closeModal = () => {
 
     errorMessage.value = ''
 
-    selectedStudentIds.value = []
-
-    students.value = []
-
-    studentSearchQuery.value = ''
+    form.value = {
+        name: '',
+        email: '',
+        phone: '',
+        relationship: '',
+        password: ''
+    }
 }
+
 
 // =========================================================
 // SAVE PARENT
@@ -276,16 +181,16 @@ const saveParent = async () => {
 
         if (editingParent.value) {
 
-            // Update parent information
+            const updateData = {
+                name: form.value.name,
+                email: form.value.email,
+                phone: form.value.phone,
+                relationship: form.value.relationship
+            }
+
             await parentStore.editParent(
                 editingParent.value.id,
-                form.value
-            )
-
-            // Update children
-            await updateParentChildren(
-                editingParent.value.id,
-                selectedStudentIds.value
+                updateData
             )
 
         } else {
@@ -294,13 +199,6 @@ const saveParent = async () => {
                 form.value
             )
         }
-
-        // Refresh parent list
-        await parentStore.fetchParents(
-            1,
-            searchQuery.value,
-            relationshipFilter.value
-        )
 
         closeModal()
 
@@ -316,6 +214,127 @@ const saveParent = async () => {
             'Something went wrong.'
     }
 }
+
+
+// =========================================================
+// VIEW PARENT
+// =========================================================
+
+const openViewModal = async (parent) => {
+
+    try {
+
+        const response = await getParent(parent.id)
+
+        viewingParent.value =
+            response.data.parent ||
+            response.data
+
+        showViewModal.value = true
+
+    } catch (error) {
+
+        console.error(
+            'View parent error:',
+            error
+        )
+
+        viewingParent.value = parent
+        showViewModal.value = true
+    }
+}
+
+
+const closeViewModal = () => {
+
+    showViewModal.value = false
+    viewingParent.value = null
+}
+
+
+// =========================================================
+// OPEN REASSIGN CHILD MODAL
+// =========================================================
+
+const openReassignModal = (child) => {
+
+    reassigningChild.value = child
+
+    reassignParentId.value =
+        child.parent_id || ''
+
+    showReassignModal.value = true
+}
+
+
+// =========================================================
+// CLOSE REASSIGN MODAL
+// =========================================================
+
+const closeReassignModal = () => {
+
+    showReassignModal.value = false
+
+    reassigningChild.value = null
+
+    reassignParentId.value = ''
+}
+
+
+// =========================================================
+// REASSIGN CHILD
+// =========================================================
+
+const saveReassignment = async () => {
+
+    if (
+        !reassigningChild.value ||
+        !reassignParentId.value
+    ) {
+        return
+    }
+
+    try {
+
+        await updateParentChildren(
+            reassignParentId.value,
+            [reassigningChild.value.id]
+        )
+
+        closeReassignModal()
+
+        await parentStore.fetchParents(
+            parentStore.pagination.currentPage,
+            searchQuery.value,
+            relationshipFilter.value
+        )
+
+        if (viewingParent.value) {
+
+            const response =
+                await getParent(
+                    viewingParent.value.id
+                )
+
+            viewingParent.value =
+                response.data.parent ||
+                response.data
+        }
+
+    } catch (error) {
+
+        console.error(
+            'Reassign child error:',
+            error
+        )
+
+        alert(
+            error.response?.data?.message ||
+            'Unable to reassign child.'
+        )
+    }
+}
+
 
 // =========================================================
 // DELETE PARENT
@@ -335,13 +354,6 @@ const removeParent = async (id) => {
 
         await parentStore.removeParent(id)
 
-        // Refresh immediately
-        await parentStore.fetchParents(
-            1,
-            searchQuery.value,
-            relationshipFilter.value
-        )
-
     } catch (error) {
 
         console.error(
@@ -350,6 +362,134 @@ const removeParent = async (id) => {
         )
     }
 }
+
+
+// =========================================================
+// OPEN PASSWORD MODAL
+// =========================================================
+
+const openPasswordModal = (parent) => {
+
+    passwordParent.value = parent
+
+    passwordForm.value = {
+        password: '',
+        password_confirmation: ''
+    }
+
+    passwordError.value = ''
+    passwordSuccess.value = ''
+
+    showPasswordModal.value = true
+}
+
+
+// =========================================================
+// CLOSE PASSWORD MODAL
+// =========================================================
+
+const closePasswordModal = () => {
+
+    showPasswordModal.value = false
+
+    passwordParent.value = null
+
+    passwordForm.value = {
+        password: '',
+        password_confirmation: ''
+    }
+
+    passwordError.value = ''
+    passwordSuccess.value = ''
+}
+
+
+// =========================================================
+// SAVE NEW PASSWORD
+// =========================================================
+
+const savePassword = async () => {
+
+    passwordError.value = ''
+    passwordSuccess.value = ''
+
+    // Minimum password length
+    if (
+        passwordForm.value.password.length < 8
+    ) {
+
+        passwordError.value =
+            'Password must be at least 8 characters.'
+
+        return
+    }
+
+    // Confirm password
+    if (
+        passwordForm.value.password !==
+        passwordForm.value.password_confirmation
+    ) {
+
+        passwordError.value =
+            'Passwords do not match.'
+
+        return
+    }
+
+    if (!passwordParent.value) {
+        passwordError.value =
+            'Parent information is missing.'
+
+        return
+    }
+
+    changingPassword.value = true
+
+    try {
+
+        const response =
+            await changeParentPassword(
+                passwordParent.value.id,
+                passwordForm.value.password,
+                passwordForm.value.password_confirmation
+            )
+
+        passwordSuccess.value =
+            response.data.message ||
+            'Parent password changed successfully.'
+
+        passwordForm.value = {
+            password: '',
+            password_confirmation: ''
+        }
+
+    } catch (error) {
+
+        console.error(
+            'Change parent password error:',
+            error
+        )
+
+        if (
+            error.response?.data?.errors?.password
+        ) {
+
+            passwordError.value =
+                error.response.data.errors.password[0]
+
+        } else {
+
+            passwordError.value =
+                error.response?.data?.message ||
+                'Unable to change parent password.'
+        }
+
+    } finally {
+
+        changingPassword.value = false
+    }
+}
+
 
 // =========================================================
 // PAGINATION
@@ -371,14 +511,26 @@ const changePage = async (page) => {
     )
 }
 
+
 // =========================================================
 // INITIAL LOAD
 // =========================================================
 
 onMounted(() => {
 
-    parentStore.fetchParents()
+    const savedTheme =
+        localStorage.getItem('theme')
 
+    if (savedTheme === 'dark') {
+
+        darkMode.value = true
+
+        document.documentElement.classList.add(
+            'dark'
+        )
+    }
+
+    parentStore.fetchParents()
 })
 
 </script>
@@ -387,7 +539,7 @@ onMounted(() => {
 <template>
 
 <div
-    class="p-6 lg:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors"
+    class="min-h-screen p-6 bg-gray-100 dark:bg-gray-950 transition-colors duration-200"
 >
 
     <!-- =====================================================
@@ -395,7 +547,7 @@ onMounted(() => {
     ====================================================== -->
 
     <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7"
+        class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6"
     >
 
         <div>
@@ -407,40 +559,39 @@ onMounted(() => {
             </h1>
 
             <p
-                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                class="text-gray-500 dark:text-gray-400"
             >
-                Manage student parents and their children
+                Manage student parents
             </p>
 
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-3">
 
-    <!-- ADMIN DASHBOARD -->
-    <button
-        type="button"
-        @click="$router.push('/admin/dashboard')"
-        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition shadow-sm"
-    >
-        Dashboard
-    </button>
+        <div class="flex items-center gap-3">
 
-    <!-- ADD PARENT -->
-    <button
-        type="button"
-        @click="openAddModal"
-        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-green-700 hover:shadow transition-all"
-    >
+            <!-- DARK MODE -->
 
-        <span class="text-lg leading-none">
-            +
-        </span>
+            <button
+                @click="toggleDarkMode"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+            >
 
-        Add Parent
+                {{ darkMode ? '☀️ Light' : '🌙 Dark' }}
 
-    </button>
+            </button>
 
-</div>
+
+            <!-- ADD PARENT -->
+
+            <button
+                @click="openAddModal"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+                + Add Parent
+            </button>
+
+        </div>
+
     </div>
 
 
@@ -449,53 +600,43 @@ onMounted(() => {
     ====================================================== -->
 
     <div
-        class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-6 shadow-sm transition-colors"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6"
     >
 
-        <div
-            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+        <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search parents by name, email, or phone..."
+            class="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+
+
+        <select
+            v-model="relationshipFilter"
+            class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
         >
 
-            <!-- SEARCH -->
+            <option value="all">
+                All Relationships
+            </option>
 
-            <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search parents by name, email, or phone...."
-                class="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-            />
+            <option value="Father">
+                Father
+            </option>
 
+            <option value="Mother">
+                Mother
+            </option>
 
-            <!-- FILTER -->
+            <option value="Guardian">
+                Guardian
+            </option>
 
-            <select
-                v-model="relationshipFilter"
-                class="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-            >
+            <option value="Other">
+                Other
+            </option>
 
-                <option value="all">
-                    All Relationships
-                </option>
-
-                <option value="Father">
-                    Father
-                </option>
-
-                <option value="Mother">
-                    Mother
-                </option>
-
-                <option value="Guardian">
-                    Guardian
-                </option>
-
-                <option value="Other">
-                    Other
-                </option>
-
-            </select>
-
-        </div>
+        </select>
 
     </div>
 
@@ -506,7 +647,7 @@ onMounted(() => {
 
     <div
         v-if="parentStore.error"
-        class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-lg"
+        class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg"
     >
         {{ parentStore.error }}
     </div>
@@ -517,55 +658,55 @@ onMounted(() => {
     ====================================================== -->
 
     <div
-        class="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors"
+        class="overflow-x-auto bg-white dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-800"
     >
 
-        <table class="w-full min-w-[700px]">
+        <table class="w-full">
 
-            <!-- TABLE HEADER -->
-
-            <thead class="bg-gray-50 dark:bg-gray-700">
+            <thead
+                class="bg-gray-100 dark:bg-gray-800"
+            >
 
                 <tr>
 
                     <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-gray-600 dark:text-gray-200 text-sm font-semibold"
+                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
                     >
                         S.N.
                     </th>
 
                     <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-gray-600 dark:text-gray-200 text-sm font-semibold"
+                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
                     >
                         Name
                     </th>
 
                     <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-gray-600 dark:text-gray-200 text-sm font-semibold"
+                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
                     >
                         Email
                     </th>
 
                     <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-gray-600 dark:text-gray-200 text-sm font-semibold"
+                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
                     >
                         Phone
                     </th>
 
                     <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-gray-600 dark:text-gray-200 text-sm font-semibold"
+                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
                     >
                         Relationship
                     </th>
 
                     <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-gray-600 dark:text-gray-200 text-sm font-semibold"
+                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
                     >
                         Students
                     </th>
 
                     <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-gray-600 dark:text-gray-200 text-sm font-semibold"
+                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
                     >
                         Actions
                     </th>
@@ -577,162 +718,88 @@ onMounted(() => {
 
             <tbody>
 
-                <!-- =================================================
-                     LOADING
-                ================================================== -->
+                <!-- LOADING -->
 
                 <tr v-if="parentStore.loading">
 
                     <td
                         colspan="7"
-                        class="text-center py-10"
+                        class="text-center py-8 text-gray-500 dark:text-gray-400"
                     >
-
-                        <div
-                            class="flex flex-col items-center justify-center"
-                        >
-
-                            <div
-                                class="w-8 h-8 border-4 border-gray-200 dark:border-gray-600 border-t-green-600 rounded-full animate-spin mb-3"
-                            ></div>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
-                                Loading parents...
-                            </p>
-
-                        </div>
-
+                        Loading parents...
                     </td>
 
                 </tr>
 
 
-                <!-- =================================================
-                     EMPTY
-                ================================================== -->
+                <!-- EMPTY -->
 
                 <tr
-                    v-else-if="
-                        parentStore.parents.length === 0
-                    "
+                    v-else-if="parentStore.parents.length === 0"
                 >
 
                     <td
                         colspan="7"
-                        class="text-center py-12"
+                        class="text-center py-8 text-gray-500 dark:text-gray-400"
                     >
-
-                        <div
-                            class="flex flex-col items-center"
-                        >
-
-                            <div
-                                class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3 text-xl"
-                            >
-                                👨‍👩‍👧
-                            </div>
-
-                            <p
-                                class="font-medium text-gray-700 dark:text-gray-200"
-                            >
-                                No parents found
-                            </p>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                            >
-                                Try changing your search or filter.
-                            </p>
-
-                        </div>
-
+                        No parents found.
                     </td>
 
                 </tr>
 
 
-                <!-- =================================================
-                     PARENTS
-                ================================================== -->
+                <!-- PARENTS -->
 
                 <tr
                     v-else
                     v-for="(parent, index) in parentStore.parents"
                     :key="parent.id"
-                    class="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
+                    class="border-t border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                 >
-
-                    <!-- S.N. -->
 
                     <td
                         class="px-4 py-3 text-gray-700 dark:text-gray-300"
                     >
-
                         {{
                             (parentStore.pagination.currentPage - 1)
                             * parentStore.pagination.perPage
                             + index + 1
                         }}
-
                     </td>
 
 
-                    <!-- NAME -->
-
                     <td
-                        class="px-4 py-3 font-medium text-gray-800 dark:text-gray-100"
+                        class="px-4 py-3 font-medium text-gray-900 dark:text-white"
                     >
-
                         {{ parent.name }}
-
                     </td>
 
-
-                    <!-- EMAIL -->
 
                     <td
                         class="px-4 py-3 text-gray-700 dark:text-gray-300"
                     >
-
                         {{ parent.email || '-' }}
-
                     </td>
 
-
-                    <!-- PHONE -->
 
                     <td
                         class="px-4 py-3 text-gray-700 dark:text-gray-300"
                     >
-
                         {{ parent.phone || '-' }}
-
                     </td>
 
-
-                    <!-- RELATIONSHIP -->
 
                     <td
                         class="px-4 py-3 text-gray-700 dark:text-gray-300"
                     >
-
                         {{ parent.relationship || '-' }}
-
                     </td>
 
 
-                    <!-- STUDENTS -->
-
-                    <td class="px-4 py-3">
-
-                        <span
-                            class="inline-flex items-center justify-center min-w-8 h-8 px-2 rounded-full bg-green-50 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-sm font-semibold"
-                        >
-                            {{ parent.students?.length || 0 }}
-                        </span>
-
+                    <td
+                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
+                    >
+                        {{ parent.students?.length || 0 }}
                     </td>
 
 
@@ -741,14 +808,14 @@ onMounted(() => {
                     <td class="px-4 py-3">
 
                         <div
-                            class="flex items-center gap-2"
+                            class="flex flex-wrap gap-2"
                         >
 
                             <!-- VIEW -->
 
                             <button
                                 @click="openViewModal(parent)"
-                                class="px-3 py-1.5 text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                                class="px-3 py-1.5 text-sm font-medium bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                             >
                                 View
                             </button>
@@ -758,9 +825,19 @@ onMounted(() => {
 
                             <button
                                 @click="openEditModal(parent)"
-                                class="px-3 py-1.5 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
+                                class="px-3 py-1.5 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
                             >
                                 Edit
+                            </button>
+
+
+                            <!-- PASSWORD -->
+
+                            <button
+                                @click="openPasswordModal(parent)"
+                                class="px-3 py-1.5 text-sm font-medium bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition"
+                            >
+                                Password
                             </button>
 
 
@@ -768,7 +845,7 @@ onMounted(() => {
 
                             <button
                                 @click="removeParent(parent.id)"
-                                class="px-3 py-1.5 text-sm font-medium bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition"
+                                class="px-3 py-1.5 text-sm font-medium bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition"
                             >
                                 Delete
                             </button>
@@ -792,7 +869,7 @@ onMounted(() => {
 
     <div
         v-if="parentStore.pagination.lastPage > 1"
-        class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-5"
+        class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4"
     >
 
         <p
@@ -809,9 +886,7 @@ onMounted(() => {
         </p>
 
 
-        <div class="flex gap-2">
-
-            <!-- PREVIOUS -->
+        <div class="flex items-center gap-2">
 
             <button
                 @click="
@@ -822,16 +897,14 @@ onMounted(() => {
                 :disabled="
                     parentStore.pagination.currentPage === 1
                 "
-                class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-200 disabled:opacity-50"
             >
                 Previous
             </button>
 
 
-            <!-- PAGE -->
-
             <span
-                class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300"
+                class="px-3 py-1.5 text-gray-700 dark:text-gray-300"
             >
 
                 Page
@@ -841,8 +914,6 @@ onMounted(() => {
 
             </span>
 
-
-            <!-- NEXT -->
 
             <button
                 @click="
@@ -854,7 +925,7 @@ onMounted(() => {
                     parentStore.pagination.currentPage ===
                     parentStore.pagination.lastPage
                 "
-                class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-200 disabled:opacity-50"
             >
                 Next
             </button>
@@ -870,51 +941,33 @@ onMounted(() => {
 
     <div
         v-if="showModal"
-        class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
     >
 
         <div
-            class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto transition-colors"
+            class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-lg p-6 border border-gray-200 dark:border-gray-800"
         >
 
-            <!-- HEADER -->
-
             <div
-                class="flex justify-between items-start mb-6"
+                class="flex justify-between items-center mb-6"
             >
 
-                <div>
+                <h2
+                    class="text-xl font-bold text-gray-900 dark:text-white"
+                >
 
-                    <h2
-                        class="text-xl font-bold text-gray-900 dark:text-white"
-                    >
+                    {{
+                        editingParent
+                            ? 'Edit Parent'
+                            : 'Add Parent'
+                    }}
 
-                        {{
-                            editingParent
-                                ? 'Edit Parent'
-                                : 'Add Parent'
-                        }}
-
-                    </h2>
-
-                    <p
-                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                    >
-
-                        {{
-                            editingParent
-                                ? 'Update parent information and manage children'
-                                : 'Create a new parent account'
-                        }}
-
-                    </p>
-
-                </div>
+                </h2>
 
 
                 <button
                     @click="closeModal"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl"
+                    class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white text-xl"
                 >
                     ×
                 </button>
@@ -926,7 +979,7 @@ onMounted(() => {
 
             <div
                 v-if="errorMessage"
-                class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-lg"
+                class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg"
             >
                 {{ errorMessage }}
             </div>
@@ -937,7 +990,7 @@ onMounted(() => {
             <div class="mb-4">
 
                 <label
-                    class="block mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
                 >
                     Name
                 </label>
@@ -945,8 +998,8 @@ onMounted(() => {
                 <input
                     v-model="form.name"
                     type="text"
+                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
                     placeholder="Enter parent name"
-                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                 >
 
             </div>
@@ -957,7 +1010,7 @@ onMounted(() => {
             <div class="mb-4">
 
                 <label
-                    class="block mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
                 >
                     Email
                 </label>
@@ -965,30 +1018,11 @@ onMounted(() => {
                 <input
                     v-model="form.email"
                     type="email"
+                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
                     placeholder="Enter email"
-                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                 >
 
             </div>
-
-            <!-- PASSWORD -->
-
-<div class="mb-4" v-if="!editingParent">
-
-    <label
-        class="block mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300"
-    >
-        Password
-    </label>
-
-    <input
-        v-model="form.password"
-        type="password"
-        placeholder="Enter password (minimum 8 characters)"
-        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-    >
-
-</div>
 
 
             <!-- PHONE -->
@@ -996,7 +1030,7 @@ onMounted(() => {
             <div class="mb-4">
 
                 <label
-                    class="block mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
                 >
                     Phone
                 </label>
@@ -1004,8 +1038,8 @@ onMounted(() => {
                 <input
                     v-model="form.phone"
                     type="text"
+                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
                     placeholder="Enter phone number"
-                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                 >
 
             </div>
@@ -1013,17 +1047,17 @@ onMounted(() => {
 
             <!-- RELATIONSHIP -->
 
-            <div class="mb-6">
+            <div class="mb-4">
 
                 <label
-                    class="block mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
                 >
                     Relationship
                 </label>
 
                 <select
                     v-model="form.relationship"
-                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
                 >
 
                     <option value="">
@@ -1051,168 +1085,54 @@ onMounted(() => {
             </div>
 
 
-            <!-- =================================================
-                 MANAGE CHILDREN
-            ================================================== -->
+            <!-- PASSWORD ONLY WHEN ADDING -->
 
             <div
-                v-if="editingParent"
+                v-if="!editingParent"
                 class="mb-6"
             >
 
-                <div
-                    class="flex items-center justify-between mb-2"
+                <label
+                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
                 >
-
-                    <label
-                        class="text-sm font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                        Manage Children
-                    </label>
-
-                    <span
-                        class="text-xs text-gray-500 dark:text-gray-400"
-                    >
-                        {{ selectedStudentIds.length }}
-                        selected
-                    </span>
-
-                </div>
-
-
-                <!-- STUDENT SEARCH -->
+                    Password
+                </label>
 
                 <input
-                    v-model="studentSearchQuery"
-                    type="text"
-                    placeholder="Search children by name, class, or email..."
-                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 mb-3 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                />
-
-
-                <!-- NO STUDENTS -->
-
-                <div
-                    v-if="students.length === 0"
-                    class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400 text-sm"
-                >
-                    No children assigned.
-                </div>
-
-
-                <!-- STUDENT LIST -->
-
-                <div
-                    v-else
-                    class="border border-gray-200 dark:border-gray-600 rounded-xl divide-y divide-gray-200 dark:divide-gray-600 max-h-72 overflow-y-auto"
+                    v-model="form.password"
+                    type="password"
+                    minlength="8"
+                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
+                    placeholder="Enter password"
                 >
 
-                    <label
-                        v-for="student in filteredStudents"
-                        :key="student.id"
-                        class="flex items-center gap-3 px-3 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer"
-                    >
-
-                        <input
-                            type="checkbox"
-                            :checked="
-                                selectedStudentIds.includes(
-                                    student.id
-                                )
-                            "
-                            @change="
-                                toggleStudentSelection(student)
-                            "
-                            class="w-4 h-4 accent-green-600"
-                        />
-
-
-                        <div>
-
-                            <p
-                                class="font-medium text-gray-800 dark:text-gray-100"
-                            >
-                                {{ student.name }}
-                            </p>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
-                                Class:
-                                {{ student.class || 'Not assigned' }}
-                            </p>
-
-
-                            <!-- CURRENT PARENT -->
-
-                            <p
-                                v-if="
-                                    student.parent &&
-                                    student.parent.id ===
-                                    editingParent?.id
-                                "
-                                class="text-xs text-green-600 dark:text-green-400 mt-1"
-                            >
-                                Currently assigned to this parent
-                            </p>
-
-
-                            <!-- OTHER PARENT -->
-
-                            <p
-                                v-else-if="student.parent"
-                                class="text-xs text-orange-600 dark:text-orange-400 mt-1"
-                            >
-
-                                ⚠️ Current parent:
-
-                                <span class="font-medium">
-                                    {{ student.parent.name }}
-                                </span>
-
-                            </p>
-
-
-                            <!-- NO PARENT -->
-
-                            <p
-                                v-else
-                                class="text-xs text-gray-500 dark:text-gray-400 mt-1"
-                            >
-                                No parent assigned
-                            </p>
-
-                        </div>
-
-                    </label>
-
-                </div>
+                <p
+                    class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                >
+                    Minimum 8 characters.
+                </p>
 
             </div>
 
 
-            <!-- =================================================
-                 STICKY ACTIONS
-            ================================================== -->
+            <!-- ACTIONS -->
 
             <div
-                class="sticky bottom-0 -mx-6 -mb-6 mt-6 px-6 py-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3"
+                class="flex justify-end gap-3"
             >
 
                 <button
-                    type="button"
                     @click="closeModal"
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                     Cancel
                 </button>
 
 
                 <button
-                    type="button"
                     @click="saveParent"
                     :disabled="parentStore.loading"
-                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                 >
 
                     {{
@@ -1236,11 +1156,11 @@ onMounted(() => {
 
     <div
         v-if="showViewModal"
-        class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
     >
 
         <div
-            class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-3xl p-6 max-h-[90vh] overflow-y-auto transition-colors"
+            class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-3xl p-6 max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-800"
         >
 
             <!-- HEADER -->
@@ -1249,26 +1169,16 @@ onMounted(() => {
                 class="flex justify-between items-center mb-6"
             >
 
-                <div>
-
-                    <h2
-                        class="text-xl font-bold text-gray-900 dark:text-white"
-                    >
-                        Parent Details
-                    </h2>
-
-                    <p
-                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                    >
-                        Parent information and assigned children
-                    </p>
-
-                </div>
+                <h2
+                    class="text-xl font-bold text-gray-900 dark:text-white"
+                >
+                    Parent Details
+                </h2>
 
 
                 <button
                     @click="closeViewModal"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl"
+                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xl"
                 >
                     ×
                 </button>
@@ -1283,20 +1193,16 @@ onMounted(() => {
                 class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
             >
 
-                <!-- NAME -->
-
-                <div
-                    class="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600"
-                >
+                <div>
 
                     <p
-                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                        class="text-sm text-gray-500 dark:text-gray-400"
                     >
                         Name
                     </p>
 
                     <p
-                        class="mt-1 font-semibold text-gray-900 dark:text-white"
+                        class="font-medium text-gray-900 dark:text-white"
                     >
                         {{ viewingParent.name }}
                     </p>
@@ -1304,20 +1210,16 @@ onMounted(() => {
                 </div>
 
 
-                <!-- EMAIL -->
-
-                <div
-                    class="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600"
-                >
+                <div>
 
                     <p
-                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                        class="text-sm text-gray-500 dark:text-gray-400"
                     >
                         Email
                     </p>
 
                     <p
-                        class="mt-1 font-semibold text-gray-900 dark:text-white break-words"
+                        class="font-medium text-gray-900 dark:text-white"
                     >
                         {{ viewingParent.email || '-' }}
                     </p>
@@ -1325,20 +1227,16 @@ onMounted(() => {
                 </div>
 
 
-                <!-- PHONE -->
-
-                <div
-                    class="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600"
-                >
+                <div>
 
                     <p
-                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                        class="text-sm text-gray-500 dark:text-gray-400"
                     >
                         Phone
                     </p>
 
                     <p
-                        class="mt-1 font-semibold text-gray-900 dark:text-white"
+                        class="font-medium text-gray-900 dark:text-white"
                     >
                         {{ viewingParent.phone || '-' }}
                     </p>
@@ -1346,20 +1244,16 @@ onMounted(() => {
                 </div>
 
 
-                <!-- RELATIONSHIP -->
-
-                <div
-                    class="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600"
-                >
+                <div>
 
                     <p
-                        class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                        class="text-sm text-gray-500 dark:text-gray-400"
                     >
                         Relationship
                     </p>
 
                     <p
-                        class="mt-1 font-semibold text-gray-900 dark:text-white"
+                        class="font-medium text-gray-900 dark:text-white"
                     >
                         {{ viewingParent.relationship || '-' }}
                     </p>
@@ -1369,178 +1263,93 @@ onMounted(() => {
             </div>
 
 
-            <!-- =================================================
-                 CHILDREN
-            ================================================== -->
+            <!-- CHILDREN -->
 
             <div>
 
-                <!-- CHILDREN HEADER -->
-
                 <div
-                    class="flex items-center justify-between mb-4 gap-3"
+                    class="flex items-center justify-between mb-4"
                 >
 
-                    <div>
+                    <h3
+                        class="text-lg font-semibold text-gray-900 dark:text-white"
+                    >
+                        Children
+                    </h3>
 
-                        <h3
-                            class="text-lg font-semibold text-gray-900 dark:text-white"
-                        >
-                            Children
-                        </h3>
+                </div>
 
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+
+                <div
+                    v-if="
+                        viewingParent?.students &&
+                        viewingParent.students.length
+                    "
+                    class="space-y-3"
+                >
+
+                    <div
+                        v-for="child in viewingParent.students"
+                        :key="child.id"
+                        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                    >
+
+                        <div>
+
+                            <p
+                                class="font-medium text-gray-900 dark:text-white"
+                            >
+                                {{ child.name }}
+                            </p>
+
+                            <p
+                                class="text-sm text-gray-500 dark:text-gray-400"
+                            >
+                                Class:
+                                {{ child.class || '-' }}
+
+                                <span class="mx-1">
+                                    •
+                                </span>
+
+                                Symbol:
+                                {{ child.symbol_no || '-' }}
+                            </p>
+
+                        </div>
+
+
+                        <button
+                            @click="openReassignModal(child)"
+                            class="px-3 py-1.5 text-sm bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition"
                         >
-                            Students currently assigned to this parent
-                        </p>
+                            Reassign
+                        </button>
 
                     </div>
 
-
-                    <span
-                        class="inline-flex items-center px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-sm font-semibold whitespace-nowrap"
-                    >
-
-                        {{ viewingParent?.students?.length || 0 }}
-
-                        {{
-                            viewingParent?.students?.length === 1
-                                ? 'Child'
-                                : 'Children'
-                        }}
-
-                    </span>
-
                 </div>
 
-
-                <!-- NO CHILDREN -->
-
-                <div
-                    v-if="!viewingParent?.students?.length"
-                    class="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-600"
-                >
-                    This parent has no children assigned.
-                </div>
-
-
-                <!-- CHILDREN TABLE -->
 
                 <div
                     v-else
-                    class="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded-xl"
+                    class="p-6 text-center bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-500 dark:text-gray-400"
                 >
-
-                    <table class="w-full">
-
-                        <thead
-                            class="bg-gray-50 dark:bg-gray-700"
-                        >
-
-                            <tr>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
-                                >
-                                    S.N.
-                                </th>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
-                                >
-                                    Name
-                                </th>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
-                                >
-                                    Class
-                                </th>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
-                                >
-                                    Email
-                                </th>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
-                                >
-                                    Phone
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-
-                        <tbody>
-
-                            <tr
-                                v-for="(
-                                    student,
-                                    index
-                                ) in viewingParent.students"
-                                :key="student.id"
-                                class="border-t border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
-                            >
-
-                                <td
-                                    class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                                >
-                                    {{ index + 1 }}
-                                </td>
-
-
-                                <td
-                                    class="px-4 py-3 font-medium text-gray-800 dark:text-gray-100"
-                                >
-                                    {{ student.name }}
-                                </td>
-
-
-                                <td
-                                    class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                                >
-                                    {{
-                                        student.class ||
-                                        'Not assigned'
-                                    }}
-                                </td>
-
-
-                                <td
-                                    class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                                >
-                                    {{ student.email || '-' }}
-                                </td>
-
-
-                                <td
-                                    class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                                >
-                                    {{ student.phone || '-' }}
-                                </td>
-
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
+                    No children assigned.
                 </div>
 
             </div>
 
 
-            <!-- FOOTER -->
+            <!-- CLOSE -->
 
-            <div class="flex justify-end mt-6">
+            <div
+                class="flex justify-end mt-6"
+            >
 
                 <button
                     @click="closeViewModal"
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                     Close
                 </button>
@@ -1553,100 +1362,250 @@ onMounted(() => {
 
 
     <!-- =====================================================
-         REASSIGN CHILD CONFIRMATION MODAL
+         PASSWORD MODAL
+         ADMIN CAN DIRECTLY SET A NEW PASSWORD
     ====================================================== -->
 
     <div
-        v-if="showReassignModal"
-        class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 dark:bg-black/70 p-4"
+        v-if="showPasswordModal"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
     >
 
         <div
-            class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 transition-colors"
+            class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md p-6 border border-gray-200 dark:border-gray-800"
         >
 
             <!-- HEADER -->
 
             <div
-                class="flex items-center gap-3 mb-4"
+                class="flex justify-between items-center mb-6"
             >
 
-                <div
-                    class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0"
-                >
-                    ⚠️
+                <div>
+
+                    <h2
+                        class="text-xl font-bold text-gray-900 dark:text-white"
+                    >
+                        Change Parent Password
+                    </h2>
+
+                    <p
+                        v-if="passwordParent"
+                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                    >
+                        {{ passwordParent.name }}
+                    </p>
+
                 </div>
 
-                <h2
-                    class="text-lg font-semibold text-gray-900 dark:text-white"
+
+                <button
+                    @click="closePasswordModal"
+                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xl"
                 >
-                    Reassign Child?
-                </h2>
+                    ×
+                </button>
 
             </div>
 
 
-            <!-- CURRENT PARENT -->
+            <!-- SUCCESS -->
 
-            <p
-                class="text-gray-600 dark:text-gray-300 mb-2"
+            <div
+                v-if="passwordSuccess"
+                class="mb-4 p-3 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 rounded-lg"
             >
-                This child is currently assigned to:
-            </p>
+                {{ passwordSuccess }}
+            </div>
 
 
-            <p
-                v-if="reassigningStudent?.parent"
-                class="font-semibold text-gray-900 dark:text-white mb-4"
+            <!-- ERROR -->
+
+            <div
+                v-if="passwordError"
+                class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg"
             >
-                {{ reassigningStudent.parent.name }}
-            </p>
+                {{ passwordError }}
+            </div>
 
 
-            <!-- CONFIRMATION -->
+            <!-- NEW PASSWORD -->
 
-            <p
-                class="text-gray-600 dark:text-gray-300"
-            >
+            <div class="mb-4">
 
-                Do you want to reassign
-
-                <span
-                    class="font-semibold text-gray-900 dark:text-white"
+                <label
+                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
                 >
-                    {{ reassigningStudent?.name }}
-                </span>
+                    New Password
+                </label>
 
-                to
-
-                <span
-                    class="font-semibold text-gray-900 dark:text-white"
+                <input
+                    v-model="passwordForm.password"
+                    type="password"
+                    minlength="8"
+                    autocomplete="new-password"
+                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    placeholder="Enter new password"
                 >
-                    {{ editingParent?.name }}
-                </span>?
 
-            </p>
+                <p
+                    class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                >
+                    Password must be at least 8 characters.
+                </p>
+
+            </div>
+
+
+            <!-- CONFIRM PASSWORD -->
+
+            <div class="mb-6">
+
+                <label
+                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
+                >
+                    Confirm New Password
+                </label>
+
+                <input
+                    v-model="passwordForm.password_confirmation"
+                    type="password"
+                    minlength="8"
+                    autocomplete="new-password"
+                    @keyup.enter="savePassword"
+                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    placeholder="Confirm new password"
+                >
+
+            </div>
 
 
             <!-- ACTIONS -->
 
             <div
-                class="flex justify-end gap-3 mt-6"
+                class="flex justify-end gap-3"
             >
 
                 <button
-                    type="button"
-                    @click="cancelReassignment"
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    @click="closePasswordModal"
+                    class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                     Cancel
                 </button>
 
 
                 <button
-                    type="button"
-                    @click="confirmReassignment"
-                    class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+                    @click="savePassword"
+                    :disabled="changingPassword"
+                    class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+
+                    {{
+                        changingPassword
+                            ? 'Changing...'
+                            : 'Change Password'
+                    }}
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         REASSIGN CHILD MODAL
+    ====================================================== -->
+
+    <div
+        v-if="showReassignModal"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4"
+    >
+
+        <div
+            class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md p-6 border border-gray-200 dark:border-gray-800"
+        >
+
+            <div
+                class="flex justify-between items-center mb-6"
+            >
+
+                <div>
+
+                    <h2
+                        class="text-xl font-bold text-gray-900 dark:text-white"
+                    >
+                        Reassign Child
+                    </h2>
+
+                    <p
+                        v-if="reassigningChild"
+                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                    >
+                        {{ reassigningChild.name }}
+                    </p>
+
+                </div>
+
+
+                <button
+                    @click="closeReassignModal"
+                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xl"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="mb-6">
+
+                <label
+                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
+                >
+                    New Parent
+                </label>
+
+                <select
+                    v-model="reassignParentId"
+                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
+                >
+
+                    <option value="">
+                        Select parent
+                    </option>
+
+                    <option
+                        v-for="parent in parentStore.parents"
+                        :key="parent.id"
+                        :value="parent.id"
+                    >
+                        {{ parent.name }}
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div
+                class="flex justify-end gap-3"
+            >
+
+                <button
+                    @click="closeReassignModal"
+                    class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                    Cancel
+                </button>
+
+
+                <button
+                    @click="saveReassignment"
+                    :disabled="!reassignParentId"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
                     Reassign
                 </button>

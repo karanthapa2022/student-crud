@@ -39,4 +39,126 @@ class ParentAuthController extends Controller
             'user' => $user->load('parent'),
         ]);
     }
+
+    // =========================================================
+// PARENT DASHBOARD
+// =========================================================
+
+public function dashboard(Request $request)
+{
+    $user = $request->user();
+
+    // Make sure the logged-in user is actually a parent
+    if (!$user || $user->role !== 'parent') {
+        return response()->json([
+            'message' => 'Unauthorized.'
+        ], 403);
+    }
+
+    // Get the parent record connected to this user
+    $parent = $user->parent;
+
+    if (!$parent) {
+        return response()->json([
+            'message' => 'Parent record not found.'
+        ], 404);
+    }
+
+    // Get all students belonging to this parent
+    $children = $parent->students()
+        ->with('address')
+        ->get();
+
+    return response()->json([
+        'message' => 'Parent dashboard loaded successfully.',
+
+        'parent' => [
+            'id' => $parent->id,
+            'name' => $parent->name,
+            'email' => $parent->email,
+            'phone' => $parent->phone,
+            'relationship' => $parent->relationship,
+        ],
+
+        'children' => $children,
+    ]);
+}
+// =========================================================
+// PARENT PROFILE
+// =========================================================
+
+public function profile(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user || $user->role !== 'parent') {
+        return response()->json([
+            'message' => 'Unauthorized.'
+        ], 403);
+    }
+
+    $parent = $user->parent;
+
+    if (!$parent) {
+        return response()->json([
+            'message' => 'Parent record not found.'
+        ], 404);
+    }
+
+    return response()->json([
+        'parent' => [
+            'id' => $parent->id,
+            'name' => $parent->name,
+            'email' => $parent->email,
+            'phone' => $parent->phone,
+            'relationship' => $parent->relationship,
+        ],
+    ]);
+}
+
+
+// =========================================================
+// UPDATE PARENT PROFILE
+// =========================================================
+
+public function updateProfile(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user || $user->role !== 'parent') {
+        return response()->json([
+            'message' => 'Unauthorized.'
+        ], 403);
+    }
+
+    $parent = $user->parent;
+
+    if (!$parent) {
+        return response()->json([
+            'message' => 'Parent record not found.'
+        ], 404);
+    }
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|max:255|unique:parents,email,' . $parent->id,
+        'phone' => 'nullable|string|max:30',
+        'relationship' => 'nullable|string|max:100',
+    ]);
+
+    $parent->update($validated);
+
+    return response()->json([
+        'message' => 'Profile updated successfully.',
+        'parent' => [
+            'id' => $parent->id,
+            'name' => $parent->name,
+            'email' => $parent->email,
+            'phone' => $parent->phone,
+            'relationship' => $parent->relationship,
+        ],
+    ]);
+}
+
+
 }

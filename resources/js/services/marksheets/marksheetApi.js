@@ -7,40 +7,144 @@ const api = axios.create({
     }
 })
 
-// Add authentication token
+
+// =========================================================
+// AUTHENTICATION TOKEN
+// =========================================================
+
 api.interceptors.request.use(config => {
-    const token = localStorage.getItem('token')
+
+    const path = window.location.pathname
+
+    let token = null
+
+
+    // =========================================================
+    // PARENT
+    // =========================================================
+
+    if (path.startsWith('/parents')) {
+
+        token = localStorage.getItem('parent_token')
+
+    }
+
+
+    // =========================================================
+    // TEACHER
+    // =========================================================
+
+    else if (
+        path.startsWith('/teacher') ||
+        localStorage.getItem('teacher_token')
+    ) {
+
+        token = localStorage.getItem('teacher_token')
+
+    }
+
+
+    // =========================================================
+    // ADMIN
+    // =========================================================
+
+    else {
+
+        token = localStorage.getItem('token')
+
+    }
+
+
+    // =========================================================
+    // ATTACH TOKEN
+    // =========================================================
 
     if (token) {
+
         config.headers.Authorization = `Bearer ${token}`
+
     }
 
     return config
+
 })
 
-// Get all marksheets
+
+// =========================================================
+// GET ALL MARKSHEETS
+// =========================================================
+
 export const getMarksheets = () => {
+
     return api.get('/marksheets')
+
 }
 
-// Get one marksheet
+
+// =========================================================
+// GET ONE MARKSHEET
+// =========================================================
+
 export const getMarksheet = (id) => {
+
     return api.get(`/marksheets/${id}`)
+
 }
 
-// Create marksheet
+
+// =========================================================
+// CREATE MARKSHEET
+// =========================================================
+
 export const createMarksheet = (data) => {
+
     return api.post('/marksheets', data)
+
 }
-// Delete marksheet
+
+
+// =========================================================
+// DELETE MARKSHEET
+// =========================================================
+
 export const deleteMarksheet = (id) => {
+
     return api.delete(`/marksheets/${id}`)
+
 }
-// Update marksheet
+
+
+// =========================================================
+// UPDATE MARKSHEET
+// =========================================================
+
 export const updateMarksheet = (id, data) => {
+
     return api.put(`/marksheets/${id}`, data)
+
 }
-// Parent search marksheet
+
+
+// =========================================================
+// PARENT SEARCH MARKSHEET
+// =========================================================
+
 export const searchParentMarksheet = (data) => {
+
     return api.post('/marksheets/parent-search', data)
+
 }
+
+
+// =========================================================
+// PARENT STUDENT MARKSHEET
+// =========================================================
+
+export const getParentStudentMarksheet = (studentId) => {
+
+    return api.get(
+        `/marksheets/parent/student/${studentId}`
+    )
+
+}
+

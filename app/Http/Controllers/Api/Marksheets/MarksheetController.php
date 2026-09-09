@@ -545,4 +545,55 @@ class MarksheetController extends Controller
 
         return response()->json($marksheet);
     }
+    
+// =========================================================
+// PARENT STUDENT MARKSHEET
+// =========================================================
+
+public function parentStudentMarksheet(
+    Request $request,
+    Student $student
+) {
+    $user = $request->user();
+
+    // Only parents can use this endpoint
+    if ($user->role !== 'parent') {
+        return response()->json([
+            'message' => 'Only parents can view student marksheets.'
+        ], 403);
+    }
+
+    // Parent account must be linked
+    if (!$user->parent_id) {
+        return response()->json([
+            'message' => 'Parent account is not properly linked.'
+        ], 403);
+    }
+
+    // Make sure this student belongs to the logged-in parent
+    if ($student->parent_id !== $user->parent_id) {
+        return response()->json([
+            'message' => 'You do not have permission to view this student.'
+        ], 403);
+    }
+
+    // Get the latest marksheet for this student
+    $marksheet = Marksheet::with([
+        'student',
+        'items'
+    ])
+    ->where('student_id', $student->id)
+    ->latest()
+    ->first();
+
+    if (!$marksheet) {
+        return response()->json([
+            'message' => 'No marksheet found for this student.'
+        ], 404);
+    }
+
+    return response()->json($marksheet);
+}
+
+
 }

@@ -11,7 +11,11 @@ use App\Http\Controllers\Api\Subjects\SubjectController;
 use App\Http\Controllers\Api\Marksheets\MarksheetController;
 use App\Http\Controllers\Api\Parents\ParentAuthController;
 use App\Http\Controllers\Api\DashboardController;
-
+use App\Http\Controllers\Api\Teachers\TeacherController;
+use App\Http\Controllers\Api\Teachers\TeacherDashboardController;
+use App\Http\Controllers\Api\Teachers\TeacherStudentController;
+use App\Http\Controllers\Api\Teachers\TeacherSubjectController;
+use App\Http\Controllers\Api\Teachers\TeacherMarksheetController;
 
 // =========================================================
 // PUBLIC AUTHENTICATION
@@ -31,14 +35,6 @@ Route::post('/parent/login', [ParentAuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
 
 
-        Route::middleware('role:admin')->group(function () {
-
-    Route::get('/dashboard/statistics', [
-        DashboardController::class,
-        'statistics'
-    ]);
-
-});
     // =====================================================
     // COMMON AUTHENTICATED ROUTES
     // =====================================================
@@ -76,9 +72,76 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // =====================================================
+    // ADMIN DASHBOARD
+    // =====================================================
+
+    Route::middleware('role:admin')->group(function () {
+
+        Route::get('/dashboard/statistics', [
+            DashboardController::class,
+            'statistics'
+        ]);
+
+    });
+
+
+    // =====================================================
+    // SUBJECT VIEW ROUTES
+    // Admin + Teacher
+    // =====================================================
+
+    Route::middleware('role:admin,teacher')->group(function () {
+
+        Route::get(
+            '/subjects',
+            [SubjectController::class, 'index']
+        );
+
+        Route::get(
+            '/subjects/{id}',
+            [SubjectController::class, 'show']
+        );
+
+    });
+
+
+    // =====================================================
+    // STUDENT VIEW ROUTES
+    // Admin + Teacher
+    // =====================================================
+
+    Route::middleware('role:admin,teacher')->group(function () {
+
+        Route::get(
+            '/students',
+            [StudentController::class, 'index']
+        );
+
+        Route::get(
+            '/students/{id}',
+            [StudentController::class, 'show']
+        );
+
+    });
+
+
+    // =====================================================
     // MARKSHEET ROUTES
     // =====================================================
 
+    // Parent-specific student marksheet
+    Route::get(
+        '/marksheets/parent/student/{student}',
+        [MarksheetController::class, 'parentStudentMarksheet']
+    );
+
+    // Parent marksheet search
+    Route::post(
+        '/marksheets/parent-search',
+        [MarksheetController::class, 'parentSearch']
+    );
+
+    // Admin / Teacher / Parent marksheet routes
     Route::apiResource(
         'marksheets',
         MarksheetController::class
@@ -90,53 +153,22 @@ Route::middleware('auth:sanctum')->group(function () {
         'destroy'
     ]);
 
-    Route::post(
-        '/marksheets/parent-search',
-        [MarksheetController::class, 'parentSearch']
-    );
-    // =====================================================
-// SUBJECT VIEW ROUTES
-// =====================================================
-
-Route::middleware('role:admin,teacher')->group(function () {
-
-    Route::get(
-        '/subjects',
-        [SubjectController::class, 'index']
-    );
-
-    Route::get(
-        '/subjects/{id}',
-        [SubjectController::class, 'show']
-    );
-
-});
-
-// =====================================================
-// STUDENT VIEW ROUTES
-// Admin + Teacher
-// =====================================================
-
-Route::middleware('role:admin,teacher')->group(function () {
-
-    Route::get(
-        '/students',
-        [StudentController::class, 'index']
-    );
-
-    Route::get(
-        '/students/{id}',
-        [StudentController::class, 'show']
-    );
-
-});
-
 
     // =====================================================
     // ADMIN ROUTES
     // =====================================================
 
     Route::middleware('role:admin')->group(function () {
+
+
+        // -------------------------------------------------
+        // TEACHERS
+        // -------------------------------------------------
+
+        Route::apiResource(
+            'teachers',
+            TeacherController::class
+        );
 
 
         // -------------------------------------------------
@@ -153,6 +185,12 @@ Route::middleware('role:admin,teacher')->group(function () {
             [ParentController::class, 'updateChildren']
         );
 
+        Route::put(
+            '/parents/{parent}/change-password',
+            [ParentController::class, 'changePassword']
+        );
+
+        Route::put('/teachers/{teacher}/subjects', [TeacherController::class, 'assignSubjects']);
 
         // -------------------------------------------------
         // ADDRESSES
@@ -165,57 +203,85 @@ Route::middleware('role:admin,teacher')->group(function () {
 
 
         // -------------------------------------------------
-// SUBJECT MANAGEMENT
-// -------------------------------------------------
+        // SUBJECT MANAGEMENT
+        // -------------------------------------------------
 
-Route::post(
-    '/subjects',
-    [SubjectController::class, 'store']
-);
+        Route::post(
+            '/subjects',
+            [SubjectController::class, 'store']
+        );
 
-Route::put(
-    '/subjects/{id}',
-    [SubjectController::class, 'update']
-);
+        Route::put(
+            '/subjects/{id}',
+            [SubjectController::class, 'update']
+        );
 
-Route::delete(
-    '/subjects/{id}',
-    [SubjectController::class, 'destroy']
-);
-
-
-        // =====================================================
-// STUDENT SPECIAL ROUTES
-// These MUST come before apiResource()
-// =====================================================
-
-Route::post('/students/bulk-delete', [StudentController::class, 'bulkDelete']);
-
-Route::put('/students/bulk-update', [StudentController::class, 'bulkUpdate']);
-
-Route::get('/students/statistics', [StudentController::class, 'statistics']);
-
-Route::get('/students/trash', [StudentController::class, 'trash']);
-
-Route::post('/students/bulk-restore', [StudentController::class, 'bulkRestore']);
-
-Route::post('/students/bulk-force-delete', [StudentController::class, 'bulkForceDelete']);
-
-Route::post('/students/{id}/restore', [StudentController::class, 'restore']);
-
-Route::delete('/students/{id}/force-delete', [StudentController::class, 'forceDelete']);
+        Route::delete(
+            '/subjects/{id}',
+            [SubjectController::class, 'destroy']
+        );
 
 
-// =====================================================
-// STUDENT CRUD
-// =====================================================
+        // =================================================
+        // STUDENT SPECIAL ROUTES
+        // These MUST come before apiResource()
+        // =================================================
 
-Route::apiResource('students', StudentController::class)
-    ->only([
-        'store',
-        'update',
-        'destroy',
-    ]);
+        Route::post(
+            '/students/bulk-delete',
+            [StudentController::class, 'bulkDelete']
+        );
+
+        Route::put(
+            '/students/bulk-update',
+            [StudentController::class, 'bulkUpdate']
+        );
+
+        Route::get(
+            '/students/statistics',
+            [StudentController::class, 'statistics']
+        );
+
+        Route::get(
+            '/students/trash',
+            [StudentController::class, 'trash']
+        );
+
+        Route::post(
+            '/students/bulk-restore',
+            [StudentController::class, 'bulkRestore']
+        );
+
+        Route::post(
+            '/students/bulk-force-delete',
+            [StudentController::class, 'bulkForceDelete']
+        );
+
+        Route::post(
+            '/students/{id}/restore',
+            [StudentController::class, 'restore']
+        );
+
+        Route::delete(
+            '/students/{id}/force-delete',
+            [StudentController::class,
+            'forceDelete'
+        ]);
+
+
+        // =================================================
+        // STUDENT CRUD
+        // =================================================
+
+        Route::apiResource(
+            'students',
+            StudentController::class
+        )->only([
+            'store',
+            'update',
+            'destroy',
+        ]);
+
     });
 
 
@@ -225,8 +291,45 @@ Route::apiResource('students', StudentController::class)
 
     Route::middleware('role:teacher')->group(function () {
 
-        // Teacher-specific routes
-        // will be added here later.
+        // -------------------------------------------------
+        // TEACHER DASHBOARD
+        // -------------------------------------------------
+
+        Route::get(
+            '/teacher/dashboard',
+            [TeacherDashboardController::class, 'index']
+        );
+
+        Route::get('/teacher/marksheets', [TeacherMarksheetController::class, 'index']);
+
+        // -------------------------------------------------
+        // TEACHER STUDENTS
+        // -------------------------------------------------
+
+        Route::get(
+            '/teacher/students',
+            [TeacherStudentController::class, 'index']
+        );
+
+        Route::get(
+            '/teacher/students/{student}',
+            [TeacherStudentController::class, 'show']
+        );
+
+
+        // -------------------------------------------------
+        // TEACHER SUBJECTS
+        // -------------------------------------------------
+
+        Route::get(
+            '/teacher/subjects',
+            [TeacherSubjectController::class, 'index']
+        );
+
+        Route::get(
+            '/teacher/subjects/{id}',
+            [TeacherSubjectController::class, 'show']
+        );
 
     });
 
@@ -237,9 +340,31 @@ Route::apiResource('students', StudentController::class)
 
     Route::middleware('role:parent')->group(function () {
 
-        // Parent-specific routes
-        // will be added here later.
+        // -------------------------------------------------
+        // PARENT DASHBOARD
+        // -------------------------------------------------
+
+        Route::get(
+            '/parent/dashboard',
+            [ParentAuthController::class, 'dashboard']
+        );
+
+
+        // -------------------------------------------------
+        // PARENT PROFILE
+        // -------------------------------------------------
+
+        Route::get(
+            '/parent/profile',
+            [ParentAuthController::class, 'profile']
+        );
+
+        Route::put(
+            '/parent/profile',
+            [ParentAuthController::class, 'updateProfile']
+        );
 
     });
 
 });
+

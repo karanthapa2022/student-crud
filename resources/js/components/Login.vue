@@ -12,7 +12,9 @@ const password = ref('')
 const errorMessage = ref('')
 const loading = ref(false)
 
+
 const login = async () => {
+
   errorMessage.value = ''
 
   if (!email.value || !password.value) {
@@ -23,20 +25,87 @@ const login = async () => {
   loading.value = true
 
   try {
+
     const response = await loginUser({
-  email: email.value,
-  password: password.value
-})
+      email: email.value,
+      password: password.value
+    })
+    console.log('LOGIN API RESPONSE:', response.data)
 
-    localStorage.setItem('token', response.data.token)
-    localStorage.setItem(
-      'user',
-      JSON.stringify(response.data.user)
-    )
+    const user = response.data.user
+    const token = response.data.token
 
-    router.push('/students')
+
+    // =========================================================
+    // ADMIN LOGIN
+    // =========================================================
+
+    if (user.role === 'admin') {
+
+      localStorage.setItem('token', token)
+
+      localStorage.setItem(
+        'user',
+        JSON.stringify(user)
+      )
+
+      router.push('/admin/dashboard')
+
+      return
+    }
+
+
+    // =========================================================
+    // TEACHER LOGIN
+    // =========================================================
+
+    if (user.role === 'teacher') {
+
+      localStorage.setItem(
+        'teacher_token',
+        token
+      )
+
+      localStorage.setItem(
+        'teacher_user',
+        JSON.stringify(user)
+      )
+
+      router.push('/teacher/dashboard')
+
+      return
+    }
+
+    // =========================================================
+// PARENT LOGIN
+// =========================================================
+
+if (user.role === 'parent') {
+
+  localStorage.setItem(
+    'parent_token',
+    token
+  )
+
+  localStorage.setItem(
+    'parent_user',
+    JSON.stringify(user)
+  )
+
+  router.push('/parents/dashboard')
+
+  return
+}
+
+
+    // =========================================================
+    // UNKNOWN ROLE
+    // =========================================================
+
+    errorMessage.value = 'Your account does not have a valid role.'
 
   } catch (error) {
+
     console.error('Login error:', error)
 
     errorMessage.value =
@@ -44,9 +113,14 @@ const login = async () => {
       'Invalid email or password.'
 
   } finally {
+
     loading.value = false
+
   }
+
 }
+
+
 </script>
 
 <template>
