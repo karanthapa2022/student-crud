@@ -187,6 +187,10 @@ export const bulkDeleteStudents = (ids) => {
 
 }
 
+export const bulkUpdateStudents = (data) => {
+    return api.put('/students/bulk-update', data)
+}
+
 
 // =========================================================
 // CREATE STUDENT WITH PHOTO

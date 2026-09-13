@@ -159,7 +159,7 @@ const toggleDarkMode = () => {
 
 const goBack = () => {
 
-    router.push('/teacher/dashboard')
+    router.push('/dashboard')
 
 }
 

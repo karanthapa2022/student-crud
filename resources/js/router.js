@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import ParentList from './components/parents/ParentList.vue'
 import AddressList from './components/addresses/AddressList.vue'
-import ParentDashboard from './components/parents/ParentDashboard.vue'
 import Login from './components/Login.vue'
 import Register from './components/Register.vue'
 import StudentList from './components/students/StudentList.vue'
@@ -15,13 +14,12 @@ import ViewMarksheet from './components/marksheets/ViewMarksheet.vue'
 import EditMarksheet from './components/marksheets/EditMarksheet.vue'
 import ParentMarksheet from './components/parents/ParentMarksheet.vue'
 import ParentLogin from './components/parents/ParentLogin.vue'
-import AdminDashboard from './components/AdminDashboard.vue'
 import ParentProfile from './components/parents/ParentProfile.vue'
 import TeacherList from './components/teachers/TeacherList.vue'
-import TeacherDashboard from './components/teachers/TeacherDashboard.vue'
 import TeacherStudents from './components/teachers/TeacherStudents.vue'
 import TeacherSubjects from './components/teachers/TeacherSubjects.vue'
-import TeacherMarksheets from './components/teachers/TeacherMarksheets.vue'
+import Dashboard from './components/Dashboard.vue'
+import UserManagement from './components/users/UserManagement.vue'
 
 const routes = [
 
@@ -54,14 +52,23 @@ const routes = [
         component: Profile,
         meta: {
             requiresAuth: true,
-            roles: ['admin', 'teacher', 'parent']
+            roles: ['admin', 'teacher', 'student', 'parent']
         }
     },
 
     {
-        path:'/admin/dashboard',
-        component: AdminDashboard,
-        meta:{
+        path: '/dashboard',
+        component: Dashboard,
+        meta: {
+            requiresAuth: true,
+            roles: ['admin', 'teacher', 'student', 'parent']
+        }
+    },
+
+    {
+        path: '/users',
+        component: UserManagement,
+        meta: {
             requiresAuth: true,
             roles: ['admin']
         }
@@ -83,12 +90,6 @@ const routes = [
         requiresAuth: true,
         roles: ['teacher']
     }
-},
-
-{
-    path: '/teacher/marksheets',
-    component: TeacherMarksheets,
-    meta: { requiresAuth: true, roles: ['teacher'] }
 },
 
     // =====================================================
@@ -128,27 +129,6 @@ const routes = [
         roles: ['admin']
     }
 },
-{
-    path: '/teacher/dashboard',
-    component: TeacherDashboard,
-    meta: {
-        requiresAuth: true,
-        roles: ['teacher']
-    }
-},
-
-
-    //Parent Dashboard
-    //parent Only
-    {
-        path:'/parents/dashboard',
-        component: ParentDashboard,
-        meta:{
-            requiresAuth: true,
-            roles: ['parent']
-        }
-    },
-
     // =====================================================
     // PARENT MARKSHEET
     // PARENT ONLY
@@ -213,7 +193,7 @@ const routes = [
         component: MarksheetList,
         meta: {
             requiresAuth: true,
-            roles: ['admin', 'teacher', 'parent']
+            roles: ['admin', 'teacher', 'student', 'parent']
         }
     },
 
@@ -243,7 +223,7 @@ const routes = [
         component: ViewMarksheet,
         meta: {
             requiresAuth: true,
-            roles: ['admin', 'teacher', 'parent']
+            roles: ['admin', 'teacher', 'student', 'parent']
         }
     },
 
@@ -311,6 +291,9 @@ router.beforeEach((to) => {
     const parentToken = localStorage.getItem('parent_token')
     const parentUserData = localStorage.getItem('parent_user')
 
+    const studentToken = localStorage.getItem('student_token')
+    const studentUserData = localStorage.getItem('student_user')
+
 
     // =========================================================
     // PARSE USERS
@@ -319,6 +302,7 @@ router.beforeEach((to) => {
     let adminUser = null
     let teacherUser = null
     let parentUser = null
+    let studentUser = null
 
     try {
 
@@ -367,6 +351,21 @@ router.beforeEach((to) => {
 
     }
 
+    try {
+
+        studentUser = studentUserData
+            ? JSON.parse(studentUserData)
+            : null
+
+    } catch (error) {
+
+        console.error('Invalid student user data:', error)
+
+        localStorage.removeItem('student_user')
+        localStorage.removeItem('student_token')
+
+    }
+
 
     // =========================================================
     // DETERMINE CURRENT USER
@@ -391,6 +390,15 @@ router.beforeEach((to) => {
 
         currentUser = teacherUser
         currentToken = teacherToken
+
+    } else if (
+        studentToken &&
+        studentUser &&
+        studentUser.role === 'student'
+    ) {
+
+        currentUser = studentUser
+        currentToken = studentToken
 
     } else if (
         parentToken &&
@@ -452,15 +460,19 @@ router.beforeEach((to) => {
     ) {
 
         if (currentUser.role === 'teacher') {
-            return '/teacher/dashboard'
+            return '/dashboard'
+        }
+
+        if (currentUser.role === 'student') {
+            return '/dashboard'
         }
 
         if (currentUser.role === 'parent') {
-            return '/parents/dashboard'
+            return '/dashboard'
         }
 
         if (currentUser.role === 'admin') {
-            return '/admin/dashboard'
+            return '/dashboard'
         }
 
         return '/login'

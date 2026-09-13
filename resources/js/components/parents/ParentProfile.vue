@@ -145,7 +145,7 @@ const updateProfile = async () => {
 }
 
 const goBack = () => {
-    router.push('/parents/dashboard')
+            router.push('/dashboard')
 }
 
 const toggleDarkMode = () => {

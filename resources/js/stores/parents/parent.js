@@ -53,7 +53,8 @@ export const useParentStore = defineStore('parent', {
 
         async fetchParents(page = 1,
             search='',
-            realtionshipFilter='all'
+            realtionshipFilter='all',
+            perPage = 5
         ) {
 
             this.loading = true
@@ -65,7 +66,8 @@ export const useParentStore = defineStore('parent', {
                 const response =
                     await getParents(page,
                         search,
-                        realtionshipFilter
+                        realtionshipFilter,
+                        perPage
                     )
 
                 console.log(

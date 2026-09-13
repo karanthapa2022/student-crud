@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use App\Models\StudentParent;
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,6 +19,20 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
+
+    protected $attributes = [
+        'role' => Role::STUDENT,
+    ];
+
+    public function setRoleAttribute($value): void
+    {
+        $this->attributes['role'] = Role::validate((string) $value);
+    }
+
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array($this->role, $roles, true);
+    }
 
     /**
      * Get the attributes that should be cast.

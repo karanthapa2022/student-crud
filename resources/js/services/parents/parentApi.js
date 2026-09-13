@@ -24,7 +24,8 @@ export const parentLogin = (credentials) => {
 
 export const getParents = (page = 1,
     search='',
-    relationshipFilter='all'
+    relationshipFilter='all',
+    perPage = 5
 ) => {
 
     const token = localStorage.getItem('token')
@@ -33,7 +34,8 @@ export const getParents = (page = 1,
         params: {
             page,
             search,
-            relationship_filter: relationshipFilter
+            relationship_filter: relationshipFilter,
+            per_page: perPage
         },
         headers: {
             Authorization: `Bearer ${token}`,

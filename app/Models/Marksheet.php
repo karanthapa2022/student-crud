@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Marksheet extends Model
 {
+    protected $table = 'marksheets';
+
     protected $fillable = [
         'student_id',
         'total',

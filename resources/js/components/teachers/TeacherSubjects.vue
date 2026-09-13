@@ -269,7 +269,7 @@ onMounted(() => {
             <div>
 
                 <button
-                    @click="router.push('/teacher/dashboard')"
+                    @click="router.push('/dashboard')"
                     class="
                         text-sm
                         text-blue-600

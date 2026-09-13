@@ -40,49 +40,6 @@ class ParentAuthController extends Controller
         ]);
     }
 
-    // =========================================================
-// PARENT DASHBOARD
-// =========================================================
-
-public function dashboard(Request $request)
-{
-    $user = $request->user();
-
-    // Make sure the logged-in user is actually a parent
-    if (!$user || $user->role !== 'parent') {
-        return response()->json([
-            'message' => 'Unauthorized.'
-        ], 403);
-    }
-
-    // Get the parent record connected to this user
-    $parent = $user->parent;
-
-    if (!$parent) {
-        return response()->json([
-            'message' => 'Parent record not found.'
-        ], 404);
-    }
-
-    // Get all students belonging to this parent
-    $children = $parent->students()
-        ->with('address')
-        ->get();
-
-    return response()->json([
-        'message' => 'Parent dashboard loaded successfully.',
-
-        'parent' => [
-            'id' => $parent->id,
-            'name' => $parent->name,
-            'email' => $parent->email,
-            'phone' => $parent->phone,
-            'relationship' => $parent->relationship,
-        ],
-
-        'children' => $children,
-    ]);
-}
 // =========================================================
 // PARENT PROFILE
 // =========================================================

@@ -124,6 +124,18 @@ export const updateMarksheet = (id, data) => {
 
 }
 
+export const importMarksheets = (formData) => {
+    return api.post('/marksheets/import', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    })
+}
+
+export const exportMarksheets = (id = null) => {
+    return api.get(id ? `/marksheets/${id}/export` : '/marksheets/export', {
+        responseType: 'blob',
+    })
+}
+
 
 // =========================================================
 // PARENT SEARCH MARKSHEET

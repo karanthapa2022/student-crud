@@ -12,10 +12,9 @@ use App\Http\Controllers\Api\Marksheets\MarksheetController;
 use App\Http\Controllers\Api\Parents\ParentAuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\Teachers\TeacherController;
-use App\Http\Controllers\Api\Teachers\TeacherDashboardController;
 use App\Http\Controllers\Api\Teachers\TeacherStudentController;
 use App\Http\Controllers\Api\Teachers\TeacherSubjectController;
-use App\Http\Controllers\Api\Teachers\TeacherMarksheetController;
+use App\Http\Controllers\Api\UserController;
 
 // =========================================================
 // PUBLIC AUTHENTICATION
@@ -75,6 +74,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // ADMIN DASHBOARD
     // =====================================================
 
+    Route::middleware('role:admin,teacher,student,parent')->group(function () {
+        Route::get('/dashboard', [
+            DashboardController::class,
+            'index'
+        ]);
+    });
+
     Route::middleware('role:admin')->group(function () {
 
         Route::get('/dashboard/statistics', [
@@ -129,6 +135,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // MARKSHEET ROUTES
     // =====================================================
 
+    Route::middleware('role:admin,teacher')->group(function () {
+        Route::post('/marksheets/import', [MarksheetController::class, 'import']);
+        Route::get('/marksheets/export', [MarksheetController::class, 'export']);
+        Route::get('/marksheets/{marksheet}/export', [MarksheetController::class, 'export']);
+    });
+
     // Parent-specific student marksheet
     Route::get(
         '/marksheets/parent/student/{student}',
@@ -159,6 +171,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // =====================================================
 
     Route::middleware('role:admin')->group(function () {
+
+        Route::apiResource('users', UserController::class)->only([
+            'index', 'store', 'update', 'destroy',
+        ]);
 
 
         // -------------------------------------------------
@@ -247,6 +263,11 @@ Route::middleware('auth:sanctum')->group(function () {
             [StudentController::class, 'trash']
         );
 
+        Route::put(
+            '/students/{student}/parent',
+            [StudentController::class, 'assignParent']
+        );
+
         Route::post(
             '/students/bulk-restore',
             [StudentController::class, 'bulkRestore']
@@ -292,17 +313,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:teacher')->group(function () {
 
         // -------------------------------------------------
-        // TEACHER DASHBOARD
-        // -------------------------------------------------
-
-        Route::get(
-            '/teacher/dashboard',
-            [TeacherDashboardController::class, 'index']
-        );
-
-        Route::get('/teacher/marksheets', [TeacherMarksheetController::class, 'index']);
-
-        // -------------------------------------------------
         // TEACHER STUDENTS
         // -------------------------------------------------
 
@@ -339,16 +349,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // =====================================================
 
     Route::middleware('role:parent')->group(function () {
-
-        // -------------------------------------------------
-        // PARENT DASHBOARD
-        // -------------------------------------------------
-
-        Route::get(
-            '/parent/dashboard',
-            [ParentAuthController::class, 'dashboard']
-        );
-
 
         // -------------------------------------------------
         // PARENT PROFILE

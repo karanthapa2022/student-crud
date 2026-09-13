@@ -1,3 +1,7 @@
+router.push('/dashboard')
+    localStorage.setItem('token', response.data.token)
+    localStorage.setItem('user', JSON.stringify(response.data.user))
+    router.push('/dashboard')
 <script setup>
 import { ref } from 'vue'
 import axios from 'axios'
@@ -11,70 +15,24 @@ const loading = ref(false)
 const errorMessage = ref('')
 
 const login = async () => {
-
-    console.log('LOGIN FUNCTION FIRED')
-
     errorMessage.value = ''
     loading.value = true
+
     try {
-
-       const response = await axios.post(
-    'http://127.0.0.1:8000/api/parent/login',
-    {
-        email: email.value,
-        password: password.value
-    }
-)
-
-console.log('PARENT LOGIN RESPONSE:', response.data)
-
-localStorage.setItem(
-    'parent_token',
-    response.data.token
-)
-
-localStorage.setItem(
-    'parent_user',
-    JSON.stringify(response.data.user)
-)
-
-console.log(
-    'SAVED PARENT USER:',
-    localStorage.getItem('parent_user')
-)
-
-router.push('/parents/dashboard')
-
-
-        console.log('PARENT LOGIN RESPONSE:', response.data)
-
-        console.log('PARENT LOGIN RESPONSE:', response.data)
+        const response = await axios.post('http://127.0.0.1:8000/api/parent/login', {
+            email: email.value,
+            password: password.value,
+        })
 
         localStorage.setItem('parent_token', response.data.token)
-        localStorage.setItem(
-            'parent_user',
-            JSON.stringify(response.data.user)
-        )
-
-        console.log(
-            'SAVED PARENT USER:',
-            localStorage.getItem('parent_user')
-        )
-
-        router.push('/parents/dashboard')
-
+        localStorage.setItem('parent_user', JSON.stringify(response.data.user))
+        localStorage.setItem('token', response.data.token)
+        localStorage.setItem('user', JSON.stringify(response.data.user))
+        router.push('/dashboard')
     } catch (error) {
-
-        console.error('PARENT LOGIN ERROR:', error)
-
-        errorMessage.value =
-            error.response?.data?.message ||
-            'Unable to login. Please check your email and password.'
-
+        errorMessage.value = error.response?.data?.message || 'Unable to login. Please check your email and password.'
     } finally {
-
         loading.value = false
-
     }
 }
 </script>

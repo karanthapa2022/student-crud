@@ -225,6 +225,10 @@ class StudentController extends Controller
                     ->store('students', 'public');
         }
 
+        if ($request->exists('parent_id')) {
+            $validated['parent_id'] = $request->input('parent_id') ?: null;
+        }
+
 
         // =====================================================
         // UPDATE STUDENT
@@ -278,6 +282,24 @@ class StudentController extends Controller
         return response()->json([
             'message' => 'Student updated successfully.',
             'student' => $student
+        ]);
+    }
+
+    public function assignParent(Request $request, Student $student)
+    {
+        $validated = $request->validate([
+            'parent_id' => ['nullable', 'integer', 'exists:parents,id'],
+        ]);
+
+        $student->update([
+            'parent_id' => $validated['parent_id'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => $student->parent_id
+                ? 'Parent assigned to student successfully.'
+                : 'Parent removed from student successfully.',
+            'student' => $student->load('parent'),
         ]);
     }
 
@@ -457,23 +479,27 @@ class StudentController extends Controller
     public function bulkUpdate(Request $request)
     {
         $validated = $request->validate([
-
-            'ids' =>
-                'required|array|min:1',
-
-            'ids.*' =>
-                'integer|exists:students,id',
-
-            'status' =>
-                'required|in:active,inactive',
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:students,id'],
+            'status' => ['sometimes', 'nullable', 'in:active,inactive'],
+            'parent_id' => ['sometimes', 'nullable', 'integer', 'exists:parents,id'],
         ]);
 
-        Student::whereIn(
-            'id',
-            $validated['ids']
-        )->update([
-            'status' => $validated['status']
-        ]);
+        if (!$request->exists('status') && !$request->exists('parent_id')) {
+            return response()->json([
+                'message' => 'Select a status or parent change before saving.'
+            ], 422);
+        }
+
+        $changes = [];
+        if ($request->exists('status')) {
+            $changes['status'] = $validated['status'] ?? null;
+        }
+        if ($request->exists('parent_id')) {
+            $changes['parent_id'] = $validated['parent_id'] ?? null;
+        }
+
+        Student::whereIn('id', $validated['ids'])->update($changes);
 
         return response()->json([
             'message' => 'Students updated successfully.'

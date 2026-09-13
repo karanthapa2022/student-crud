@@ -50,7 +50,7 @@ const fetchMarksheet = async () => {
 }
 
 const goBack = () => {
-    router.push('/parents/dashboard')
+    router.push('/dashboard')
 }
 
 onMounted(() => {

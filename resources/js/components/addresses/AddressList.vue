@@ -310,7 +310,7 @@ const paginationPages = computed(() => {
 
                 <button
                     type="button"
-                    @click="$router.push('/admin/dashboard')"
+                    @click="$router.push('/dashboard')"
                     class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition shadow-sm"
                 >
                     Dashboard

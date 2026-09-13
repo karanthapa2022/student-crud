@@ -6,7 +6,9 @@ import { downloadMarksheetPdf } from '../../utils/marksheetPdf'
 
 import {
     getMarksheets,
-    deleteMarksheet
+    deleteMarksheet,
+    importMarksheets,
+    exportMarksheets
 } from '../../services/marksheets/marksheetApi'
 
 const marksheets = ref([])
@@ -32,6 +34,43 @@ const canEdit = computed(() => {
 })
 const showDeleteModal = ref(false)
 const deleteMarksheetId = ref(null)
+const importInput = ref(null)
+const importing = ref(false)
+
+const downloadExcel = async (id = null) => {
+    try {
+        const response = await exportMarksheets(id)
+        const blobUrl = URL.createObjectURL(response.data)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = id ? `marksheet-${id}.xlsx` : 'marksheets.xlsx'
+        link.click()
+        URL.revokeObjectURL(blobUrl)
+    } catch (err) {
+        error.value = 'Failed to export marksheet data.'
+    }
+}
+
+const importExcel = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    importing.value = true
+    error.value = ''
+    try {
+        const formData = new FormData()
+        formData.append('file', file)
+        const response = await importMarksheets(formData)
+        successMessage.value = response.data.message
+        await fetchMarksheets()
+    } catch (err) {
+        const data = err.response?.data
+        error.value = [data?.message, ...(data?.errors || [])].filter(Boolean).join(' ')
+    } finally {
+        importing.value = false
+    }
+}
 
 // =========================================================
 // FETCH MARKSHEETS
@@ -181,13 +220,33 @@ onMounted(() => {
 
             </button>
 
+            <input ref="importInput" type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="importExcel" />
+            <button
+                v-if="canEdit"
+                type="button"
+                :disabled="importing"
+                @click="importInput?.click()"
+                class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60"
+            >
+                {{ importing ? 'Importing...' : 'Import Excel' }}
+            </button>
+
+            <button
+                v-if="canEdit"
+                type="button"
+                @click="downloadExcel()"
+                class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+            >
+                Export All
+            </button>
+
 
             <!-- DASHBOARD — ADMIN ONLY -->
 
 <button
     v-if="isAdmin"
     type="button"
-    @click="$router.push('/admin/dashboard')"
+    @click="$router.push('/dashboard')"
     class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-700 text-white text-sm font-semibold shadow-sm hover:bg-gray-800 dark:hover:bg-gray-600 transition-all"
 >
     ← Dashboard
@@ -495,6 +554,15 @@ onMounted(() => {
                                 class="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
                             >
                                 View
+                            </button>
+
+                            <button
+                                v-if="canEdit"
+                                type="button"
+                                @click="downloadExcel(marksheet.id)"
+                                class="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm font-medium hover:bg-emerald-100 transition"
+                            >
+                                Excel
                             </button>
 
 

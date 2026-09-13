@@ -47,7 +47,7 @@ class ParentController extends Controller
 
         $parents = $query
             ->latest()
-            ->paginate(5);
+            ->paginate(min($request->integer('per_page', 5), 100));
 
         return response()->json($parents);
     }

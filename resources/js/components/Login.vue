@@ -3,8 +3,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { loginUser } from '../services/authApi'
 
-
-
 const router = useRouter()
 
 const email = ref('')
@@ -12,9 +10,7 @@ const password = ref('')
 const errorMessage = ref('')
 const loading = ref(false)
 
-
 const login = async () => {
-
   errorMessage.value = ''
 
   if (!email.value || !password.value) {
@@ -25,195 +21,108 @@ const login = async () => {
   loading.value = true
 
   try {
-
     const response = await loginUser({
       email: email.value,
-      password: password.value
+      password: password.value,
     })
-    console.log('LOGIN API RESPONSE:', response.data)
 
     const user = response.data.user
     const token = response.data.token
 
-
-    // =========================================================
-    // ADMIN LOGIN
-    // =========================================================
-
     if (user.role === 'admin') {
-
       localStorage.setItem('token', token)
-
-      localStorage.setItem(
-        'user',
-        JSON.stringify(user)
-      )
-
-      router.push('/admin/dashboard')
-
+      localStorage.setItem('user', JSON.stringify(user))
+      router.push('/dashboard')
       return
     }
-
-
-    // =========================================================
-    // TEACHER LOGIN
-    // =========================================================
 
     if (user.role === 'teacher') {
-
-      localStorage.setItem(
-        'teacher_token',
-        token
-      )
-
-      localStorage.setItem(
-        'teacher_user',
-        JSON.stringify(user)
-      )
-
-      router.push('/teacher/dashboard')
-
+      localStorage.setItem('teacher_token', token)
+      localStorage.setItem('teacher_user', JSON.stringify(user))
+      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('token', token)
+      router.push('/dashboard')
       return
     }
 
-    // =========================================================
-// PARENT LOGIN
-// =========================================================
+    if (user.role === 'student') {
+      localStorage.setItem('student_token', token)
+      localStorage.setItem('student_user', JSON.stringify(user))
+      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('token', token)
+      router.push('/dashboard')
+      return
+    }
 
-if (user.role === 'parent') {
-
-  localStorage.setItem(
-    'parent_token',
-    token
-  )
-
-  localStorage.setItem(
-    'parent_user',
-    JSON.stringify(user)
-  )
-
-  router.push('/parents/dashboard')
-
-  return
-}
-
-
-    // =========================================================
-    // UNKNOWN ROLE
-    // =========================================================
+    if (user.role === 'parent') {
+      localStorage.setItem('parent_token', token)
+      localStorage.setItem('parent_user', JSON.stringify(user))
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(user))
+      router.push('/dashboard')
+      return
+    }
 
     errorMessage.value = 'Your account does not have a valid role.'
-
   } catch (error) {
-
-    console.error('Login error:', error)
-
-    errorMessage.value =
-      error.response?.data?.message ||
-      'Invalid email or password.'
-
+    errorMessage.value = error.response?.data?.message || 'Invalid email or password.'
   } finally {
-
     loading.value = false
-
   }
-
 }
-
-
 </script>
 
 <template>
+  <div class="min-h-screen bg-slate-100 flex items-center justify-center p-4 sm:p-6">
+    <div class="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
+      <div class="bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-8 text-white sm:px-8">
+        <p class="text-sm uppercase tracking-[0.2em] text-indigo-100">Student Portal</p>
+        <h1 class="mt-3 text-3xl font-bold">Welcome back</h1>
+        <p class="mt-2 text-sm text-indigo-100">Sign in to continue to your dashboard.</p>
+      </div>
 
-  <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div class="p-6 sm:p-8">
+        <div v-if="errorMessage" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {{ errorMessage }}
+        </div>
 
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+        <form @submit.prevent="login" class="space-y-5">
+          <div>
+            <label class="mb-2 block text-sm font-medium text-slate-700">Email</label>
+            <input
+              v-model="email"
+              type="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
 
-      <!-- Heading -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-slate-700">Password</label>
+            <input
+              v-model="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+            />
+          </div>
 
-      <div class="text-center">
+          <button
+            type="submit"
+            :disabled="loading"
+            class="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {{ loading ? 'Logging in...' : 'Login' }}
+          </button>
+        </form>
 
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">
-          Login
-        </h1>
-
-        <p class="text-gray-500 mt-2">
-          Login to your account
+        <p class="mt-6 text-center text-sm text-slate-600">
+          Need an account?
+          <router-link to="/register" class="font-semibold text-indigo-600 hover:text-indigo-700">Register</router-link>
         </p>
-
       </div>
-
-      <!-- Error -->
-
-      <div
-        v-if="errorMessage"
-        class="mt-6 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg"
-      >
-        {{ errorMessage }}
-      </div>
-
-      <!-- Form -->
-
-      <form
-        @submit.prevent="login"
-        class="mt-6"
-      >
-
-        <!-- Email -->
-
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Email
-        </label>
-
-        <input
-          v-model="email"
-          type="email"
-          placeholder="Enter your email"
-          class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <!-- Password -->
-
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Password
-        </label>
-
-        <input
-          v-model="password"
-          type="password"
-          placeholder="Enter your password"
-          class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <!-- Login -->
-
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-        >
-          {{ loading ? 'Logging in...' : 'Login' }}
-        </button>
-
-      </form>
-
-      <!-- Register -->
-
-      <p class="text-center text-gray-600 mt-6">
-
-        Don't have an account?
-
-        <router-link
-          to="/register"
-          class="text-blue-600 font-semibold hover:underline ml-1"
-        >
-          Register
-        </router-link>
-
-      </p>
-
     </div>
-
   </div>
-
 </template>

@@ -25,7 +25,8 @@ import { useSubjectStore } from '../../stores/subjects/subject'
 import {
     updateStudentWithPhoto,
     deleteStudent as deleteStudentApi,
-    bulkDeleteStudents
+    bulkDeleteStudents,
+    bulkUpdateStudents
 } from '../../services/students/studentApi'
 
 
@@ -249,6 +250,35 @@ const viewStudent = (student) => {
 // =========================================================
 
 const selectedStudents = ref([])
+const showBulkEdit = ref(false)
+const bulkEdit = ref({ status: '', parent_id: '' })
+
+const saveBulkEdit = async () => {
+    if (!selectedStudents.value.length) return
+    if (!bulkEdit.value.status && bulkEdit.value.parent_id === '') {
+        alert('Select a status or parent change before saving.')
+        return
+    }
+
+    const payload = { ids: selectedStudents.value }
+    if (bulkEdit.value.status) payload.status = bulkEdit.value.status
+    if (bulkEdit.value.parent_id !== '') {
+        payload.parent_id = bulkEdit.value.parent_id === '__clear__'
+            ? null
+            : bulkEdit.value.parent_id
+    }
+
+    try {
+        await bulkUpdateStudents(payload)
+        showBulkEdit.value = false
+        bulkEdit.value = { status: '', parent_id: '' }
+        selectedStudents.value = []
+        await studentStore.fetchStudents(currentPage.value, searchQuery.value, statusFilter.value)
+        await studentStore.fetchStatistics()
+    } catch (error) {
+        alert(error.response?.data?.message || 'Unable to update selected students.')
+    }
+}
 
 
 const toggleStudent = (id) => {
@@ -900,14 +930,10 @@ const updateStudent = async () => {
             editingStudent.value.status
         )
 
-        if (editingStudent.value.parent_id) {
-
-    formData.append(
-        'parent_id',
-        editingStudent.value.parent_id
-    )
-
-}
+        formData.append(
+            'parent_id',
+            editingStudent.value.parent_id || ''
+        )
 
 if (editingStudent.value.address_id) {
 
@@ -1285,7 +1311,7 @@ onMounted(async () => {
 
 
         await studentStore.fetchStatistics()
-        await parentStore.fetchParents()
+        await parentStore.fetchParents(1, '', 'all', 100)
         await addressStore.fetchAddresses()
         await subjectStore.fetchSubjects()
 
@@ -1368,7 +1394,7 @@ onBeforeUnmount(() => {
             <!-- ADMIN DASHBOARD -->
     <button
         type="button"
-        @click="router.push('/admin/dashboard')"
+        @click="router.push('/dashboard')"
         class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition shadow-sm"
     >
         Dashboard
@@ -1578,11 +1604,21 @@ onBeforeUnmount(() => {
 
 
                     <BaseButton
+                        v-if="selectedStudents.length > 0"
                         variant="danger"
                         @click="bulkDelete"
                         class="w-full sm:w-auto"
                     >
                         Delete Selected
+                    </BaseButton>
+
+                    <BaseButton
+                        v-if="selectedStudents.length > 0"
+                        variant="primary"
+                        @click="showBulkEdit = true"
+                        class="w-full sm:w-auto"
+                    >
+                        Bulk Edit
                     </BaseButton>
 
 
@@ -1716,6 +1752,45 @@ onBeforeUnmount(() => {
         <!-- ================================================= -->
 
         <Teleport to="body">
+            <div v-if="showBulkEdit" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white">Bulk Edit Students</h2>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Update {{ selectedStudents.length }} selected student(s).</p>
+                        </div>
+                        <button type="button" @click="showBulkEdit = false" class="text-2xl text-gray-500">×</button>
+                    </div>
+
+                    <div class="mt-6 space-y-4">
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Status (optional)</label>
+                            <select v-model="bulkEdit.status" class="w-full rounded-xl border border-gray-300 px-4 py-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                <option value="">Leave status unchanged</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Parent (optional)</label>
+                            <select v-model="bulkEdit.parent_id" class="w-full rounded-xl border border-gray-300 px-4 py-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                <option value="">Leave parent unchanged</option>
+                                <option value="__clear__">No parent assigned</option>
+                                <option v-for="parent in parentStore.parents" :key="parent.id" :value="parent.id">{{ parent.name }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex gap-3">
+                        <button type="button" @click="saveBulkEdit" class="rounded-xl bg-blue-600 px-5 py-3 font-medium text-white hover:bg-blue-700">Save Changes</button>
+                        <button type="button" @click="showBulkEdit = false" class="rounded-xl border border-gray-300 px-5 py-3 font-medium text-gray-700 dark:border-gray-700 dark:text-gray-300">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <Teleport to="body">
 
             <div
                 v-if="showAddForm"
@@ -1837,13 +1912,15 @@ onBeforeUnmount(() => {
                             </option>
 
                         </select>
-                        <select
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Parent (optional)</label>
+                            <select
     v-model="newStudent.parent_id"
     class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
 >
 
     <option :value="null">
-        Select Parent
+        No parent assigned
     </option>
 
     <option
@@ -1855,6 +1932,7 @@ onBeforeUnmount(() => {
     </option>
 
 </select>
+                        </div>
 <select
     v-model="newStudent.address_id"
     class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
@@ -2349,13 +2427,15 @@ onBeforeUnmount(() => {
                             </option>
 
                         </select>
-                        <select
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Parent (optional)</label>
+                            <select
     v-model="editingStudent.parent_id"
     class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
 >
 
-    <option value="">
-        Select Parent
+    <option :value="null">
+        No parent assigned
     </option>
 
     <option
@@ -2367,6 +2447,7 @@ onBeforeUnmount(() => {
     </option>
 
 </select>
+                        </div>
 
 <select
     v-model="editingStudent.address_id"

@@ -9,6 +9,8 @@ class Student extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'students';
+
     protected $fillable = [
         'name',
         'class',
@@ -38,6 +40,11 @@ class Student extends Model
             Address::class,
             'address_id'
         );
+    }
+
+    public function marksheets()
+    {
+        return $this->hasMany(Marksheet::class, 'student_id');
     }
 
     // Student can have many subjects
