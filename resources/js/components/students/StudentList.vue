@@ -623,9 +623,9 @@ const createStatusChart = async () => {
 
                                 backgroundColor: [
 
-                                    'green',
+                                    '#2F6F4E',
 
-                                    'red'
+                                    '#B5563C'
 
                                 ],
 
@@ -1355,9 +1355,8 @@ onBeforeUnmount(() => {
 <template>
 
 <div
-    class="min-h-screen bg-gray-100 dark:bg-gray-950 p-4 sm:p-6 lg:p-8 transition-colors duration-300"
+    class="min-h-screen bg-[#EFF1EA] dark:bg-[#141F19] p-4 text-[#1C2B24] dark:text-[#E8EBE4] transition-colors duration-300 sm:p-6 lg:p-8"
 >
-
     <div
         class="w-full max-w-7xl mx-auto"
     >
@@ -1367,35 +1366,35 @@ onBeforeUnmount(() => {
         <!-- ================================================= -->
 
         <div
-            class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5"
+            class="flex flex-col gap-5 border-b border-[#D8DDD3] pb-6 dark:border-[#2E3B33] lg:flex-row lg:items-center lg:justify-between"
         >
 
             <div>
 
                 <h1
-                    class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white"
+                    class="text-2xl text-[#1C2B24] dark:text-[#E8EBE4] sm:text-3xl"
                 >
-                    Student Management
+                    Student register
                 </h1>
 
                 <p
-                    class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+                    class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                 >
-                    Manage and view all registered students
+                    All students enrolled, in one place
                 </p>
 
             </div>
 
 
             <div
-                class="flex flex-col sm:flex-row gap-3"
+                class="flex flex-col gap-2 sm:flex-row"
             >
 
             <!-- ADMIN DASHBOARD -->
     <button
         type="button"
         @click="router.push('/dashboard')"
-        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition shadow-sm"
+        class="w-full rounded-md border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-medium text-[#1C2B24] transition hover:bg-[#EFF1EA] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#E8EBE4] dark:hover:bg-[#243329] sm:w-auto"
     >
         Dashboard
     </button>
@@ -1403,18 +1402,25 @@ onBeforeUnmount(() => {
                 <button
                     type="button"
                     @click="router.push('/profile')"
-                    class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 dark:bg-blue-700 text-white font-medium hover:bg-blue-700 dark:hover:bg-blue-600 transition shadow-sm"
+                    class="w-full rounded-md border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-medium text-[#1C2B24] transition hover:bg-[#EFF1EA] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#E8EBE4] dark:hover:bg-[#243329] sm:w-auto"
                 >
                     Profile
                 </button>
 
+                <button
+                        type="button"
+                        @click="toggleDarkMode"
+                        class="rounded-md border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-medium text-[#1C2B24] transition hover:bg-[#EFF1EA] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#E8EBE4] dark:hover:bg-[#243329]"
+                    >
+                        {{ isDark ? 'Light mode' : 'Dark mode' }}
+                    </button>
 
                 <button
                     type="button"
                     @click="logout"
-                    class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800 dark:bg-gray-700 text-white font-medium hover:bg-gray-900 dark:hover:bg-gray-600 transition shadow-sm"
+                    class="w-full rounded-md border border-[#B5563C]/35 bg-transparent px-4 py-2.5 text-sm font-medium text-[#B5563C] transition hover:bg-[#B5563C]/5 sm:w-auto"
                 >
-                    Logout
+                    Sign out
                 </button>
 
             </div>
@@ -1428,7 +1434,7 @@ onBeforeUnmount(() => {
 
         <div
             v-if="studentStore.error"
-            class="mt-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl"
+            class="mt-6 rounded-md border border-[#B5563C]/30 bg-[#B5563C]/5 px-4 py-3 text-sm text-[#8A3E2A]"
         >
             {{ studentStore.error }}
         </div>
@@ -1439,34 +1445,27 @@ onBeforeUnmount(() => {
         <!-- ================================================= -->
 
         <div
-            class="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5"
+            class="mt-8 flex flex-wrap overflow-hidden rounded-md border border-[#D8DDD3] bg-white dark:border-[#2E3B33] dark:bg-[#1E2B24]"
         >
 
             <!-- TOTAL -->
 
             <div
-                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm"
+                class="min-w-[10rem] flex-1 border-b border-r border-[#D8DDD3] px-6 py-5 dark:border-[#2E3B33] last:border-r-0"
             >
 
                 <p
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
+                    class="text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                 >
-                    Total Students
+                    Total students
                 </p>
 
 
                 <h3
-                    class="mt-2 text-3xl font-bold text-gray-800 dark:text-white"
+                    class="mt-2 text-3xl text-[#1C2B24] dark:text-[#E8EBE4]"
                 >
                     {{ totalStudents }}
                 </h3>
-
-
-                <p
-                    class="mt-2 text-xs text-gray-400 dark:text-gray-500"
-                >
-                    All registered students
-                </p>
 
             </div>
 
@@ -1474,28 +1473,21 @@ onBeforeUnmount(() => {
             <!-- ACTIVE -->
 
             <div
-                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm"
+                class="min-w-[10rem] flex-1 border-b border-r border-[#D8DDD3] px-6 py-5 dark:border-[#2E3B33] last:border-r-0"
             >
 
                 <p
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
+                    class="text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                 >
-                    Active Students
+                    Active
                 </p>
 
 
                 <h3
-                    class="mt-2 text-3xl font-bold text-green-600 dark:text-green-400"
+                    class="mt-2 text-3xl text-[#2F6F4E]"
                 >
                     {{ activeStudents }}
                 </h3>
-
-
-                <p
-                    class="mt-2 text-xs text-gray-400 dark:text-gray-500"
-                >
-                    Currently active
-                </p>
 
             </div>
 
@@ -1503,28 +1495,21 @@ onBeforeUnmount(() => {
             <!-- INACTIVE -->
 
             <div
-                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm"
+                class="min-w-[10rem] flex-1 border-b border-r border-[#D8DDD3] px-6 py-5 dark:border-[#2E3B33] last:border-r-0"
             >
 
                 <p
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
+                    class="text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                 >
-                    Inactive Students
+                    Inactive
                 </p>
 
 
                 <h3
-                    class="mt-2 text-3xl font-bold text-red-600 dark:text-red-400"
+                    class="mt-2 text-3xl text-[#B5563C]"
                 >
                     {{ inactiveStudents }}
                 </h3>
-
-
-                <p
-                    class="mt-2 text-xs text-gray-400 dark:text-gray-500"
-                >
-                    Currently inactive
-                </p>
 
             </div>
 
@@ -1532,27 +1517,27 @@ onBeforeUnmount(() => {
             <!-- PHOTOS -->
 
             <div
-                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm"
+                class="min-w-[10rem] flex-1 border-b border-r border-[#D8DDD3] px-6 py-5 dark:border-[#2E3B33] last:border-r-0"
             >
 
                 <p
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
+                    class="text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                 >
-                    Students With Photos
+                    With a photo
                 </p>
 
 
                 <h3
-                    class="mt-2 text-3xl font-bold text-purple-600 dark:text-purple-400"
+                    class="mt-2 text-3xl text-[#1C2B24] dark:text-[#E8EBE4]"
                 >
                     {{ studentsWithPhotos }}
                 </h3>
 
 
                 <p
-                    class="mt-2 text-xs text-gray-400 dark:text-gray-500"
+                    class="mt-1 text-xs text-[#5B6B62] dark:text-[#9AA79E]"
                 >
-                    Current page
+                    On this page
                 </p>
 
             </div>
@@ -1565,24 +1550,24 @@ onBeforeUnmount(() => {
         <!-- ================================================= -->
 
         <div
-            class="mt-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm"
+            class="mt-8 rounded-md border border-[#D8DDD3] bg-white p-5 dark:border-[#2E3B33] dark:bg-[#1E2B24]"
         >
 
             <div
-                class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5"
+                class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between"
             >
 
                 <div>
 
                     <h2
-                        class="text-lg font-semibold text-gray-800 dark:text-white"
+                        class="text-lg text-[#1C2B24] dark:text-[#E8EBE4]"
                     >
                         Students
                     </h2>
 
 
                     <p
-                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                        class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                     >
                         Search, filter and manage your students
                     </p>
@@ -1591,7 +1576,7 @@ onBeforeUnmount(() => {
 
 
                 <div
-                    class="flex flex-col sm:flex-row gap-3"
+                    class="flex flex-col gap-2 sm:flex-row sm:flex-wrap"
                 >
 
                     <BaseButton
@@ -1599,7 +1584,7 @@ onBeforeUnmount(() => {
                         @click="showAddForm = true"
                         class="w-full sm:w-auto"
                     >
-                        Add Student
+                        Add student
                     </BaseButton>
 
 
@@ -1609,23 +1594,23 @@ onBeforeUnmount(() => {
                         @click="bulkDelete"
                         class="w-full sm:w-auto"
                     >
-                        Delete Selected
+                        Delete selected
                     </BaseButton>
 
                     <BaseButton
                         v-if="selectedStudents.length > 0"
-                        variant="primary"
+                        variant="secondary"
                         @click="showBulkEdit = true"
                         class="w-full sm:w-auto"
                     >
-                        Bulk Edit
+                        Bulk edit
                     </BaseButton>
 
 
                     <button
                         type="button"
                         @click="goToTrash"
-                        class="px-4 py-2.5 rounded-xl bg-gray-800 dark:bg-gray-700 text-white font-medium hover:bg-gray-900 dark:hover:bg-gray-600 transition"
+                        class="rounded-md border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-medium text-[#1C2B24] transition hover:bg-[#EFF1EA] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#E8EBE4] dark:hover:bg-[#243329]"
                     >
                         Trash
                     </button>
@@ -1633,19 +1618,10 @@ onBeforeUnmount(() => {
                     <button
     type="button"
     @click="router.push('/marksheets')"
-    class="px-4 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition"
+    class="rounded-md border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-medium text-[#1C2B24] transition hover:bg-[#EFF1EA] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#E8EBE4] dark:hover:bg-[#243329]"
 >
     Marksheets
 </button>
-
-
-                    <button
-                        type="button"
-                        @click="toggleDarkMode"
-                        class="px-4 py-2.5 rounded-xl bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800 font-medium hover:bg-gray-900 dark:hover:bg-white transition"
-                    >
-                        {{ isDark ? '☀️ Light' : '🌙 Dark' }}
-                    </button>
 
                 </div>
 
@@ -1663,18 +1639,18 @@ onBeforeUnmount(() => {
                 <input
                     v-model="searchQuery"
                     type="text"
-                    placeholder="Search by name, email or phone..."
-                    class="w-full flex-1 pl-4 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    placeholder="Search by name, email or phone"
+                    class="w-full flex-1 rounded-md border border-[#D8DDD3] bg-[#F7F8F3] px-4 py-3 text-[#1C2B24] placeholder-[#5B6B62]/60 transition focus:border-[#2F6F4E]/50 focus:outline-none focus:ring-1 focus:ring-[#2F6F4E]/50 dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4]"
                 />
 
 
                 <select
                     v-model="statusFilter"
-                    class="w-full lg:w-52 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    class="w-full rounded-md border border-[#D8DDD3] bg-[#F7F8F3] px-4 py-3 text-[#1C2B24] transition focus:border-[#2F6F4E]/50 focus:outline-none focus:ring-1 focus:ring-[#2F6F4E]/50 dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4] lg:w-52"
                 >
 
                     <option value="all">
-                        All Students
+                        All students
                     </option>
 
                     <option value="active">
@@ -1695,25 +1671,25 @@ onBeforeUnmount(() => {
             <!-- ================================================= -->
 
             <div
-                class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
             >
 
                 <p
-                    class="text-sm text-gray-500 dark:text-gray-400"
+                    class="text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                 >
 
                     Showing
 
                     <span
-                        class="font-semibold text-gray-800 dark:text-white"
+                        class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                     >
                         {{ showingFrom }}
                     </span>
 
-                    -
+                    &ndash;
 
                     <span
-                        class="font-semibold text-gray-800 dark:text-white"
+                        class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                     >
                         {{ showingTo }}
                     </span>
@@ -1721,7 +1697,7 @@ onBeforeUnmount(() => {
                     of
 
                     <span
-                        class="font-semibold text-gray-800 dark:text-white"
+                        class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                     >
                         {{ totalStudents }}
                     </span>
@@ -1733,7 +1709,7 @@ onBeforeUnmount(() => {
 
                 <p
                     v-if="selectedStudents.length > 0"
-                    class="text-sm font-medium text-blue-600 dark:text-blue-400"
+                    class="text-sm font-medium text-[#2F6F4E]"
                 >
 
                     {{ selectedStudents.length }}
@@ -1752,20 +1728,20 @@ onBeforeUnmount(() => {
         <!-- ================================================= -->
 
         <Teleport to="body">
-            <div v-if="showBulkEdit" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-                <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
+            <div v-if="showBulkEdit" class="fixed inset-0 z-50 flex items-center justify-center bg-[#1C2B24]/50 px-4">
+                <div class="w-full max-w-lg rounded-md border border-[#D8DDD3] bg-white p-6 dark:border-[#2E3B33] dark:bg-[#1E2B24]">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h2 class="text-xl font-bold text-gray-800 dark:text-white">Bulk Edit Students</h2>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Update {{ selectedStudents.length }} selected student(s).</p>
+                            <h2 class="text-xl text-[#1C2B24] dark:text-[#E8EBE4]">Bulk edit students</h2>
+                            <p class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]">Update {{ selectedStudents.length }} selected student(s).</p>
                         </div>
-                        <button type="button" @click="showBulkEdit = false" class="text-2xl text-gray-500">×</button>
+                        <button type="button" @click="showBulkEdit = false" class="text-2xl text-[#5B6B62] hover:text-[#1C2B24] dark:text-[#9AA79E] dark:hover:text-[#E8EBE4]">×</button>
                     </div>
 
                     <div class="mt-6 space-y-4">
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Status (optional)</label>
-                            <select v-model="bulkEdit.status" class="w-full rounded-xl border border-gray-300 px-4 py-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                            <label class="mb-2 block text-sm font-medium text-[#1C2B24] dark:text-[#E8EBE4]">Status (optional)</label>
+                            <select v-model="bulkEdit.status" class="w-full rounded-md border border-[#D8DDD3] px-4 py-3 dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4]">
                                 <option value="">Leave status unchanged</option>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
@@ -1773,8 +1749,8 @@ onBeforeUnmount(() => {
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Parent (optional)</label>
-                            <select v-model="bulkEdit.parent_id" class="w-full rounded-xl border border-gray-300 px-4 py-3 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                            <label class="mb-2 block text-sm font-medium text-[#1C2B24] dark:text-[#E8EBE4]">Parent (optional)</label>
+                            <select v-model="bulkEdit.parent_id" class="w-full rounded-md border border-[#D8DDD3] px-4 py-3 dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4]">
                                 <option value="">Leave parent unchanged</option>
                                 <option value="__clear__">No parent assigned</option>
                                 <option v-for="parent in parentStore.parents" :key="parent.id" :value="parent.id">{{ parent.name }}</option>
@@ -1783,220 +1759,505 @@ onBeforeUnmount(() => {
                     </div>
 
                     <div class="mt-6 flex gap-3">
-                        <button type="button" @click="saveBulkEdit" class="rounded-xl bg-blue-600 px-5 py-3 font-medium text-white hover:bg-blue-700">Save Changes</button>
-                        <button type="button" @click="showBulkEdit = false" class="rounded-xl border border-gray-300 px-5 py-3 font-medium text-gray-700 dark:border-gray-700 dark:text-gray-300">Cancel</button>
+                        <button type="button" @click="saveBulkEdit" class="rounded-md bg-[#2F6F4E] px-5 py-3 font-medium text-white hover:bg-[#24573E]">Save changes</button>
+                        <button type="button" @click="showBulkEdit = false" class="rounded-md border border-[#D8DDD3] px-5 py-3 font-medium text-[#1C2B24] dark:border-[#2E3B33] dark:text-[#E8EBE4]">Cancel</button>
                     </div>
                 </div>
             </div>
         </Teleport>
 
-        <Teleport to="body">
+    
+<Teleport to="body">
+
+    <div
+        v-if="showAddForm"
+        class="fixed inset-0 z-50 overflow-y-auto bg-ink/60 px-4 py-8 backdrop-blur-[2px]"
+    >
+
+        <div
+            class="mx-auto flex min-h-full max-w-3xl items-center justify-center"
+        >
 
             <div
-                v-if="showAddForm"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 px-4"
+                class="w-full border border-hairline bg-paper text-ink shadow-xl"
             >
 
+                <!-- ================================================= -->
+                <!-- MODAL HEADER -->
+                <!-- ================================================= -->
+
                 <div
-                    class="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6"
+                    class="border-b border-hairline px-6 py-5 sm:px-8"
                 >
 
                     <div
-                        class="flex items-center justify-between mb-6"
+                        class="flex items-start justify-between gap-6"
                     >
 
                         <div>
 
+                            <div
+                                class="mb-2 flex items-center gap-3"
+                            >
+                                
+
+                            </div>
+
                             <h2
-                                class="text-xl font-bold text-gray-800 dark:text-white"
+                                class="text-2xl font-semibold tracking-tight text-ink sm:text-3xl"
                             >
                                 Add New Student
                             </h2>
 
                             <p
-                                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                                class="mt-1 text-sm text-ink-soft"
                             >
-                                Enter student information below
+                                Enter the student's information below.
                             </p>
 
                         </div>
 
 
+                        <!-- CLOSE -->
+
                         <button
                             type="button"
                             @click="showAddForm = false"
-                            class="w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 text-xl"
+                            class="flex h-9 w-9 shrink-0 items-center justify-center border border-hairline text-xl leading-none text-ink-soft transition hover:border-ink hover:bg-surface hover:text-ink"
+                            aria-label="Close"
                         >
                             ×
                         </button>
 
                     </div>
 
-
-                    <div
-                        class="grid grid-cols-1 md:grid-cols-2 gap-4"
-                    >
-
-                        <input
-                            v-model="newStudent.name"
-                            type="text"
-                            placeholder="Full Name"
-                            
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-                        />
-                        <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Class
-    </label>
-
-    <input
-        v-model="newStudent.class"
-        type="text"
-        placeholder="Enter Class"
-        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
-    />
-    <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Symbol No.
-    </label>
-
-    <input
-        v-model="newStudent.symbol_no"
-        type="text"
-        placeholder="Enter symbol number"
-        class="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-    >
-</div>
-
-<div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Date of Birth
-    </label>
-
-    <input
-        v-model="newStudent.date_of_birth"
-        type="date"
-        class="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-    >
-</div>
-</div>
+                </div>
 
 
-                        <input
-                            v-model="newStudent.email"
-                            type="email"
-                            placeholder="Email Address"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-                        />
+                <!-- ================================================= -->
+                <!-- FORM -->
+                <!-- ================================================= -->
 
+                <div
+                    class="px-6 py-6 sm:px-8"
+                >
 
-                        <input
-                            v-model="newStudent.phone"
-                            type="text"
-                            placeholder="Phone Number"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-                        />
+                    <!-- ================================================= -->
+                    <!-- BASIC INFORMATION -->
+                    <!-- ================================================= -->
 
+                    <div class="mb-7">
 
-                        <select
-                            v-model="newStudent.status"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+                        <div
+                            class="mb-4 flex items-center gap-3"
                         >
 
-                            <option value="active">
-                                Active
-                            </option>
+                            <h3
+                                class=" font-bold"
+                            >
+                                Basic Information
+                            </h3>
 
-                            <option value="inactive">
-                                Inactive
-                            </option>
+                            <div
+                                class="h-px flex-1 bg-hairline"
+                            ></div>
 
-                        </select>
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Parent (optional)</label>
-                            <select
-    v-model="newStudent.parent_id"
-    class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
->
-
-    <option :value="null">
-        No parent assigned
-    </option>
-
-    <option
-        v-for="parent in parentStore.parents"
-        :key="parent.id"
-        :value="parent.id"
-    >
-        {{ parent.name }}
-    </option>
-
-</select>
                         </div>
-<select
-    v-model="newStudent.address_id"
-    class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
->
-
-    <option :value="null">
-        Select Address
-    </option>
-
-    <option
-        v-for="address in addressStore.addresses"
-        :key="address.id"
-        :value="address.id"
-    >
-        {{ address.province }} - {{ address.district }} - {{ address.municipality }} - Ward {{ address.ward }}
-    </option>
-
-</select>
-
-
 
 
                         <div
-                            class="md:col-span-2"
+                            class="grid grid-cols-1 gap-5 md:grid-cols-2"
                         >
 
-                            <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                            >
-                                Student Photo
-                            </label>
+                            <!-- NAME -->
+
+                            <div class="md:col-span-2">
+
+                                <label
+                                    class="mb-2 block font-bold"
+                                >
+                                    Full Name
+                                </label>
+
+                                <input
+                                    v-model="newStudent.name"
+                                    type="text"
+                                    placeholder="Enter student's full name"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                                />
+
+                            </div>
 
 
-                            <input
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                @change="handlePhotoChange"
-                                class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
-                            />
+                            <!-- CLASS -->
+
+                            <div>
+
+                                <label
+                                    class="mb-2 block font-bold"
+                                >
+                                    Class
+                                </label>
+
+                                <input
+                                    v-model="newStudent.class"
+                                    type="text"
+                                    placeholder="e.g. 7"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                                />
+
+                            </div>
+
+
+                            <!-- SYMBOL -->
+
+                            <div>
+
+                                <label
+                                    class="mb-2 block font-bold"
+                                >
+                                    Symbol No.
+                                </label>
+
+                                <input
+                                    v-model="newStudent.symbol_no"
+                                    type="text"
+                                    placeholder="Enter symbol number"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                                />
+
+                            </div>
+
+
+                            <!-- DATE OF BIRTH -->
+
+                            <div>
+
+                                <label
+                                    class="mb-2 block font-bold"
+                                >
+                                    Date of Birth
+                                </label>
+
+                                <input
+                                    v-model="newStudent.date_of_birth"
+                                    type="date"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-forest focus:ring-1 focus:ring-forest"
+                                />
+
+                            </div>
+
+
+                            <!-- STATUS -->
+
+                            <div>
+
+                                <label
+                                    class="mb-2 block font-bold"
+                                >
+                                    Status
+                                </label>
+
+                                <select
+                                    v-model="newStudent.status"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-forest focus:ring-1 focus:ring-forest"
+                                >
+
+                                    <option value="active">
+                                        Active
+                                    </option>
+
+                                    <option value="inactive">
+                                        Inactive
+                                    </option>
+
+                                </select>
+
+                            </div>
 
                         </div>
 
                     </div>
 
 
+                    <!-- ================================================= -->
+                    <!-- CONTACT -->
+                    <!-- ================================================= -->
+
+                    <div class="mb-7">
+
+                        <div
+                            class="mb-4 flex items-center gap-3"
+                        >
+
+                            <h3
+                                class=" font-bold"
+                            >
+                                Contact Details
+                            </h3>
+
+                            <div
+                                class="h-px flex-1 bg-hairline"
+                            ></div>
+
+                        </div>
+
+
+                        <div
+                            class="grid grid-cols-1 gap-5 md:grid-cols-2"
+                        >
+
+                            <!-- EMAIL -->
+
+                            <div>
+
+                                <label
+                                    class="mb-2 block font-bold"
+                                >
+                                    Email Address
+                                </label>
+
+                                <input
+                                    v-model="newStudent.email"
+                                    type="email"
+                                    placeholder="student@gmail.com"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                                />
+
+                            </div>
+
+
+                            <!-- PHONE -->
+
+                            <div>
+
+                                <label
+                                    class="mb-2 block font-bold"
+                                >
+                                    Phone Number
+                                </label>
+
+                                <input
+                                    v-model="newStudent.phone"
+                                    type="text"
+                                    placeholder="98XXXXXXXX"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                                />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- FAMILY & ADDRESS -->
+                    <!-- ================================================= -->
+
+                    <div class="mb-7">
+
+                        <div
+                            class="mb-4 flex items-center gap-3"
+                        >
+
+                            <h3
+                                class="font-bold"
+                            >
+                                Family & Address
+                            </h3>
+
+                            <div
+                                class="h-px flex-1 bg-hairline"
+                            ></div>
+
+                        </div>
+
+
+                        <div
+                            class="grid grid-cols-1 gap-5"
+                        >
+
+                            <!-- PARENT -->
+
+                            <div>
+
+                                <label
+                                    class="mb-2 block font-bold "
+                                >
+                                    Parent
+                                    <span class="font-normal normal-case tracking-normal">
+                                        (optional)
+                                    </span>
+                                </label>
+
+                                <select
+                                    v-model="newStudent.parent_id"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-forest focus:ring-1 focus:ring-forest"
+                                >
+
+                                    <option :value="null">
+                                        No parent assigned
+                                    </option>
+
+                                    <option
+                                        v-for="parent in parentStore.parents"
+                                        :key="parent.id"
+                                        :value="parent.id"
+                                    >
+                                        {{ parent.name }}
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- ADDRESS -->
+
+                            <div>
+
+                                <label
+                                    class="mb-2 block font-bold"
+                                >
+                                    Address
+                                </label>
+
+                                <select
+                                    v-model="newStudent.address_id"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-forest focus:ring-1 focus:ring-forest"
+                                >
+
+                                    <option :value="null">
+                                        Select Address
+                                    </option>
+
+                                    <option
+                                        v-for="address in addressStore.addresses"
+                                        :key="address.id"
+                                        :value="address.id"
+                                    >
+                                        {{ address.province }}
+                                        -
+                                        {{ address.district }}
+                                        -
+                                        {{ address.municipality }}
+                                        -
+                                        Ward {{ address.ward }}
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- PHOTO -->
+                    <!-- ================================================= -->
+
+                    <div>
+
+                        <div
+                            class="mb-4 flex items-center gap-3"
+                        >
+
+                            <h3
+                                class=" font-bold"
+                            >
+                                Student Photo
+                            </h3>
+
+                            <div
+                                class="h-px flex-1 bg-hairline"
+                            ></div>
+
+                        </div>
+
+
+                        <label
+                            class="flex cursor-pointer items-center justify-between gap-4 border border-dashed border-hairline bg-surface px-4 py-5 transition hover:border-forest"
+                        >
+
+                            <div>
+
+                                <p
+                                    class="text-sm font-medium text-ink"
+                                >
+                                    Upload student photo
+                                </p>
+
+                                <p
+                                    class="mt-1 text-xs text-ink-soft"
+                                >
+                                    JPG, PNG or WEBP
+                                </p>
+
+                            </div>
+
+
+                            <span
+                                class="shrink-0 border border-hairline px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-forest"
+                            >
+                                Choose file
+                            </span>
+
+
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                @change="handlePhotoChange"
+                                class="hidden"
+                            />
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- FOOTER -->
+                <!-- ================================================= -->
+
+                <div
+                    class="flex flex-col-reverse gap-3 border-t border-hairline bg-surface px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8"
+                >
+
+                    <p
+                        class="text-xs text-ink-soft"
+                    >
+                        All required information should be completed.
+                    </p>
+
+
                     <div
-                        class="flex flex-col sm:flex-row gap-3 mt-6"
+                        class="flex flex-col gap-3 sm:flex-row"
                     >
 
-                        <button
-                            type="button"
-                            @click="addStudent"
-                            class="w-full sm:w-auto bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition"
-                        >
-                            Add Student
-                        </button>
-
+                        <!-- CANCEL -->
 
                         <button
                             type="button"
                             @click="showAddForm = false"
-                            class="w-full sm:w-auto border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-medium"
+                            class="border border-hairline px-6 py-3 text-xs font-bold uppercase tracking-[0.14em] text-ink transition hover:border-ink hover:bg-paper"
                         >
                             Cancel
+                        </button>
+
+
+                        <!-- ADD -->
+
+                        <button
+                            type="button"
+                            @click="addStudent"
+                            class="bg-forest px-7 py-3 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:opacity-90"
+                        >
+                            Add Student
                         </button>
 
                     </div>
@@ -2005,7 +2266,11 @@ onBeforeUnmount(() => {
 
             </div>
 
-        </Teleport>
+        </div>
+
+    </div>
+
+</Teleport>
 
 
         <!-- ================================================= -->
@@ -2318,354 +2583,653 @@ onBeforeUnmount(() => {
         <!-- EDIT MODAL -->
         <!-- ================================================= -->
 
-        <Teleport to="body">
+        
+<Teleport to="body">
+
+    <div
+        v-if="editingStudent"
+        class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 px-4 py-8"
+    >
+
+        <div
+            class="w-full max-w-3xl border border-hairline bg-paper text-ink shadow-xl"
+        >
+
+            <!-- ================================================= -->
+            <!-- HEADER -->
+            <!-- ================================================= -->
 
             <div
-                v-if="editingStudent"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 px-4"
+                class="flex items-center justify-between border-b border-hairline px-6 py-5"
             >
 
-                <div
-                    class="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 max-h-[80vh] overflow-y-auto"
->
-                    <div
-                        class="flex items-center justify-between mb-6"
+                <div>
+
+                    <h2
+                        class="text-2xl font-semibold text-ink"
                     >
+                        Edit Student
+                    </h2>
 
-                        <h2
-                            class="text-xl font-bold text-gray-800 dark:text-white"
-                        >
-                            Edit Student
-                        </h2>
-
-
-                        <button
-                            type="button"
-                            @click="editingStudent = null"
-                            class="w-9 h-9 rounded-lg text-gray-500 text-xl"
-                        >
-                            ×
-                        </button>
-
-                    </div>
-
-
-                    <div
-                        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    <p
+                        class="mt-1 text-sm text-ink-soft"
                     >
+                        Update the student's information below
+                    </p>
 
-                        <input
-                            v-model="editingStudent.name"
-                            type="text"
-                            placeholder="Full Name"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-                        />
-                        <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Class
-    </label>
-
-    <input
-        v-model="editingStudent.class"
-        type="text"
-        placeholder="Enter Class"
-        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
-    />
-</div>
-<div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Symbol No.
-    </label>
-
-    <input
-        v-model="editingStudent.symbol_no"
-        type="text"
-        placeholder="Enter symbol number"
-        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
-    />
-</div>
-<div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Date of Birth
-    </label>
-
-    <input
-        v-model="editingStudent.date_of_birth"
-        type="date"
-        class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
-    />
-</div>
+                </div>
 
 
-                        <input
-                            v-model="editingStudent.email"
-                            type="email"
-                            placeholder="Email Address"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-                        />
+                <!-- CLOSE -->
+
+                <button
+                    type="button"
+                    @click="editingStudent = null"
+                    class="flex h-9 w-9 items-center justify-center border border-hairline text-xl text-ink-soft transition hover:bg-surface hover:text-ink"
+                    aria-label="Close"
+                >
+                    ×
+                </button>
+
+            </div>
 
 
-                        <input
-                            v-model="editingStudent.phone"
-                            type="text"
-                            placeholder="Phone Number"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-                        />
+            <!-- ================================================= -->
+            <!-- FORM -->
+            <!-- ================================================= -->
 
-
-                        <select
-                            v-model="editingStudent.status"
-                            class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-                        >
-
-                            <option value="active">
-                                Active
-                            </option>
-
-                            <option value="inactive">
-                                Inactive
-                            </option>
-
-                        </select>
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Parent (optional)</label>
-                            <select
-    v-model="editingStudent.parent_id"
-    class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
->
-
-    <option :value="null">
-        No parent assigned
-    </option>
-
-    <option
-        v-for="parent in parentStore.parents"
-        :key="parent.id"
-        :value="parent.id"
-    >
-        {{ parent.name }}
-    </option>
-
-</select>
-                        </div>
-
-<select
-    v-model="editingStudent.address_id"
-    class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
->
-
-    <option value="">
-        Select Address
-    </option>
-
-    <option
-        v-for="address in addressStore.addresses"
-        :key="address.id"
-        :value="address.id"
-    >
-        {{ address.municipality }}, {{ address.district }}
-    </option>
-
-</select>
-
-
-
-
-
-<!-- SUBJECTS -->
-
-<div class="md:col-span-2">
-
-    <div class="flex items-center justify-between mb-3">
-
-        <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
-            Subjects
-        </label>
-
-        <button
-            type="button"
-            @click="editingStudent.subjects.push({
-                subject_id: null,
-                subject_name: '',
-                subject_code: ''
-            })"
-            class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition"
-        >
-            + Add Subject
-        </button>
-
-    </div>
-
-    <!-- HEADERS -->
-
-    <div
-        v-if="editingStudent.subjects.length"
-        class="grid grid-cols-12 gap-3 mb-2"
-    >
-
-        <div
-            class="col-span-6 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"
-        >
-            Subject
-        </div>
-
-        <div
-            class="col-span-5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"
-        >
-            Subject Code
-        </div>
-
-        <div class="col-span-1"></div>
-
-    </div>
-
-    <!-- SUBJECT ROWS -->
-
-    <div
-        v-if="editingStudent.subjects.length"
-        class="space-y-3"
-    >
-
-        <div
-            v-for="(subject, index) in editingStudent.subjects"
-            :key="index"
-            class="grid grid-cols-12 gap-3 items-center"
-        >
-
-            <!-- SUBJECT NAME -->
-
-            <input
-                v-model="subject.subject_name"
-                type="text"
-                placeholder="Enter subject name"
-                class="col-span-6 border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-
-            <!-- SUBJECT CODE -->
-
-            <input
-                v-model="subject.subject_code"
-                type="text"
-                placeholder="Subject code"
-                class="col-span-5 border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-
-            <!-- REMOVE -->
-
-            <button
-                type="button"
-                @click="editingStudent.subjects.splice(index, 1)"
-                class="col-span-1 px-3 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition"
-                title="Remove subject"
+            <div
+                class="max-h-[75vh] overflow-y-auto px-6 py-6"
             >
-                ✕
-            </button>
 
-        </div>
+                <!-- ================================================= -->
+                <!-- BASIC INFORMATION -->
+                <!-- ================================================= -->
 
-    </div>
+                <div class="mb-7">
 
-    <!-- NO SUBJECTS -->
-
-    <div
-        v-else
-        class="border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-6 text-center"
-    >
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-            No subjects assigned.
-        </p>
-    </div>
-
-    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-        Subject names and subject codes can be edited manually.
-    </p>
-
-</div>
-
-                        <div
-                            v-if="editingStudent.photo"
-                            class="md:col-span-2 flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl"
-                        >
-
-                            <img
-                                :src="`http://127.0.0.1:8000/storage/${editingStudent.photo}`"
-                                :alt="editingStudent.name"
-                                class="w-16 h-16 rounded-full object-cover"
-                            />
+                    <h3
+                        class="mb-4 text-sm font-semibold"
+                    >
+                        Basic Information
+                    </h3>
 
 
-                            <div>
+                    <div
+                        class="grid grid-cols-1 gap-4 md:grid-cols-2"
+                    >
 
-                                <p
-                                    class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                                >
-                                    Current Photo
-                                </p>
+                        <!-- NAME -->
 
-                                <p
-                                    class="text-xs text-gray-500 dark:text-gray-400"
-                                >
-                                    Select a new photo to replace it.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <div
-                            class="md:col-span-2"
-                        >
+                        <div class="md:col-span-2">
 
                             <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                                class="mb-1.5 block text-sm font-medium"
                             >
-                                New Photo
+                                Full Name
                             </label>
 
-
                             <input
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                @change="editingStudent.newPhoto = $event.target.files[0] || null"
-                                class="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-800 dark:text-white bg-white dark:bg-gray-800"
+                                v-model="editingStudent.name"
+                                type="text"
+                                placeholder="Enter student's full name"
+                                class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
                             />
 
                         </div>
 
-                    </div>
+
+                        <!-- CLASS -->
+
+                        <div>
+
+                            <label
+                                class="mb-1.5 block text-sm font-medium"
+                            >
+                                Class
+                            </label>
+
+                            <input
+                                v-model="editingStudent.class"
+                                type="text"
+                                placeholder="Enter class"
+                                class="w-full border border-hairline bg-surface px-4 py-3 text-sm outline-none placeholder:text-ink-soft focus:border-forest"
+                            />
+
+                        </div>
 
 
-                    <div
-                        class="flex flex-col sm:flex-row gap-3 mt-6"
-                    >
+                        <!-- SYMBOL -->
 
-                        <button
-                            type="button"
-                            @click="updateStudent"
-                            class="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700"
-                        >
-                            Update Student
-                        </button>
+                        <div>
+
+                            <label
+                                class="mb-1.5 block text-sm font-medium"
+                            >
+                                Symbol No.
+                            </label>
+
+                            <input
+                                v-model="editingStudent.symbol_no"
+                                type="text"
+                                placeholder="Enter symbol number"
+                                class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                            />
+
+                        </div>
 
 
-                        <button
-                            type="button"
-                            @click="editingStudent = null"
-                            class="w-full sm:w-auto border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-medium"
-                        >
-                            Cancel
-                        </button>
+                        <!-- DATE OF BIRTH -->
+
+                        <div>
+
+                            <label
+                                class="mb-1.5 block text-sm font-medium"
+                            >
+                                Date of Birth
+                            </label>
+
+                            <input
+                                v-model="editingStudent.date_of_birth"
+                                type="date"
+                                class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none focus:border-forest"
+                            />
+
+                        </div>
+
+
+                        <!-- STATUS -->
+
+                        <div>
+
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
+                                Status
+                            </label>
+
+                            <select
+                                v-model="editingStudent.status"
+                                class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none focus:border-forest"
+                            >
+
+                                <option value="active">
+                                    Active
+                                </option>
+
+                                <option value="inactive">
+                                    Inactive
+                                </option>
+
+                            </select>
+
+                        </div>
 
                     </div>
 
                 </div>
 
+
+                <!-- ================================================= -->
+                <!-- CONTACT -->
+                <!-- ================================================= -->
+
+                <div
+                    class="mb-7 border-t border-hairline pt-6"
+                >
+
+                    <h3
+                        class="mb-4 text-sm font-semibold text-ink"
+                    >
+                        Contact Information
+                    </h3>
+
+
+                    <div
+                        class="grid grid-cols-1 gap-4 md:grid-cols-2"
+                    >
+
+                        <!-- EMAIL -->
+
+                        <div>
+
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
+                                Email Address
+                            </label>
+
+                            <input
+                                v-model="editingStudent.email"
+                                type="email"
+                                placeholder="student@example.com"
+                                class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                            />
+
+                        </div>
+
+
+                        <!-- PHONE -->
+
+                        <div>
+
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
+                                Phone Number
+                            </label>
+
+                            <input
+                                v-model="editingStudent.phone"
+                                type="text"
+                                placeholder="Phone number"
+                                class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                            />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- FAMILY & ADDRESS -->
+                <!-- ================================================= -->
+
+                <div
+                    class="mb-7 border-t border-hairline pt-6"
+                >
+
+                    <h3
+                        class="mb-4 text-sm font-semibold text-ink"
+                    >
+                        Family & Address
+                    </h3>
+
+
+                    <div class="space-y-4">
+
+                        <!-- PARENT -->
+
+                        <div>
+
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
+                                Parent
+                                <span class="font-normal text-ink-soft">
+                                    (optional)
+                                </span>
+                            </label>
+
+                            <select
+                                v-model="editingStudent.parent_id"
+                                class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none focus:border-forest"
+                            >
+
+                                <option :value="null">
+                                    No parent assigned
+                                </option>
+
+                                <option
+                                    v-for="parent in parentStore.parents"
+                                    :key="parent.id"
+                                    :value="parent.id"
+                                >
+                                    {{ parent.name }}
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- ADDRESS -->
+
+                        <div>
+
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-ink"
+                            >
+                                Address
+                            </label>
+
+                            <select
+                                v-model="editingStudent.address_id"
+                                class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none focus:border-forest"
+                            >
+
+                                <option value="">
+                                    Select Address
+                                </option>
+
+                                <option
+                                    v-for="address in addressStore.addresses"
+                                    :key="address.id"
+                                    :value="address.id"
+                                >
+                                    {{ address.municipality }},
+                                    {{ address.district }}
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- SUBJECTS -->
+                <!-- ================================================= -->
+
+                <div
+                    class="mb-7 border-t border-hairline pt-6"
+                >
+
+                    <div
+                        class="mb-4 flex items-center justify-between gap-4"
+                    >
+
+                        <div>
+
+                            <h3
+                                class="text-sm font-semibold text-ink"
+                            >
+                                Subjects
+                            </h3>
+
+                            <p
+                                class="mt-1 text-xs text-ink-soft"
+                            >
+                                Manage the subjects assigned to this student.
+                            </p>
+
+                        </div>
+
+
+                        <!-- ADD SUBJECT -->
+
+                        <button
+                            type="button"
+                            @click="editingStudent.subjects.push({
+                                subject_id: null,
+                                subject_name: '',
+                                subject_code: ''
+                            })"
+                            class="shrink-0 border border-forest px-4 py-2 text-sm font-medium text-forest transition hover:bg-forest hover:text-white"
+                        >
+                            + Add Subject
+                        </button>
+
+                    </div>
+
+
+                    <!-- SUBJECT HEADER -->
+
+                    <div
+                        v-if="editingStudent.subjects.length"
+                        class="mb-2 hidden grid-cols-12 gap-3 px-1 md:grid"
+                    >
+
+                        <div
+                            class="col-span-6 text-sm font-medium text-ink-soft"
+                        >
+                            Subject
+                        </div>
+
+                        <div
+                            class="col-span-5 text-sm font-medium text-ink-soft"
+                        >
+                            Subject Code
+                        </div>
+
+                        <div
+                            class="col-span-1"
+                        ></div>
+
+                    </div>
+
+
+                    <!-- SUBJECT ROWS -->
+
+                    <div
+                        v-if="editingStudent.subjects.length"
+                        class="space-y-3"
+                    >
+
+                        <div
+                            v-for="(subject, index) in editingStudent.subjects"
+                            :key="index"
+                            class="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-center"
+                        >
+
+                            <!-- SUBJECT NAME -->
+
+                            <div class="md:col-span-6">
+
+                                <label
+                                    class="mb-1 block text-xs text-ink-soft md:hidden"
+                                >
+                                    Subject
+                                </label>
+
+                                <input
+                                    v-model="subject.subject_name"
+                                    type="text"
+                                    placeholder="Enter subject name"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                                />
+
+                            </div>
+
+
+                            <!-- SUBJECT CODE -->
+
+                            <div class="md:col-span-5">
+
+                                <label
+                                    class="mb-1 block text-xs text-ink-soft md:hidden"
+                                >
+                                    Subject Code
+                                </label>
+
+                                <input
+                                    v-model="subject.subject_code"
+                                    type="text"
+                                    placeholder="Subject code"
+                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                                />
+
+                            </div>
+
+
+                            <!-- REMOVE -->
+
+                            <button
+                                type="button"
+                                @click="editingStudent.subjects.splice(index, 1)"
+                                class="flex h-11 items-center justify-center border border-hairline px-4 text-sm text-sienna transition hover:bg-sienna hover:text-white md:col-span-1"
+                                title="Remove subject"
+                            >
+                                Remove
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- NO SUBJECTS -->
+
+                    <div
+                        v-else
+                        class="border border-dashed border-hairline bg-surface px-5 py-8 text-center"
+                    >
+
+                        <p
+                            class="text-sm text-ink-soft"
+                        >
+                            No subjects assigned.
+                        </p>
+
+                        <p
+                            class="mt-1 text-xs text-ink-soft"
+                        >
+                            Click "Add Subject" to assign one.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- CURRENT PHOTO -->
+                <!-- ================================================= -->
+
+                <div
+                    v-if="editingStudent.photo"
+                    class="mb-7 border-t border-hairline pt-6"
+                >
+
+                    <h3
+                        class="mb-4 text-sm font-semibold text-ink"
+                    >
+                        Current Photo
+                    </h3>
+
+
+                    <div
+                        class="flex items-center gap-4 border border-hairline bg-surface p-4"
+                    >
+
+                        <img
+                            :src="`http://127.0.0.1:8000/storage/${editingStudent.photo}`"
+                            :alt="editingStudent.name"
+                            class="h-16 w-16 object-cover"
+                        />
+
+
+                        <div>
+
+                            <p
+                                class="text-sm font-medium text-ink"
+                            >
+                                {{ editingStudent.name }}
+                            </p>
+
+                            <p
+                                class="mt-1 text-xs text-ink-soft"
+                            >
+                                Select a new photo below to replace this image.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- NEW PHOTO -->
+                <!-- ================================================= -->
+
+                <div
+                    class="border-t border-hairline pt-6"
+                >
+
+                    <h3
+                        class="mb-4 text-sm font-semibold text-ink"
+                    >
+                        Replace Photo
+                    </h3>
+
+
+                    <label
+                        class="flex cursor-pointer items-center justify-between border border-dashed border-hairline bg-surface px-4 py-4 transition hover:border-forest"
+                    >
+
+                        <div>
+
+                            <p
+                                class="text-sm font-medium text-ink"
+                            >
+                                Select a new student photo
+                            </p>
+
+                            <p
+                                class="mt-1 text-xs text-ink-soft"
+                            >
+                                JPG, PNG or WEBP
+                            </p>
+
+                        </div>
+
+
+                        <span
+                            class="shrink-0 border border-hairline px-4 py-2 text-sm text-forest"
+                        >
+                            Choose file
+                        </span>
+
+
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            @change="editingStudent.newPhoto = $event.target.files[0] || null"
+                            class="hidden"
+                        />
+
+                    </label>
+
+                </div>
+
             </div>
 
-        </Teleport>
+
+            <!-- ================================================= -->
+            <!-- FOOTER -->
+            <!-- ================================================= -->
+
+            <div
+                class="flex flex-col-reverse gap-3 border-t border-hairline bg-surface px-6 py-4 sm:flex-row sm:justify-end"
+            >
+
+                <!-- CANCEL -->
+
+                <button
+                    type="button"
+                    @click="editingStudent = null"
+                    class="w-full border border-hairline px-6 py-3 text-sm font-medium text-ink transition hover:bg-paper sm:w-auto"
+                >
+                    Cancel
+                </button>
+
+
+                <!-- UPDATE -->
+
+                <button
+                    type="button"
+                    @click="updateStudent"
+                    class="w-full bg-forest px-6 py-3 text-sm font-medium text-white transition hover:opacity-90 sm:w-auto"
+                >
+                    Update Student
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</Teleport>
+
+
 
 
         <!-- ================================================= -->
@@ -2678,9 +3242,9 @@ onBeforeUnmount(() => {
         >
 
             <div
-                class="text-gray-500 dark:text-gray-400"
+                class="text-[#5B6B62] dark:text-[#9AA79E]"
             >
-                Loading students...
+                Loading students…
             </div>
 
         </div>
@@ -2702,7 +3266,7 @@ onBeforeUnmount(() => {
                 <tr
                     v-for="(student, index) in studentStore.students"
                     :key="student.id"
-                    class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition"
+                    class="transition hover:bg-[#F7F8F3] dark:hover:bg-[#243329]"
                 >
 
                     <!-- CHECKBOX -->
@@ -2715,7 +3279,7 @@ onBeforeUnmount(() => {
                             type="checkbox"
                             :checked="selectedStudents.includes(student.id)"
                             @change="toggleStudent(student.id)"
-                            class="w-4 h-4 accent-blue-600 cursor-pointer"
+                            class="h-4 w-4 cursor-pointer accent-[#2F6F4E]"
                         />
 
                     </td>
@@ -2724,7 +3288,7 @@ onBeforeUnmount(() => {
                     <!-- S.N. -->
 
                     <td
-                        class="px-5 py-4 text-sm text-gray-500 dark:text-gray-400"
+                        class="px-5 py-4 font-['IBM_Plex_Mono',ui-monospace,monospace] text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                     >
 
                         {{
@@ -2743,7 +3307,7 @@ onBeforeUnmount(() => {
                     <!-- ID -->
 
                     <td
-                        class="px-5 py-4 text-sm font-medium text-gray-700 dark:text-gray-300"
+                        class="px-5 py-4 font-['IBM_Plex_Mono',ui-monospace,monospace] text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                     >
 
                         #{{ student.id }}
@@ -2761,15 +3325,15 @@ onBeforeUnmount(() => {
                             v-if="student.photo"
                             :src="`http://127.0.0.1:8000/storage/${student.photo}`"
                             :alt="student.name"
-                            class="w-11 h-11 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                            class="h-11 w-11 rounded-full border border-[#D8DDD3] object-cover dark:border-[#2E3B33]"
                         />
 
 
                         <div
                             v-else
-                            class="w-11 h-11 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-xs"
+                            class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F7F8F3] text-xs text-[#5B6B62] dark:bg-[#16211B] dark:text-[#9AA79E]"
                         >
-                            No Photo
+                            No photo
                         </div>
 
                     </td>
@@ -2778,7 +3342,7 @@ onBeforeUnmount(() => {
                     <!-- NAME -->
 
                     <td
-                        class="px-5 py-4 text-sm font-semibold text-gray-800 dark:text-white"
+                        class="px-5 py-4 text-sm font-semibold text-[#1C2B24] dark:text-[#E8EBE4]"
                     >
 
                         {{ student.name }}
@@ -2786,7 +3350,7 @@ onBeforeUnmount(() => {
                     </td>
                         <!--CLASS-->
                     <td
-    class="px-6 py-4 whitespace-nowrap text-gray-800 dark:text-gray-200"
+    class="whitespace-nowrap px-5 py-4 text-sm text-[#1C2B24] dark:text-[#E8EBE4]"
 >
     {{ student.class || 'Not assigned' }}
 </td>
@@ -2795,7 +3359,7 @@ onBeforeUnmount(() => {
                     <!-- EMAIL -->
 
                     <td
-                        class="px-5 py-4 text-sm text-gray-600 dark:text-gray-400"
+                        class="px-5 py-4 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                     >
 
                         {{ student.email }}
@@ -2806,7 +3370,7 @@ onBeforeUnmount(() => {
                     <!-- PHONE -->
 
                     <td
-                        class="px-5 py-4 text-sm text-gray-600 dark:text-gray-400"
+                        class="px-5 py-4 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                     >
 
                         {{ student.phone }}
@@ -2821,11 +3385,11 @@ onBeforeUnmount(() => {
                     >
 
                         <span
-                            class="px-3 py-1 rounded-full text-xs font-semibold capitalize"
+                            class="rounded-full px-3 py-1 text-xs font-medium capitalize"
                             :class="
                                 student.status === 'active'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-red-100 text-red-700'
+                                    ? 'bg-[#2F6F4E]/10 text-[#2F6F4E]'
+                                    : 'bg-[#B5563C]/10 text-[#B5563C]'
                             "
                         >
 
@@ -2843,13 +3407,13 @@ onBeforeUnmount(() => {
                     >
 
                         <div
-                            class="flex flex-wrap gap-3"
+                            class="flex flex-wrap gap-4 text-sm font-medium"
                         >
 
                             <button
                                 type="button"
                                 @click="viewStudent(student)"
-                                class="text-green-600 hover:text-green-800 font-medium text-sm"
+                                class="text-[#2F6F4E] hover:underline"
                             >
                                 View
                             </button>
@@ -2858,7 +3422,7 @@ onBeforeUnmount(() => {
                             <button
                                 type="button"
                                 @click="editStudent(student)"
-                                class="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                                class="text-[#1C2B24] hover:underline dark:text-[#E8EBE4]"
                             >
                                 Edit
                             </button>
@@ -2867,7 +3431,7 @@ onBeforeUnmount(() => {
                             <button
                                 type="button"
                                 @click="deleteStudent(student)"
-                                class="text-red-600 hover:text-red-800 font-medium text-sm"
+                                class="text-[#B5563C] hover:underline"
                             >
                                 Delete
                             </button>
@@ -2894,22 +3458,15 @@ onBeforeUnmount(() => {
                             class="flex flex-col items-center"
                         >
 
-                            <div
-                                class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl"
-                            >
-                                🔍
-                            </div>
-
-
                             <h3
-                                class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300"
+                                class="text-lg text-[#1C2B24] dark:text-[#E8EBE4]"
                             >
                                 No students found
                             </h3>
 
 
                             <p
-                                class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+                                class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                             >
                                 Try changing your search or filter.
                             </p>
@@ -2931,31 +3488,31 @@ onBeforeUnmount(() => {
 
         <div
             v-if="totalPages > 1"
-            class="mt-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 shadow-sm"
+            class="mt-6 rounded-md border border-[#D8DDD3] bg-white p-4 dark:border-[#2E3B33] dark:bg-[#1E2B24]"
         >
 
             <div
-                class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+                class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
             >
 
                 <!-- PAGINATION INFO -->
 
                 <div
-                    class="text-sm text-gray-500 dark:text-gray-400"
+                    class="text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                 >
 
                     Showing
 
                     <span
-                        class="font-semibold text-gray-800 dark:text-white"
+                        class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                     >
                         {{ showingFrom }}
                     </span>
 
-                    -
+                    &ndash;
 
                     <span
-                        class="font-semibold text-gray-800 dark:text-white"
+                        class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                     >
                         {{ showingTo }}
                     </span>
@@ -2963,7 +3520,7 @@ onBeforeUnmount(() => {
                     of
 
                     <span
-                        class="font-semibold text-gray-800 dark:text-white"
+                        class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                     >
                         {{ totalStudents }}
                     </span>
@@ -2976,7 +3533,7 @@ onBeforeUnmount(() => {
                 <!-- BUTTONS -->
 
                 <div
-                    class="flex items-center gap-2 flex-wrap"
+                    class="flex flex-wrap items-center gap-2"
                 >
 
                     <!-- PREVIOUS -->
@@ -2988,9 +3545,9 @@ onBeforeUnmount(() => {
                             currentPage === 1 ||
                             studentStore.loading
                         "
-                        class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        class="rounded-md border border-[#D8DDD3] px-4 py-2 text-sm text-[#1C2B24] transition hover:bg-[#EFF1EA] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#2E3B33] dark:text-[#E8EBE4] dark:hover:bg-[#243329]"
                     >
-                        ← Previous
+                        Previous
                     </button>
 
 
@@ -3006,11 +3563,11 @@ onBeforeUnmount(() => {
                             type="button"
                             @click="goToPage(page)"
                             :disabled="studentStore.loading"
-                            class="w-9 h-9 rounded-lg text-sm font-medium transition disabled:opacity-50"
+                            class="h-9 w-9 rounded-md text-sm font-medium transition disabled:opacity-50"
                             :class="
                                 currentPage === page
-                                    ? 'bg-blue-600 text-white'
-                                    : 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                    ? 'bg-[#2F6F4E] text-white'
+                                    : 'border border-[#D8DDD3] text-[#1C2B24] hover:bg-[#EFF1EA] dark:border-[#2E3B33] dark:text-[#E8EBE4] dark:hover:bg-[#243329]'
                             "
                         >
 
@@ -3030,9 +3587,9 @@ onBeforeUnmount(() => {
                             currentPage === totalPages ||
                             studentStore.loading
                         "
-                        class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        class="rounded-md border border-[#D8DDD3] px-4 py-2 text-sm text-[#1C2B24] transition hover:bg-[#EFF1EA] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#2E3B33] dark:text-[#E8EBE4] dark:hover:bg-[#243329]"
                     >
-                        Next →
+                        Next
                     </button>
 
                 </div>
@@ -3047,7 +3604,7 @@ onBeforeUnmount(() => {
         <!-- ================================================= -->
 
         <div
-            class="mt-8 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6"
+            class="mt-8 rounded-md border border-[#D8DDD3] bg-white p-6 dark:border-[#2E3B33] dark:bg-[#1E2B24]"
         >
 
             <div
@@ -3055,14 +3612,14 @@ onBeforeUnmount(() => {
             >
 
                 <h2
-                    class="text-xl font-bold text-gray-800 dark:text-white"
+                    class="text-xl text-[#1C2B24] dark:text-[#E8EBE4]"
                 >
-                    Student Statistics
+                    Student statistics
                 </h2>
 
 
                 <p
-                    class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+                    class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                 >
                     Overview of active and inactive students
                 </p>
@@ -3071,7 +3628,7 @@ onBeforeUnmount(() => {
 
 
             <div
-                class="relative h-80 w-full max-w-md mx-auto"
+                class="relative mx-auto h-80 w-full max-w-md"
             >
 
                 <canvas
@@ -3087,4 +3644,3 @@ onBeforeUnmount(() => {
 </div>
 
 </template>
-

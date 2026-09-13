@@ -1,39 +1,14 @@
 import axios from 'axios'
+import { API_BASE_URL, getAuthToken } from '../apiConfig'
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: API_BASE_URL,
 })
 
 
 // =========================================================
 // GET AUTH TOKEN
 // =========================================================
-
-const getAuthToken = () => {
-
-    const teacherUser = localStorage.getItem('teacher_user')
-    const teacherToken = localStorage.getItem('teacher_token')
-
-    if (teacherUser && teacherToken) {
-
-        try {
-
-            const user = JSON.parse(teacherUser)
-
-            if (user.role === 'teacher') {
-                return teacherToken
-            }
-
-        } catch (error) {
-
-            console.error('Invalid teacher user data:', error)
-
-        }
-    }
-
-    return localStorage.getItem('token')
-}
-
 
 // =========================================================
 // GET ALL SUBJECTS

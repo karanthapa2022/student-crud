@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { API_BASE_URL, getAuthToken } from '../apiConfig'
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: API_BASE_URL,
     headers: {
         Accept: 'application/json'
     }
@@ -14,45 +15,7 @@ const api = axios.create({
 
 api.interceptors.request.use(config => {
 
-    const path = window.location.pathname
-
-    let token = null
-
-
-    // =========================================================
-    // PARENT
-    // =========================================================
-
-    if (path.startsWith('/parents')) {
-
-        token = localStorage.getItem('parent_token')
-
-    }
-
-
-    // =========================================================
-    // TEACHER
-    // =========================================================
-
-    else if (
-        path.startsWith('/teacher') ||
-        localStorage.getItem('teacher_token')
-    ) {
-
-        token = localStorage.getItem('teacher_token')
-
-    }
-
-
-    // =========================================================
-    // ADMIN
-    // =========================================================
-
-    else {
-
-        token = localStorage.getItem('token')
-
-    }
+    const token = getAuthToken()
 
 
     // =========================================================

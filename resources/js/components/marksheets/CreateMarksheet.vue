@@ -417,606 +417,284 @@ onMounted(async () => {
 
 
 <template>
+    <div class="min-h-screen bg-[#EFF1EA] text-[#1C2B24] dark:bg-[#17221D] dark:text-[#F5F7F3]">
+        <div class="mx-auto w-full max-w-7xl px-5 py-7 lg:px-8">
 
-<div
-    class="p-6 lg:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors"
->
-
-    <div
-        class="w-full max-w-7xl mx-auto"
-    >
-
-        <!-- =================================================
-             PAGE HEADER
-        ================================================== -->
-
-        <div
-            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7"
-        >
-
-            <div>
-
-                <h1
-                    class="text-2xl font-bold text-gray-900 dark:text-white"
-                >
-                    Create Marksheet
-                </h1>
-
-                <p
-                    class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                >
-                    Create a new marksheet for a student
-                </p>
-
-            </div>
-
-
-            <!-- BACK BUTTON -->
-
-            <button
-                type="button"
-                @click="$router.push('/marksheets')"
-                class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-gray-800 dark:bg-gray-700 text-white text-sm font-semibold shadow-sm hover:bg-gray-900 dark:hover:bg-gray-600 transition"
-            >
-                ← Marksheets
-            </button>
-
-        </div>
-
-
-        <!-- =================================================
-             ERROR
-        ================================================== -->
-
-        <div
-            v-if="error"
-            class="mb-5 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-xl"
-        >
-
-            <div class="flex items-center gap-2">
-
-                <span>
-                    ⚠️
-                </span>
-
-                <span>
-                    {{ error }}
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <!-- =================================================
-             SUCCESS
-        ================================================== -->
-
-        <div
-            v-if="successMessage"
-            class="mb-5"
-        >
-
-            <div
-                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-sm font-medium"
-            >
-
-                <span>
-                    ✓
-                </span>
-
-                {{ successMessage }}
-
-            </div>
-
-        </div>
-
-
-        <!-- =================================================
-             MAIN FORM CARD
-        ================================================== -->
-
-        <div
-            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden transition-colors"
-        >
-
-            <!-- =================================================
-                 STUDENT INFORMATION
-            ================================================== -->
-
-            <div
-                class="p-6 border-b border-gray-200 dark:border-gray-700"
-            >
-
-                <h2
-                    class="text-xl font-semibold text-gray-900 dark:text-white"
-                >
-                    Student Information
-                </h2>
-
-                <p
-                    class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                >
-                    Select the student for whom you want to create the marksheet.
-                </p>
-
-
-                <!-- STUDENT + CLASS -->
-
-                <div
-                    class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6"
-                >
-
-                    <!-- STUDENT -->
-
+            <!-- HEADER -->
+            <header class="mb-8 border-b border-[#D8DDD3] dark:border-[#39483F] pb-6">
+                <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Student
-                        </label>
-
-                        <select
-                            v-model="selectedStudent"
-                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                        >
-
-                            <option
-                                :value="null"
-                            >
-                                Select Student
-                            </option>
-
-                            <option
-                                v-for="student in studentStore.students"
-                                :key="student.id"
-                                :value="student"
-                            >
-                                {{ student.name }}
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- CLASS -->
-
-                    <div>
-
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Class
-                        </label>
-
-                        <input
-                            type="text"
-                            :value="selectedStudent?.class || ''"
-                            disabled
-                            placeholder="Class will appear here"
-                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500"
-                        >
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 SUBJECTS & MARKS
-            ================================================== -->
-
-            <div class="p-6">
-
-                <div
-                    class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5"
-                >
-
-                    <div>
-
-                        <h2
-                            class="text-xl font-semibold text-gray-900 dark:text-white"
-                        >
-                            Subjects & Marks
-                        </h2>
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                        >
-                            Add the subjects and marking scheme for this marksheet.
+                        <p class="mb-2 text-sm font-medium text-[#2F6F4E] dark:text-[#75B28F]">
+                            Academic records
                         </p>
 
-                    </div>
+                        <h1 class="text-3xl font-semibold tracking-tight text-[#1C2B24] dark:text-white">
+                            Create Marksheet
+                        </h1>
 
-
-                    <!-- ADD SUBJECT -->
-
-                    <button
-                        type="button"
-                        @click="addSubject"
-                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold shadow-sm hover:bg-green-700 transition"
-                    >
-                        + Add Subject
-                    </button>
-
-                </div>
-
-
-                <!-- SUBJECT TABLE -->
-
-                <div
-                    class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-xl"
-                >
-
-                    <table
-                        class="w-full min-w-[1000px]"
-                    >
-
-                        <!-- HEADER -->
-
-                        <thead
-                            class="bg-gray-50 dark:bg-gray-700"
-                        >
-
-                            <tr>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 w-16"
-                                >
-                                    S.N.
-                                </th>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200"
-                                >
-                                    Subject
-                                </th>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 w-40"
-                                >
-                                    Full Marks
-                                </th>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 w-40"
-                                >
-                                    Pass Marks
-                                </th>
-
-                                <th
-                                    class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 w-48"
-                                >
-                                    Obtained Marks
-                                </th>
-
-                                <th
-                                    class="px-4 py-3 text-center text-sm font-semibold text-gray-600 dark:text-gray-200 w-24"
-                                >
-                                    Action
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-
-                        <!-- BODY -->
-
-                        <tbody>
-
-                            <tr
-                                v-for="(subject, index) in subjects"
-                                :key="index"
-                                class="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
-                            >
-
-                                <!-- S.N. -->
-
-                                <td
-                                    class="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium"
-                                >
-                                    {{ index + 1 }}
-                                </td>
-
-
-                                <!-- SUBJECT -->
-
-                                <td
-                                    class="px-4 py-3"
-                                >
-
-                                    <input
-                                        v-model="subject.subject_name"
-                                        type="text"
-                                        placeholder="e.g. Mathematics"
-                                        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                                    >
-
-                                </td>
-
-
-                                <!-- FULL MARKS -->
-
-                                <td
-                                    class="px-4 py-3"
-                                >
-
-                                    <input
-                                        v-model="subject.full_marks"
-                                        type="number"
-                                        min="1"
-                                        step="0.01"
-                                        placeholder="100"
-                                        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                                    >
-
-                                </td>
-
-
-                                <!-- PASS MARKS -->
-
-                                <td
-                                    class="px-4 py-3"
-                                >
-
-                                    <input
-                                        v-model="subject.pass_marks"
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        placeholder="40"
-                                        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                                    >
-
-                                </td>
-
-
-                                <!-- OBTAINED MARKS -->
-
-                                <td
-                                    class="px-4 py-3"
-                                >
-
-                                    <input
-                                        v-model="subject.marks"
-                                        type="text"
-                                        inputmode="decimal"
-                                        placeholder="e.g. 78 or A"
-                                        class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                                    >
-
-                                </td>
-
-
-                                <!-- REMOVE -->
-
-                                <td
-                                    class="px-4 py-3 text-center"
-                                >
-
-                                    <button
-                                        type="button"
-                                        @click="removeSubject(index)"
-                                        :disabled="subjects.length === 1"
-                                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition disabled:opacity-30 disabled:cursor-not-allowed"
-                                        title="Remove subject"
-                                    >
-                                        🗑️
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-
-                <!-- =================================================
-                     RESULT PREVIEW
-                ================================================== -->
-
-                <div class="mt-8">
-
-                    <div class="mb-4">
-
-                        <h2
-                            class="text-xl font-semibold text-gray-900 dark:text-white"
-                        >
-                            Result Preview
-                        </h2>
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                        >
-                            The result is calculated automatically as you enter marks.
+                        <p class="mt-2 max-w-xl text-sm leading-6 text-[#5B6B62] dark:text-[#AEBBB3]">
+                            Create a new academic result for a student.
                         </p>
-
                     </div>
-
-
-                    <div
-                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
-                    >
-
-                        <!-- TOTAL MARKS -->
-
-                        <div
-                            class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
-                        >
-
-                            <p
-                                class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                            >
-                                Total Marks
-                            </p>
-
-                            <p
-                                class="mt-1 text-2xl font-bold text-gray-900 dark:text-white"
-                            >
-                                {{ totalMarks }} / {{ totalFullMarks }}
-                            </p>
-
-                        </div>
-
-
-                        <!-- PERCENTAGE -->
-
-                        <div
-                            class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
-                        >
-
-                            <p
-                                class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                            >
-                                Percentage
-                            </p>
-
-                            <p
-                                class="mt-1 text-2xl font-bold text-gray-900 dark:text-white"
-                            >
-                                {{ percentage }}%
-                            </p>
-
-                        </div>
-
-
-                        <!-- GRADE -->
-
-                        <div
-                            class="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800"
-                        >
-
-                            <p
-                                class="text-xs font-medium uppercase tracking-wide text-purple-600 dark:text-purple-300"
-                            >
-                                Grade
-                            </p>
-
-                            <p
-                                class="mt-1 text-2xl font-bold text-purple-700 dark:text-purple-200"
-                            >
-                                {{ grade }}
-                            </p>
-
-                        </div>
-
-
-                        <!-- SUBJECT COUNT -->
-
-                        <div
-                            class="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800"
-                        >
-
-                            <p
-                                class="text-xs font-medium uppercase tracking-wide text-blue-600 dark:text-blue-300"
-                            >
-                                Subjects
-                            </p>
-
-                            <p
-                                class="mt-1 text-2xl font-bold text-blue-700 dark:text-blue-200"
-                            >
-                                {{ subjects.length }}
-                            </p>
-
-                        </div>
-
-
-                        <!-- RESULT -->
-
-                        <div
-                            class="p-4 rounded-xl border"
-                            :class="
-                                result === 'Pass'
-                                    ? 'bg-green-50 dark:bg-green-900/30 border-green-100 dark:border-green-800'
-                                    : 'bg-red-50 dark:bg-red-900/30 border-red-100 dark:border-red-800'
-                            "
-                        >
-
-                            <p
-                                class="text-xs font-medium uppercase tracking-wide"
-                                :class="
-                                    result === 'Pass'
-                                        ? 'text-green-600 dark:text-green-300'
-                                        : 'text-red-600 dark:text-red-300'
-                                "
-                            >
-                                Result
-                            </p>
-
-                            <p
-                                class="mt-1 text-2xl font-bold"
-                                :class="
-                                    result === 'Pass'
-                                        ? 'text-green-700 dark:text-green-200'
-                                        : 'text-red-700 dark:text-red-200'
-                                "
-                            >
-                                {{ result }}
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- =================================================
-                     ACTIONS
-                ================================================== -->
-
-                <div
-                    class="mt-7 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col-reverse sm:flex-row sm:justify-end gap-3"
-                >
-
-                    <!-- CANCEL -->
 
                     <button
                         type="button"
                         @click="$router.push('/marksheets')"
-                        class="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                        class="inline-flex items-center justify-center border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-semibold text-[#1C2B24] hover:border-[#2F6F4E] hover:text-[#2F6F4E] dark:border-[#39483F] dark:bg-[#202D26] dark:text-white dark:hover:border-[#75B28F] dark:hover:text-[#75B28F]"
                     >
-                        Cancel
+                        Back to marksheets
                     </button>
-
-
-                    <!-- SAVE -->
-
-                    <button
-                        type="button"
-                        @click="saveMarksheet"
-                        :disabled="saving"
-                        class="px-6 py-2.5 rounded-lg bg-green-600 text-white font-semibold shadow-sm hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-
-                        <span v-if="saving">
-                            Saving...
-                        </span>
-
-                        <span v-else>
-                            Save Marksheet
-                        </span>
-
-                    </button>
-
                 </div>
+            </header>
 
+            <!-- MESSAGES -->
+            <div
+                v-if="error"
+                class="mb-5 border border-[#B5563C]/30 bg-[#B5563C]/5 px-4 py-3 text-sm text-[#8F3F2B] dark:border-[#B5563C]/40 dark:bg-[#B5563C]/10 dark:text-[#E6A18E]"
+            >
+                <div class="flex items-start gap-3">
+                    <span class="font-semibold">!</span>
+                    <span>{{ error }}</span>
+                </div>
             </div>
 
+            <div
+                v-if="successMessage"
+                class="mb-5 border border-[#2F6F4E]/30 bg-[#2F6F4E]/5 px-4 py-3 text-sm font-medium text-[#2F6F4E] dark:border-[#75B28F]/30 dark:bg-[#75B28F]/10 dark:text-[#A8D1B8]"
+            >
+                ✓ {{ successMessage }}
+            </div>
+
+            <!-- MAIN SURFACE -->
+            <section class="overflow-hidden border border-[#D8DDD3] bg-white dark:border-[#39483F] dark:bg-[#202D26]">
+
+                <!-- STUDENT -->
+                <div class="border-b border-[#D8DDD3] p-6 dark:border-[#39483F] lg:p-7">
+                    <div class="mb-6">
+                
+
+                        <h2 class="mt-1 text-2xl font-semibold text-[#1C2B24] dark:text-white">
+                            Student information
+                        </h2>
+
+                        <p class="mt-1 text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
+                            Select the student who will receive this marksheet.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-[#1C2B24] dark:text-white">
+                                Student
+                            </label>
+
+                            <select
+                                v-model="selectedStudent"
+                                class="w-full border border-[#D8DDD3] bg-white px-4 py-3 text-sm text-[#1C2B24] outline-none focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#39483F] dark:bg-[#17221D] dark:text-white"
+                            >
+                                <option :value="null">
+                                    Select student
+                                </option>
+
+                                <option
+                                    v-for="student in studentStore.students"
+                                    :key="student.id"
+                                    :value="student"
+                                >
+                                    {{ student.name }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-[#1C2B24] dark:text-white">
+                                Class
+                            </label>
+
+                            <input
+                                type="text"
+                                :value="selectedStudent?.class || ''"
+                                disabled
+                                placeholder="Class will appear here"
+                                class="w-full border border-[#D8DDD3] bg-[#EFF1EA] px-4 py-3 text-sm text-[#5B6B62] outline-none dark:border-[#39483F] dark:bg-[#17221D] dark:text-[#7F9086]"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBJECTS -->
+                <div class="p-6 lg:p-7">
+                    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+
+                            <h2 class="mt-1 text-2xl font-semibold text-[#1C2B24] dark:text-white">
+                                Subjects & marks
+                            </h2>
+
+                            <p class="mt-1 text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
+                                Add each subject and its marking scheme.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            @click="addSubject"
+                            class="inline-flex items-center justify-center gap-2 bg-[#2F6F4E] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#275E42]"
+                        >
+                            <span class="text-lg leading-none">+</span>
+                            Add subject
+                        </button>
+                    </div>
+
+                    <!-- TABLE -->
+                    <div class="overflow-x-auto border border-[#D8DDD3] dark:border-[#39483F]">
+                        <table class="w-full min-w-[950px]">
+                            <thead class="border-b border-[#D8DDD3] bg-[#EFF1EA] dark:border-[#39483F] dark:bg-[#17221D]">
+                                <tr>
+                                    <th class="w-16 px-4 py-3 text-left text-xs font-semibold text-[#5B6B62] dark:text-[#AEBBB3]">
+                                        S.N.
+                                    </th>
+
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-[#5B6B62] dark:text-[#AEBBB3]">
+                                        Subject
+                                    </th>
+
+                                    <th class="w-40 px-4 py-3 text-left text-xs font-semibold text-[#5B6B62] dark:text-[#AEBBB3]">
+                                        Full marks
+                                    </th>
+
+                                    <th class="w-40 px-4 py-3 text-left text-xs font-semibold text-[#5B6B62] dark:text-[#AEBBB3]">
+                                        Pass marks
+                                    </th>
+
+                                    <th class="w-48 px-4 py-3 text-left text-xs font-semibold text-[#5B6B62] dark:text-[#AEBBB3]">
+                                        Obtained
+                                    </th>
+
+                                    <th class="w-24 px-4 py-3 text-center text-xs font-semibold text-[#5B6B62] dark:text-[#AEBBB3]">
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr
+                                    v-for="(subject, index) in subjects"
+                                    :key="index"
+                                    class="border-b border-[#D8DDD3] last:border-b-0 dark:border-[#39483F]"
+                                >
+                                    <td class="px-4 py-4 text-sm font-semibold text-[#5B6B62] dark:text-[#AEBBB3]">
+                                        {{ index + 1 }}
+                                    </td>
+
+                                    <td class="px-4 py-4">
+                                        <input
+                                            v-model="subject.subject_name"
+                                            type="text"
+                                            placeholder="e.g. Mathematics"
+                                            class="w-full border border-[#D8DDD3] bg-white px-3 py-2.5 text-sm text-[#1C2B24] outline-none focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#39483F] dark:bg-[#17221D] dark:text-white"
+                                        >
+                                    </td>
+
+                                    <td class="px-4 py-4">
+                                        <input
+                                            v-model="subject.full_marks"
+                                            type="number"
+                                            min="1"
+                                            step="0.01"
+                                            placeholder="100"
+                                            class="w-full border border-[#D8DDD3] bg-white px-3 py-2.5 text-sm text-[#1C2B24] outline-none focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#39483F] dark:bg-[#17221D] dark:text-white"
+                                        >
+                                    </td>
+
+                                    <td class="px-4 py-4">
+                                        <input
+                                            v-model="subject.pass_marks"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder="40"
+                                            class="w-full border border-[#D8DDD3] bg-white px-3 py-2.5 text-sm text-[#1C2B24] outline-none focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#39483F] dark:bg-[#17221D] dark:text-white"
+                                        >
+                                    </td>
+
+                                    <td class="px-4 py-4">
+                                        <input
+                                            v-model="subject.marks"
+                                            type="text"
+                                            inputmode="decimal"
+                                            placeholder="Marks or A"
+                                            class="w-full border border-[#D8DDD3] bg-white px-3 py-2.5 text-sm text-[#1C2B24] outline-none focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#39483F] dark:bg-[#17221D] dark:text-white"
+                                        >
+                                    </td>
+
+                                    <td class="px-4 py-4 text-center">
+                                        <button
+                                            type="button"
+                                            @click="removeSubject(index)"
+                                            :disabled="subjects.length === 1"
+                                            class="text-sm font-medium text-[#B5563C] hover:underline disabled:cursor-not-allowed disabled:opacity-30"
+                                        >
+                                            Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- LEDGER SUMMARY -->
+                    <div class="mt-6 border-y border-[#D8DDD3] dark:border-[#39483F]">
+                        <div class="grid grid-cols-2 divide-x divide-[#D8DDD3] dark:divide-[#39483F] md:grid-cols-4">
+                            <div class="p-4">
+                                <p class="text-xs text-[#5B6B62] dark:text-[#AEBBB3]">Full marks</p>
+                                <p class="mt-1 text-xl font-semibold">{{ totalFullMarks }}</p>
+                            </div>
+
+                            <div class="p-4">
+                                <p class="text-xs text-[#5B6B62] dark:text-[#AEBBB3]">Obtained</p>
+                                <p class="mt-1 text-xl font-semibold">{{ totalMarks }}</p>
+                            </div>
+
+                            <div class="border-t border-[#D8DDD3] p-4 dark:border-[#39483F] md:border-t-0">
+                                <p class="text-xs text-[#5B6B62] dark:text-[#AEBBB3]">Percentage</p>
+                                <p class="mt-1 text-xl font-semibold">{{ percentage }}%</p>
+                            </div>
+
+                            <div class="border-t border-[#D8DDD3] p-4 dark:border-[#39483F] md:border-t-0">
+                                <p class="text-xs text-[#5B6B62] dark:text-[#AEBBB3]">Result</p>
+                                <p
+                                    class="mt-1 text-xl font-semibold"
+                                    :class="result === 'Pass' ? 'text-[#2F6F4E] dark:text-[#75B28F]' : 'text-[#B5563C]'"
+                                >
+                                    {{ result }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SAVE -->
+                    <div class="mt-6 flex flex-col-reverse gap-3 border-t border-[#D8DDD3] pt-6 dark:border-[#39483F] sm:flex-row sm:justify-end">
+                        <button
+                            type="button"
+                            @click="$router.push('/marksheets')"
+                            class="border border-[#D8DDD3] px-5 py-2.5 text-sm font-semibold text-[#5B6B62] hover:border-[#1C2B24] hover:text-[#1C2B24] dark:border-[#39483F] dark:text-[#AEBBB3] dark:hover:border-white dark:hover:text-white"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            :disabled="saving"
+                            @click="saveMarksheet"
+                            class="bg-[#2F6F4E] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#275E42] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {{ saving ? 'Saving...' : 'Save marksheet' }}
+                        </button>
+                    </div>
+                </div>
+            </section>
         </div>
-
     </div>
-
-</div>
-
 </template>

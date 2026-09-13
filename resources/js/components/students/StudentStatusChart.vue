@@ -99,20 +99,28 @@ const chartOptions = {
 <template>
 
     <div
-        class="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
+        class="border border-hairline bg-surface"
     >
-
         <div
-            class="h-72"
+            class="flex items-center justify-between border-b border-hairline px-5 py-4"
         >
+            <div>
+                <h2 class="font-serif text-xl font-medium text-ink">
+                    Student Performance
+                </h2>
 
+                <p class="mt-1 text-xs text-ink-soft">
+                    Marks distribution across students
+                </p>
+            </div>
+        </div>
+
+        <div class="h-72 p-5">
             <Bar
                 :data="chartData"
                 :options="chartOptions"
             />
-
         </div>
-
     </div>
 
 </template>

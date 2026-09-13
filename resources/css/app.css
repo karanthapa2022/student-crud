@@ -1,2 +1,81 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../*/.blade.php';
+@source '../*/.js';
+
+@theme {
+    --font-sans:
+        ui-sans-serif,
+        system-ui,
+        sans-serif;
+
+    --font-serif:
+        ui-serif,
+        Georgia,
+        serif;
+
+    --color-paper: #FFFFFF;
+    --color-surface: #FFFFFF;
+    --color-ink: #1C2B24;
+    --color-ink-soft: #5B6B62;
+    --color-hairline: #D8DDD3;
+    --color-forest: #2F6F4E;
+    --color-sienna: #B5563C;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+    background: #FFFFFF;
+    color: #1C2B24;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+#app {
+    min-height: 100vh;
+}
+
+img,
+svg,
+video {
+    max-width: 100%;
+}
+
+:focus-visible {
+    outline: 2px solid #2F6F4E;
+    outline-offset: 2px;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+    transition-property:
+        color,
+        background-color,
+        border-color,
+        box-shadow,
+        opacity;
+    transition-duration: 150ms;
+    transition-timing-function: ease-in-out;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+    background: #2F6F4E;
+    color: #FFFFFF;
+}

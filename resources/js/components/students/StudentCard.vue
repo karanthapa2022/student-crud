@@ -1,4 +1,3 @@
-
 <script setup>
 
 import BaseButton from '../BaseButton.vue'
@@ -31,48 +30,71 @@ const emit = defineEmits([
 </script>
 
 
+
 <template>
 
     <!-- ================================================= -->
-    <!-- BASE CARD -->
+    <!-- STUDENT CARD -->
     <!-- ================================================= -->
 
-    <BaseCard>
-
+    <BaseCard
+        class="!rounded-none !border-hairline !bg-surface !shadow-none"
+    >
 
         <!-- ================================================= -->
-        <!-- HEADER SLOT -->
+        <!-- HEADER -->
         <!-- ================================================= -->
 
         <template #header>
 
-            <!--
-                Forward the parent's header slot.
-
-                If StudentList provides #header,
-                that content will be displayed here.
-
-                Otherwise, show the student's name.
-            -->
-
             <slot name="header">
 
-                <div
-                    class="flex justify-between items-center"
-                >
+                <div class="border-b border-hairline px-5 py-4">
 
-                    <h3
-                        class="font-bold text-lg text-gray-900"
+                    <div
+                        class="flex items-start justify-between gap-4"
                     >
-                        {{ student.name }}
-                    </h3>
+
+                        <!-- STUDENT IDENTITY -->
+
+                        <div class="min-w-0">
+
+                            <p
+                                class="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-ink-soft"
+                            >
+                                Student
+                            </p>
+
+                            <h3
+                                class="truncate text-xl font-semibold tracking-tight text-ink"
+                            >
+                                {{ student.name }}
+                            </h3>
+
+                        </div>
 
 
-                    <span
-                        class="text-sm text-gray-500"
-                    >
-                        #{{ student.id }}
-                    </span>
+                        <!-- STUDENT NUMBER -->
+
+                        <div
+                            class="shrink-0 border-l border-hairline pl-4 text-right"
+                        >
+
+                            <p
+                                class="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-soft"
+                            >
+                                ID
+                            </p>
+
+                            <p
+                                class="mt-1 font-mono text-sm font-semibold text-ink"
+                            >
+                                #{{ student.id }}
+                            </p>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -85,66 +107,98 @@ const emit = defineEmits([
         <!-- STUDENT INFORMATION -->
         <!-- ================================================= -->
 
-        <div class="space-y-3">
+        <div class="px-5 py-5">
 
-            <!-- EMAIL -->
+            <div
+                class="grid grid-cols-1 divide-y divide-hairline sm:grid-cols-2 sm:divide-x sm:divide-y-0"
+            >
 
-            <div>
+                <!-- EMAIL -->
 
-                <p
-                    class="text-xs font-medium text-gray-500 uppercase"
-                >
-                    Email
-                </p>
+                <div class="pb-4 sm:pr-5 sm:pb-0">
 
-                <p
-                    class="text-sm text-gray-800 break-all mt-1"
-                >
-                    {{ student.email }}
-                </p>
+                    <p
+                        class="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-soft"
+                    >
+                        Email
+                    </p>
+
+                    <p
+                        class="mt-2 break-all text-sm leading-6 text-ink"
+                    >
+                        {{ student.email || 'Not provided' }}
+                    </p>
+
+                </div>
+
+
+                <!-- PHONE -->
+
+                <div class="pt-4 sm:pl-5 sm:pt-0">
+
+                    <p
+                        class="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-soft"
+                    >
+                        Phone
+                    </p>
+
+                    <p
+                        class="mt-2 text-sm leading-6 text-ink"
+                    >
+                        {{ student.phone || 'Not provided' }}
+                    </p>
+
+                </div>
 
             </div>
 
 
-            <!-- PHONE -->
-
-            <div>
-
-                <p
-                    class="text-xs font-medium text-gray-500 uppercase"
-                >
-                    Phone
-                </p>
-
-                <p
-                    class="text-sm text-gray-800 mt-1"
-                >
-                    {{ student.phone }}
-                </p>
-
-            </div>
-
-
+            <!-- ================================================= -->
             <!-- STATUS -->
+            <!-- ================================================= -->
 
-            <div>
+            <div
+                class="mt-5 border-t border-hairline pt-4"
+            >
 
-                <p
-                    class="text-xs font-medium text-gray-500 uppercase"
+                <div
+                    class="flex items-center justify-between gap-4"
                 >
-                    Status
-                </p>
 
-                <span
-                    class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold"
-                    :class="
-                        student.status === 'active'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
-                    "
-                >
-                    {{ student.status }}
-                </span>
+                    <div>
+
+                        <p
+                            class="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-soft"
+                        >
+                            Account status
+                        </p>
+
+                    </div>
+
+
+                    <span
+                        class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em]"
+                        :class="
+                            student.status === 'active'
+                                ? 'text-forest'
+                                : 'text-sienna'
+                        "
+                    >
+
+                        <span
+                            class="h-2 w-2"
+                            :class="
+                                student.status === 'active'
+                                    ? 'bg-forest'
+                                    : 'bg-sienna'
+                            "
+                        ></span>
+
+                        {{ student.status }}
+
+                    </span>
+
+                </div>
 
             </div>
 
@@ -155,7 +209,7 @@ const emit = defineEmits([
 
             <div
                 v-if="$slots.default"
-                class="pt-2"
+                class="mt-5 border-t border-hairline pt-5"
             >
 
                 <slot />
@@ -166,30 +220,33 @@ const emit = defineEmits([
 
 
         <!-- ================================================= -->
-        <!-- BUTTONS -->
+        <!-- ACTIONS -->
         <!-- ================================================= -->
 
         <div
-            class="flex gap-3 mt-6"
+            class="flex border-t border-hairline"
         >
 
             <!-- EDIT -->
 
-            <BaseButton
+            <button
+                type="button"
+                class="flex-1 border-r border-hairline px-5 py-3 text-left text-xs font-bold uppercase tracking-[0.14em] text-forest transition-colors hover:bg-forest hover:text-white"
                 @click="emit('edit', student)"
             >
-                Edit
-            </BaseButton>
+                Edit student
+            </button>
 
 
             <!-- DELETE -->
 
-            <BaseButton
-                variant="danger"
+            <button
+                type="button"
+                class="px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-sienna transition-colors hover:bg-sienna hover:text-white"
                 @click="emit('delete', student)"
             >
                 Delete
-            </BaseButton>
+            </button>
 
         </div>
 

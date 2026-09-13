@@ -23,6 +23,11 @@ import UserManagement from './components/users/UserManagement.vue'
 
 const routes = [
 
+    {
+        path: '/',
+        redirect: '/login'
+    },
+
     // =====================================================
     // PUBLIC ROUTES
     // =====================================================
@@ -374,50 +379,36 @@ router.beforeEach((to) => {
     let currentUser = null
     let currentToken = null
 
-    /*
-     * Priority is important here.
-     *
-     * Teacher routes should use teacher authentication.
-     * Parent routes should use parent authentication.
-     * Admin routes should use admin authentication.
-     */
-
+    // Login stores the active session in the generic keys. Prefer that
+    // session so stale role-specific tokens cannot change route access.
     if (
+        adminToken &&
+        adminUser &&
+        ['admin', 'teacher', 'student', 'parent'].includes(adminUser.role)
+    ) {
+        currentUser = adminUser
+        currentToken = adminToken
+    } else if (
         teacherToken &&
         teacherUser &&
         teacherUser.role === 'teacher'
     ) {
-
         currentUser = teacherUser
         currentToken = teacherToken
-
     } else if (
         studentToken &&
         studentUser &&
         studentUser.role === 'student'
     ) {
-
         currentUser = studentUser
         currentToken = studentToken
-
     } else if (
         parentToken &&
         parentUser &&
         parentUser.role === 'parent'
     ) {
-
         currentUser = parentUser
         currentToken = parentToken
-
-    } else if (
-        adminToken &&
-        adminUser &&
-        adminUser.role === 'admin'
-    ) {
-
-        currentUser = adminUser
-        currentToken = adminToken
-
     }
 
 

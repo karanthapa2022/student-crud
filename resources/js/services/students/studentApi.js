@@ -1,6 +1,5 @@
 import axios from 'axios'
-
-const API_URL = 'http://127.0.0.1:8000/api'
+import { API_BASE_URL, getAuthToken } from '../apiConfig'
 
 
 // =========================================================
@@ -9,7 +8,7 @@ const API_URL = 'http://127.0.0.1:8000/api'
 
 const api = axios.create({
 
-    baseURL: API_URL,
+    baseURL: API_BASE_URL,
 
     headers: {
 
@@ -23,52 +22,6 @@ const api = axios.create({
 // =========================================================
 // AUTH TOKEN
 // =========================================================
-
-const getAuthToken = () => {
-
-    // =====================================================
-    // TEACHER
-    // =====================================================
-
-    const teacherToken =
-        localStorage.getItem('teacher_token')
-
-    const teacherUser =
-        localStorage.getItem('teacher_user')
-
-    if (teacherToken && teacherUser) {
-
-        try {
-
-            const user =
-                JSON.parse(teacherUser)
-
-            if (user.role === 'teacher') {
-
-                return teacherToken
-
-            }
-
-        } catch (error) {
-
-            console.error(
-                'Invalid teacher user data:',
-                error
-            )
-
-        }
-
-    }
-
-
-    // =====================================================
-    // ADMIN
-    // =====================================================
-
-    return localStorage.getItem('token')
-
-}
-
 
 // =========================================================
 // AXIOS INTERCEPTOR

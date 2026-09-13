@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { API_BASE_URL, getAuthToken } from '../apiConfig'
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: API_BASE_URL,
 })
 
 // =========================================================
@@ -13,7 +14,7 @@ export const getAddresses = (page = 1,
     provinceFilter='all'
 ) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.get('/addresses', {
         params: {
@@ -36,7 +37,7 @@ export const getAddresses = (page = 1,
 
 export const getAddress = (id) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.get(`/addresses/${id}`, {
         headers: {
@@ -54,7 +55,7 @@ export const getAddress = (id) => {
 
 export const createAddress = (data) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.post('/addresses', data, {
         headers: {
@@ -72,7 +73,7 @@ export const createAddress = (data) => {
 
 export const updateAddress = (id, data) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.put(`/addresses/${id}`, data, {
         headers: {
@@ -90,7 +91,7 @@ export const updateAddress = (id, data) => {
 
 export const deleteAddress = (id) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.delete(`/addresses/${id}`, {
         headers: {

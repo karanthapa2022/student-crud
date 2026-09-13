@@ -224,854 +224,866 @@ onMounted(() => {
 
 
 <template>
+    <main class="min-h-screen bg-paper px-4 py-8 text-ink sm:px-6 lg:px-8">
+        <div class="mx-auto w-full max-w-7xl">
 
-<div
-    class="p-6 lg:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors"
->
+            <!-- =====================================================
+                 LETTERHEAD
+            ====================================================== -->
 
-    <div class="w-full max-w-7xl mx-auto">
-
-
-        <!-- =====================================================
-             HEADER
-        ====================================================== -->
-
-        <div
-            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7"
-        >
-
-            <div>
-
-                <h1
-                    class="text-2xl font-bold text-gray-900 dark:text-white"
+            <header class="border-b border-hairline pb-6">
+                <div
+                    class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"
                 >
-                    Subjects
-                </h1>
 
-                <p
-                    class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                >
-                    Manage student subjects and teacher assignments
-                </p>
+                    <div>
+                        <div class="flex items-center gap-3">
 
-            </div>
+                            <div
+                                class="flex h-10 w-10 items-center justify-center border border-forest bg-surface text-sm font-semibold text-forest"
+                            >
+                                SB
+                            </div>
 
+                            <div>
+                                <p class="text-sm font-semibold text-ink">
+                                    Student Records
+                                </p>
 
-            <!-- HEADER ACTIONS -->
+                                <p class="text-xs text-ink-soft">
+                                    Academic administration
+                                </p>
+                            </div>
 
-<div class="flex flex-col sm:flex-row gap-3">
+                        </div>
 
-    <!-- ADMIN DASHBOARD -->
-    <button
-        type="button"
-                    @click="$router.push('/dashboard')"
-        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 dark:bg-purple-700 text-white font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition shadow-sm"
-    >
-        Dashboard
-    </button>
-
-    <!-- ADD SUBJECT -->
-    <button
-        type="button"
-        @click="openAddModal"
-        class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold shadow-sm hover:bg-green-700 transition"
-    >
-
-        <span class="mr-1">
-            +
-        </span>
-
-        Add Subject
-
-    </button>
-
-</div>
-
-        </div>
-
-
-        <!-- =====================================================
-             SEARCH & FILTER CARD
-        ====================================================== -->
-
-        <div
-            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-5 mb-6 transition-colors"
-        >
-
-            <div
-                class="flex flex-col md:flex-row gap-4"
-            >
-
-                <!-- SEARCH -->
-
-                <div class="flex-1">
-
-                    <label
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                        Search Subjects
-                    </label>
-
-                    <div class="relative">
-
-                        <span
-                            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        <h1
+                            class="mt-6 text-4xl font-medium tracking-tight text-ink sm:text-5xl"
                         >
-                            🔍
-                        </span>
+                            Subjects
+                        </h1>
 
-                        <input
-                            v-model="searchQuery"
-                            type="text"
-                            placeholder="Search by subject name or code"
-                            class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                        <p
+                            class="mt-2 max-w-2xl text-sm leading-6 text-ink-soft"
                         >
+                            Manage subjects, course information, and teacher
+                            assignments across the student management system.
+                        </p>
+                    </div>
+
+
+                    <!-- HEADER ACTIONS -->
+
+                    <div class="flex flex-col gap-2 sm:flex-row">
+
+                        <button
+                            type="button"
+                            @click="$router.push('/admin/dashboard')"
+                            class="inline-flex w-fit items-center border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
+                        >
+                            ← Dashboard
+                        </button>
+
+                        <button
+                            type="button"
+                            @click="openAddModal"
+                            class="inline-flex w-fit items-center border border-forest bg-forest px-4 py-2.5 text-sm font-medium text-white hover:bg-forest/90"
+                        >
+                            <span class="mr-2 text-base leading-none">
+                                +
+                            </span>
+
+                            Add subject
+                        </button>
 
                     </div>
 
                 </div>
+            </header>
 
 
-                <!-- TEACHER FILTER -->
+            <!-- =====================================================
+                 SEARCH & FILTER
+            ====================================================== -->
 
-                <div class="w-full md:w-64">
+            <section
+                class="mt-8 border border-hairline bg-surface"
+            >
 
-                    <label
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                <div
+                    class="border-b border-hairline px-5 py-5"
+                >
+                    <h2 class="text-2xl font-medium text-ink">
+                        Find subjects
+                    </h2>
+
+                    <p class="mt-1 text-sm text-ink-soft">
+                        Search by subject name or code and filter by teacher
+                        assignment.
+                    </p>
+                </div>
+
+
+                <div
+                    class="grid gap-5 p-5 md:grid-cols-[1fr_280px]"
+                >
+
+                    <!-- SEARCH -->
+
+                    <div>
+                        <label
+                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                        >
+                            Search
+                        </label>
+
+                        <div class="relative">
+
+                            <span
+                                class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-soft"
+                            >
+                                /
+                            </span>
+
+                            <input
+                                v-model="searchQuery"
+                                type="text"
+                                placeholder="Search by subject name or code"
+                                class="w-full border border-hairline bg-surface px-3 py-2.5 pl-8 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                            />
+
+                        </div>
+                    </div>
+
+
+                    <!-- TEACHER FILTER -->
+
+                    <div>
+                        <label
+                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                        >
+                            Teacher assignment
+                        </label>
+
+                        <select
+                            v-model="teacherFilter"
+                            class="w-full border border-hairline bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-forest focus:ring-1 focus:ring-forest"
+                        >
+
+                            <option value="all">
+                                All subjects
+                            </option>
+
+                            <option value="with_teacher">
+                                With teacher
+                            </option>
+
+                            <option value="without_teacher">
+                                Without teacher
+                            </option>
+
+                        </select>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =====================================================
+                 ERROR
+            ====================================================== -->
+
+            <div
+                v-if="subjectStore.error"
+                class="mt-6 border border-sienna/30 bg-surface px-4 py-3"
+            >
+
+                <div class="flex items-start gap-3">
+
+                    <span
+                        class="text-sm font-semibold text-sienna"
                     >
-                        Teacher Assignment
-                    </label>
+                        !
+                    </span>
 
-                    <select
-                        v-model="teacherFilter"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                    >
-
-                        <option value="all">
-                            All Subjects
-                        </option>
-
-                        <option value="with_teacher">
-                            With Teacher
-                        </option>
-
-                        <option value="without_teacher">
-                            Without Teacher
-                        </option>
-
-                    </select>
+                    <p class="text-sm text-sienna">
+                        {{ subjectStore.error }}
+                    </p>
 
                 </div>
 
             </div>
 
-        </div>
 
+            <!-- =====================================================
+                 SUBJECT LEDGER
+            ====================================================== -->
 
-        <!-- =====================================================
-             ERROR
-        ====================================================== -->
+            <section
+                class="mt-6 border border-hairline bg-surface"
+            >
 
-        <div
-            v-if="subjectStore.error"
-            class="mb-5 p-4 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
-        >
+                <!-- SECTION HEADER -->
 
-            <div class="flex items-center gap-2">
+                <div
+                    class="flex flex-col gap-2 border-b border-hairline px-5 py-5 sm:flex-row sm:items-center sm:justify-between"
+                >
 
-                <span>
-                    ⚠️
-                </span>
+                    <div>
+                        <h2 class="text-2xl font-medium text-ink">
+                            Subject register
+                        </h2>
 
-                <span class="text-sm font-medium">
-                    {{ subjectStore.error }}
-                </span>
+                        <p class="mt-1 text-sm text-ink-soft">
+                            Subjects currently registered in the system.
+                        </p>
+                    </div>
 
-            </div>
-
-        </div>
-
-
-        <!-- =====================================================
-             TABLE CARD
-        ====================================================== -->
-
-        <div
-            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden transition-colors"
-        >
-
-            <div class="overflow-x-auto">
-
-                <table class="w-full min-w-[850px]">
-
-
-                    <!-- =================================================
-                         TABLE HEADER
-                    ================================================== -->
-
-                    <thead
-                        class="bg-gray-50 dark:bg-gray-700"
+                    <p
+                        v-if="!subjectStore.loading"
+                        class="text-xs text-ink-soft"
                     >
+                        {{ subjectStore.pagination.totalSubjects }}
+                        subject{{
+                            subjectStore.pagination.totalSubjects === 1
+                                ? ''
+                                : 's'
+                        }}
+                    </p>
 
-                        <tr>
-
-                            <th
-                                class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-200"
-                            >
-                                S.N.
-                            </th>
-
-                            <th
-                                class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-200"
-                            >
-                                Subject Name
-                            </th>
-
-                            <th
-                                class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-200"
-                            >
-                                Code
-                            </th>
-
-                            <th
-                                class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-200"
-                            >
-                                Description
-                            </th>
-
-                            <th
-                                class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-200"
-                            >
-                                Actions
-                            </th>
-
-                        </tr>
-
-                    </thead>
+                </div>
 
 
-                    <!-- =================================================
-                         TABLE BODY
-                    ================================================== -->
+                <!-- TABLE -->
 
-                    <tbody>
+                <div class="overflow-x-auto">
 
+                    <table class="w-full min-w-[850px] text-left">
 
-                        <!-- LOADING -->
+                        <!-- TABLE HEAD -->
 
-                        <tr v-if="subjectStore.loading">
-
-                            <td
-                                colspan="5"
-                                class="px-5 py-12 text-center"
+                        <thead>
+                            <tr
+                                class="border-b border-hairline bg-paper/60"
                             >
 
-                                <div
-                                    class="flex flex-col items-center"
+                                <th
+                                    class="w-20 px-5 py-3 text-xs font-medium text-ink-soft"
+                                >
+                                    S.N.
+                                </th>
+
+                                <th
+                                    class="px-5 py-3 text-xs font-medium text-ink-soft"
+                                >
+                                    Subject
+                                </th>
+
+                                <th
+                                    class="px-5 py-3 text-xs font-medium text-ink-soft"
+                                >
+                                    Code
+                                </th>
+
+                                <th
+                                    class="px-5 py-3 text-xs font-medium text-ink-soft"
+                                >
+                                    Description
+                                </th>
+
+                                <th
+                                    class="px-5 py-3 text-xs font-medium text-ink-soft"
+                                >
+                                    Actions
+                                </th>
+
+                            </tr>
+                        </thead>
+
+
+                        <tbody>
+
+                            <!-- =================================================
+                                 LOADING
+                            ================================================== -->
+
+                            <tr v-if="subjectStore.loading">
+
+                                <td
+                                    colspan="5"
+                                    class="px-5 py-12 text-center"
                                 >
 
                                     <div
-                                        class="w-8 h-8 border-4 border-gray-200 dark:border-gray-600 border-t-green-600 rounded-full animate-spin mb-3"
+                                        class="mx-auto mb-4 h-7 w-7 animate-spin rounded-full border-2 border-hairline border-t-forest"
                                     ></div>
 
-                                    <p
-                                        class="text-sm text-gray-500 dark:text-gray-400"
-                                    >
+                                    <p class="text-sm text-ink-soft">
                                         Loading subjects...
                                     </p>
 
-                                </div>
+                                </td>
 
-                            </td>
-
-                        </tr>
+                            </tr>
 
 
-                        <!-- EMPTY -->
+                            <!-- =================================================
+                                 EMPTY
+                            ================================================== -->
 
-                        <tr
-                            v-else-if="subjectStore.subjects.length === 0"
-                        >
-
-                            <td
-                                colspan="5"
-                                class="px-5 py-12 text-center"
+                            <tr
+                                v-else-if="
+                                    subjectStore.subjects.length === 0
+                                "
                             >
 
-                                <div
-                                    class="flex flex-col items-center"
+                                <td
+                                    colspan="5"
+                                    class="px-5 py-14 text-center"
                                 >
 
                                     <div
-                                        class="w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-2xl mb-3"
+                                        class="mx-auto flex h-12 w-12 items-center justify-center border border-hairline bg-paper text-lg text-forest"
                                     >
-                                        📚
+                                        —
                                     </div>
 
                                     <p
-                                        class="font-semibold text-gray-700 dark:text-gray-300"
+                                        class="mt-4 text-sm font-medium text-ink"
                                     >
                                         No subjects found
                                     </p>
 
                                     <p
-                                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                                        class="mt-1 text-sm text-ink-soft"
                                     >
                                         Try changing your search or filter.
                                     </p>
 
-                                </div>
+                                </td>
 
-                            </td>
-
-                        </tr>
+                            </tr>
 
 
-                        <!-- SUBJECTS -->
+                            <!-- =================================================
+                                 SUBJECT ROWS
+                            ================================================== -->
 
-                        <tr
-                            v-else
-                            v-for="(subject, index) in subjectStore.subjects"
-                            :key="subject.id"
-                            class="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
-                        >
-
-                            <!-- S.N. -->
-
-                            <td
-                                class="px-5 py-4 text-sm text-gray-600 dark:text-gray-300"
+                            <tr
+                                v-else
+                                v-for="(subject, index) in subjectStore.subjects"
+                                :key="subject.id"
+                                class="border-b border-hairline last:border-b-0 hover:bg-paper/40"
                             >
 
-                                {{
-                                    (subjectStore.pagination.currentPage - 1)
-                                    * subjectStore.pagination.perPage
-                                    + index + 1
-                                }}
+                                <!-- S.N. -->
 
-                            </td>
-
-
-                            <!-- SUBJECT NAME -->
-
-                            <td
-                                class="px-5 py-4"
-                            >
-
-                                <span
-                                    class="font-semibold text-gray-900 dark:text-white"
+                                <td
+                                    class="px-5 py-4 text-sm text-ink-soft"
                                 >
-                                    {{ subject.name }}
-                                </span>
-
-                            </td>
-
-
-                            <!-- CODE -->
-
-                            <td
-                                class="px-5 py-4"
-                            >
-
-                                <span
-                                    class="inline-flex items-center px-2.5 py-1 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold"
-                                >
-                                    {{ subject.code }}
-                                </span>
-
-                            </td>
+                                    {{
+                                        (subjectStore.pagination.currentPage - 1)
+                                        * subjectStore.pagination.perPage
+                                        + index + 1
+                                    }}
+                                </td>
 
 
-                            <!-- DESCRIPTION -->
+                                <!-- SUBJECT -->
 
-                            <td
-                                class="px-5 py-4 max-w-xs"
-                            >
+                                <td class="px-5 py-4">
 
-                                <p
-                                    class="text-sm text-gray-600 dark:text-gray-300 truncate"
-                                    :title="subject.description || '-'"
-                                >
-                                    {{ subject.description || '-' }}
-                                </p>
-
-                            </td>
-
-
-                            <!-- ACTIONS -->
-
-                            <td
-                                class="px-5 py-4"
-                            >
-
-                                <div
-                                    class="flex items-center gap-2"
-                                >
-
-                                    <!-- VIEW -->
-
-                                    <button
-                                        @click="openViewModal(subject)"
-                                        class="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                                    <p
+                                        class="text-lg font-medium text-ink"
                                     >
-                                        View
-                                    </button>
+                                        {{ subject.name }}
+                                    </p>
+
+                                </td>
 
 
-                                    <!-- EDIT -->
+                                <!-- CODE -->
 
-                                    <button
-                                        @click="openEditModal(subject)"
-                                        class="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
+                                <td class="px-5 py-4">
+
+                                    <span
+                                        class="inline-flex border border-forest/30 bg-paper px-2.5 py-1 text-xs font-medium text-forest"
                                     >
-                                        Edit
-                                    </button>
+                                        {{ subject.code }}
+                                    </span>
+
+                                </td>
 
 
-                                    <!-- DELETE -->
+                                <!-- DESCRIPTION -->
 
-                                    <button
-                                        @click="removeSubject(subject.id)"
-                                        class="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-xs font-semibold hover:bg-red-100 dark:hover:bg-red-900/50 transition"
+                                <td
+                                    class="max-w-sm px-5 py-4"
+                                >
+
+                                    <p
+                                        class="truncate text-sm text-ink-soft"
+                                        :title="
+                                            subject.description || '-'
+                                        "
                                     >
-                                        Delete
-                                    </button>
+                                        {{ subject.description || '-' }}
+                                    </p>
 
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
+                                </td>
 
 
-        <!-- =====================================================
-             PAGINATION
-        ====================================================== -->
+                                <!-- ACTIONS -->
 
-        <div
-            v-if="subjectStore.pagination.lastPage > 1"
-            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-5"
-        >
+                                <td class="px-5 py-4">
 
-            <!-- RESULTS -->
+                                    <div
+                                        class="flex items-center gap-4"
+                                    >
 
-            <p
-                class="text-sm text-gray-500 dark:text-gray-400"
-            >
+                                        <button
+                                            type="button"
+                                            @click="openViewModal(subject)"
+                                            class="text-sm font-medium text-ink hover:text-forest hover:underline"
+                                        >
+                                            View
+                                        </button>
 
-                Showing
-                <span class="font-medium text-gray-700 dark:text-gray-300">
-                    {{ subjectStore.pagination.from }}
-                </span>
-                -
-                <span class="font-medium text-gray-700 dark:text-gray-300">
-                    {{ subjectStore.pagination.to }}
-                </span>
-                of
-                <span class="font-medium text-gray-700 dark:text-gray-300">
-                    {{ subjectStore.pagination.totalSubjects }}
-                </span>
+                                        <button
+                                            type="button"
+                                            @click="openEditModal(subject)"
+                                            class="text-sm font-medium text-forest hover:underline"
+                                        >
+                                            Edit
+                                        </button>
 
-            </p>
+                                        <button
+                                            type="button"
+                                            @click="removeSubject(subject.id)"
+                                            class="text-sm font-medium text-sienna hover:underline"
+                                        >
+                                            Delete
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
 
 
-            <!-- PAGE CONTROLS -->
+            <!-- =====================================================
+                 PAGINATION
+            ====================================================== -->
 
             <div
-                class="flex items-center gap-2"
+                v-if="subjectStore.pagination.lastPage > 1"
+                class="flex flex-col gap-4 border-b border-hairline py-5 sm:flex-row sm:items-center sm:justify-between"
             >
 
-                <!-- PREVIOUS -->
+                <p class="text-sm text-ink-soft">
 
-                <button
-                    @click="
-                        changePage(
-                            subjectStore.pagination.currentPage - 1
-                        )
-                    "
-                    :disabled="
-                        subjectStore.pagination.currentPage === 1
-                    "
-                    class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                >
-                    Previous
-                </button>
+                    Showing
 
-
-                <!-- PAGE -->
-
-                <span
-                    class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300"
-                >
-
-                    Page
-                    {{ subjectStore.pagination.currentPage }}
-                    of
-                    {{ subjectStore.pagination.lastPage }}
-
-                </span>
-
-
-                <!-- NEXT -->
-
-                <button
-                    @click="
-                        changePage(
-                            subjectStore.pagination.currentPage + 1
-                        )
-                    "
-                    :disabled="
-                        subjectStore.pagination.currentPage ===
-                        subjectStore.pagination.lastPage
-                    "
-                    class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                >
-                    Next
-                </button>
-
-            </div>
-
-        </div>
-
-
-    </div>
-
-
-    <!-- =====================================================
-         ADD / EDIT MODAL
-    ====================================================== -->
-
-    <div
-        v-if="showModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-    >
-
-        <div
-            class="w-full max-w-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden"
-        >
-
-
-            <!-- MODAL HEADER -->
-
-            <div
-                class="px-6 py-5 border-b border-gray-200 dark:border-gray-700"
-            >
-
-                <div
-                    class="flex items-center justify-between"
-                >
-
-                    <div>
-
-                        <h2
-                            class="text-xl font-bold text-gray-900 dark:text-white"
-                        >
-
-                            {{
-                                editingSubject
-                                    ? 'Edit Subject'
-                                    : 'Add Subject'
-                            }}
-
-                        </h2>
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                        >
-
-                            {{
-                                editingSubject
-                                    ? 'Update subject information'
-                                    : 'Add a new subject to the system'
-                            }}
-
-                        </p>
-
-                    </div>
-
-
-                    <!-- CLOSE -->
-
-                    <button
-                        @click="closeModal"
-                        class="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 transition text-xl"
-                    >
-                        ×
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- MODAL BODY -->
-
-            <div class="p-6">
-
-
-                <!-- ERROR -->
-
-                <div
-                    v-if="errorMessage"
-                    class="mb-5 p-4 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
-                >
-
-                    <div class="flex items-center gap-2">
-
-                        <span>
-                            ⚠️
-                        </span>
-
-                        <span class="text-sm">
-                            {{ errorMessage }}
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-                <!-- NAME -->
-
-                <div class="mb-5">
-
-                    <label
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                        Subject Name
-                    </label>
-
-                    <input
-                        v-model="form.name"
-                        type="text"
-                        placeholder="Enter subject name"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                    >
-
-                </div>
-
-
-                <!-- CODE -->
-
-                <div class="mb-5">
-
-                    <label
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                        Subject Code
-                    </label>
-
-                    <input
-                        v-model="form.code"
-                        type="text"
-                        placeholder="Enter subject code"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 uppercase focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                    >
-
-                </div>
-
-
-                <!-- DESCRIPTION -->
-
-                <div class="mb-6">
-
-                    <label
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                        Description
-                    </label>
-
-                    <textarea
-                        v-model="form.description"
-                        rows="4"
-                        placeholder="Enter subject description"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition resize-none"
-                    ></textarea>
-
-                </div>
-
-
-                <!-- ACTIONS -->
-
-                <div
-                    class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-5 border-t border-gray-200 dark:border-gray-700"
-                >
-
-                    <!-- CANCEL -->
-
-                    <button
-                        @click="closeModal"
-                        class="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                    >
-                        Cancel
-                    </button>
-
-
-                    <!-- SAVE -->
-
-                    <button
-                        @click="saveSubject"
-                        :disabled="subjectStore.loading"
-                        class="px-5 py-2.5 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-
-                        {{
-                            editingSubject
-                                ? 'Update Subject'
-                                : 'Add Subject'
-                        }}
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         VIEW SUBJECT MODAL
-    ====================================================== -->
-
-    <div
-        v-if="viewingSubject"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-    >
-
-        <div
-            class="w-full max-w-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden"
-        >
-
-
-            <!-- MODAL HEADER -->
-
-            <div
-                class="px-6 py-5 border-b border-gray-200 dark:border-gray-700"
-            >
-
-                <div
-                    class="flex items-center justify-between"
-                >
-
-                    <div>
-
-                        <h2
-                            class="text-xl font-bold text-gray-900 dark:text-white"
-                        >
-                            Subject Details
-                        </h2>
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                        >
-                            View subject and teacher information
-                        </p>
-
-                    </div>
-
-
-                    <!-- CLOSE -->
-
-                    <button
-                        @click="viewingSubject = null"
-                        class="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 transition text-xl"
-                    >
-                        ×
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- MODAL BODY -->
-
-            <div class="p-6">
-
-
-                <!-- SUBJECT NAME -->
-
-                <div
-                    class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 mb-4"
-                >
-
-                    <p
-                        class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                    >
-                        Subject Name
-                    </p>
-
-                    <p
-                        class="mt-1 font-semibold text-gray-900 dark:text-white"
-                    >
-                        {{ viewingSubject.name }}
-                    </p>
-
-                </div>
-
-
-                <!-- CODE -->
-
-                <div
-                    class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 mb-4"
-                >
-
-                    <p
-                        class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                    >
-                        Subject Code
-                    </p>
-
-                    <span
-                        class="inline-flex mt-2 px-2.5 py-1 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-sm font-semibold"
-                    >
-                        {{ viewingSubject.code }}
+                    <span class="font-medium text-ink">
+                        {{ subjectStore.pagination.from }}
                     </span>
 
+                    -
+
+                    <span class="font-medium text-ink">
+                        {{ subjectStore.pagination.to }}
+                    </span>
+
+                    of
+
+                    <span class="font-medium text-ink">
+                        {{ subjectStore.pagination.totalSubjects }}
+                    </span>
+
+                </p>
+
+
+                <div class="flex items-center">
+
+                    <button
+                        type="button"
+                        @click="
+                            changePage(
+                                subjectStore.pagination.currentPage - 1
+                            )
+                        "
+                        :disabled="
+                            subjectStore.pagination.currentPage === 1
+                        "
+                        class="border border-hairline bg-surface px-3 py-2 text-sm font-medium text-ink hover:border-forest hover:text-forest disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        ← Previous
+                    </button>
+
+
+                    <span
+                        class="border-y border-hairline bg-paper px-4 py-2 text-sm text-ink-soft"
+                    >
+                        Page
+                        <span class="font-medium text-ink">
+                            {{ subjectStore.pagination.currentPage }}
+                        </span>
+                        of
+                        <span class="font-medium text-ink">
+                            {{ subjectStore.pagination.lastPage }}
+                        </span>
+                    </span>
+
+
+                    <button
+                        type="button"
+                        @click="
+                            changePage(
+                                subjectStore.pagination.currentPage + 1
+                            )
+                        "
+                        :disabled="
+                            subjectStore.pagination.currentPage ===
+                            subjectStore.pagination.lastPage
+                        "
+                        class="border border-hairline bg-surface px-3 py-2 text-sm font-medium text-ink hover:border-forest hover:text-forest disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        Next →
+                    </button>
+
                 </div>
 
+            </div>
 
-                <!-- DESCRIPTION -->
+
+            <!-- =====================================================
+                 FOOTER NOTE
+            ====================================================== -->
+
+            <div class="border-t border-hairline py-5">
+
+                <p class="text-xs leading-5 text-ink-soft">
+                    Subjects define the academic structure of the student
+                    management system. Keep subject codes consistent and
+                    review teacher assignments regularly.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================================
+             ADD / EDIT MODAL
+        ========================================================== -->
+
+        <div
+            v-if="showModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4 py-6"
+        >
+
+            <div
+                class="w-full max-w-lg border border-hairline bg-surface"
+            >
+
+                <!-- MODAL HEADER -->
 
                 <div
-                    class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 mb-5"
+                    class="border-b border-hairline px-6 py-5"
                 >
 
-                    <p
-                        class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                    <div
+                        class="flex items-start justify-between gap-4"
                     >
-                        Description
-                    </p>
 
-                    <p
-                        class="mt-1 text-sm text-gray-700 dark:text-gray-200 leading-relaxed"
-                    >
-                        {{ viewingSubject.description || '-' }}
-                    </p>
+                        <div>
+
+                            <h2
+                                class="text-2xl font-medium text-ink"
+                            >
+                                {{
+                                    editingSubject
+                                        ? 'Edit subject'
+                                        : 'Add subject'
+                                }}
+                            </h2>
+
+                            <p
+                                class="mt-1 text-sm text-ink-soft"
+                            >
+                                {{
+                                    editingSubject
+                                        ? 'Update subject information.'
+                                        : 'Add a new subject to the system.'
+                                }}
+                            </p>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            @click="closeModal"
+                            class="text-2xl leading-none text-ink-soft hover:text-ink"
+                        >
+                            ×
+                        </button>
+
+                    </div>
 
                 </div>
 
 
-                <!-- TEACHER -->
+                <!-- MODAL BODY -->
 
-                <div>
+                <div class="p-6">
 
-                    <div class="flex items-center justify-between mb-3">
+                    <!-- ERROR -->
+
+                    <div
+                        v-if="errorMessage"
+                        class="mb-5 border border-sienna/30 bg-paper px-4 py-3"
+                    >
+
+                        <div class="flex items-start gap-3">
+
+                            <span
+                                class="font-semibold text-sienna"
+                            >
+                                !
+                            </span>
+
+                            <p class="text-sm text-sienna">
+                                {{ errorMessage }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- NAME -->
+
+                    <div class="mb-5">
+
+                        <label
+                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                        >
+                            Subject name
+                        </label>
+
+                        <input
+                            v-model="form.name"
+                            type="text"
+                            placeholder="Enter subject name"
+                            class="w-full border border-hairline bg-surface px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                        />
+
+                    </div>
+
+
+                    <!-- CODE -->
+
+                    <div class="mb-5">
+
+                        <label
+                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                        >
+                            Subject code
+                        </label>
+
+                        <input
+                            v-model="form.code"
+                            type="text"
+                            placeholder="Enter subject code"
+                            class="w-full border border-hairline bg-surface px-3 py-2.5 text-sm uppercase text-ink outline-none placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                        />
+
+                    </div>
+
+
+                    <!-- DESCRIPTION -->
+
+                    <div class="mb-6">
+
+                        <label
+                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                        >
+                            Description
+                        </label>
+
+                        <textarea
+                            v-model="form.description"
+                            rows="4"
+                            placeholder="Enter subject description"
+                            class="w-full resize-none border border-hairline bg-surface px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- ACTIONS -->
+
+                    <div
+                        class="flex flex-col-reverse gap-2 border-t border-hairline pt-5 sm:flex-row sm:justify-end"
+                    >
+
+                        <button
+                            type="button"
+                            @click="closeModal"
+                            class="border border-hairline bg-surface px-5 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
+                        >
+                            Cancel
+                        </button>
+
+
+                        <button
+                            type="button"
+                            @click="saveSubject"
+                            :disabled="subjectStore.loading"
+                            class="border border-forest bg-forest px-5 py-2.5 text-sm font-medium text-white hover:bg-forest/90 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {{
+                                editingSubject
+                                    ? 'Update subject'
+                                    : 'Add subject'
+                            }}
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================================
+             VIEW SUBJECT MODAL
+        ========================================================== -->
+
+        <div
+            v-if="viewingSubject"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4 py-6"
+        >
+
+            <div
+                class="w-full max-w-lg border border-hairline bg-surface"
+            >
+
+                <!-- MODAL HEADER -->
+
+                <div
+                    class="border-b border-hairline px-6 py-5"
+                >
+
+                    <div
+                        class="flex items-start justify-between gap-4"
+                    >
+
+                        <div>
+
+                            <h2
+                                class="text-2xl font-medium text-ink"
+                            >
+                                Subject details
+                            </h2>
+
+                            <p
+                                class="mt-1 text-sm text-ink-soft"
+                            >
+                                Subject and teacher assignment information.
+                            </p>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            @click="viewingSubject = null"
+                            class="text-2xl leading-none text-ink-soft hover:text-ink"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- MODAL BODY -->
+
+                <div class="p-6">
+
+                    <!-- SUBJECT -->
+
+                    <div
+                        class="border-b border-hairline pb-5"
+                    >
 
                         <p
-                            class="text-sm font-semibold text-gray-900 dark:text-white"
+                            class="text-xs font-medium text-ink-soft"
                         >
-                            Teacher Assignment
+                            Subject name
+                        </p>
+
+                        <p
+                            class="mt-1 text-xl font-medium text-ink"
+                        >
+                            {{ viewingSubject.name }}
+                        </p>
+
+                    </div>
+
+
+                    <!-- CODE -->
+
+                    <div
+                        class="border-b border-hairline py-5"
+                    >
+
+                        <p
+                            class="text-xs font-medium text-ink-soft"
+                        >
+                            Subject code
+                        </p>
+
+                        <span
+                            class="mt-2 inline-flex border border-forest/30 bg-paper px-2.5 py-1 text-xs font-medium text-forest"
+                        >
+                            {{ viewingSubject.code }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- DESCRIPTION -->
+
+                    <div
+                        class="border-b border-hairline py-5"
+                    >
+
+                        <p
+                            class="text-xs font-medium text-ink-soft"
+                        >
+                            Description
+                        </p>
+
+                        <p
+                            class="mt-2 text-sm leading-6 text-ink-soft"
+                        >
+                            {{ viewingSubject.description || '-' }}
                         </p>
 
                     </div>
@@ -1079,87 +1091,103 @@ onMounted(() => {
 
                     <!-- TEACHERS -->
 
-                    <div
-                        v-if="
-                            viewingSubject.teachers &&
-                            viewingSubject.teachers.length > 0
-                        "
-                        class="space-y-3"
-                    >
+                    <div class="pt-5">
 
                         <div
-                            v-for="teacher in viewingSubject.teachers"
-                            :key="teacher.id"
-                            class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
+                            class="flex items-center justify-between"
                         >
 
-                            <div class="flex items-start gap-3">
+                            <p
+                                class="text-sm font-medium text-ink"
+                            >
+                                Teacher assignment
+                            </p>
 
-                                <div
-                                    class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0"
+                            <span
+                                class="text-xs text-ink-soft"
+                            >
+                                {{
+                                    viewingSubject.teachers?.length || 0
+                                }}
+                                assigned
+                            </span>
+
+                        </div>
+
+
+                        <!-- TEACHERS -->
+
+                        <div
+                            v-if="
+                                viewingSubject.teachers &&
+                                viewingSubject.teachers.length > 0
+                            "
+                            class="mt-4 divide-y divide-hairline border-y border-hairline"
+                        >
+
+                            <div
+                                v-for="teacher in viewingSubject.teachers"
+                                :key="teacher.id"
+                                class="py-4"
+                            >
+
+                                <p
+                                    class="text-sm font-medium text-ink"
                                 >
-                                    👨‍🏫
-                                </div>
+                                    {{ teacher.name }}
+                                </p>
 
-                                <div>
+                                <p
+                                    class="mt-1 text-sm text-ink-soft"
+                                >
+                                    {{ teacher.email }}
+                                </p>
 
-                                    <p
-                                        class="font-semibold text-gray-900 dark:text-white"
-                                    >
-                                        {{ teacher.name }}
-                                    </p>
-
-                                    <p
-                                        class="text-sm text-gray-600 dark:text-gray-300 mt-1"
-                                    >
-                                        {{ teacher.email }}
-                                    </p>
-
-                                    <p
-                                        class="text-sm text-gray-600 dark:text-gray-300 mt-0.5"
-                                    >
-                                        {{ teacher.phone }}
-                                    </p>
-
-                                </div>
+                                <p
+                                    v-if="teacher.phone"
+                                    class="mt-0.5 text-sm text-ink-soft"
+                                >
+                                    {{ teacher.phone }}
+                                </p>
 
                             </div>
+
+                        </div>
+
+
+                        <!-- NO TEACHER -->
+
+                        <div
+                            v-else
+                            class="mt-4 border border-hairline bg-paper px-4 py-4"
+                        >
+
+                            <p
+                                class="text-sm text-ink-soft"
+                            >
+                                No teacher assigned.
+                            </p>
 
                         </div>
 
                     </div>
 
 
-                    <!-- NO TEACHER -->
+                    <!-- CLOSE -->
 
                     <div
-                        v-else
-                        class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
+                        class="mt-6 flex justify-end border-t border-hairline pt-5"
                     >
 
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400"
+                        <button
+                            type="button"
+                            @click="viewingSubject = null"
+                            class="border border-hairline bg-surface px-5 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
                         >
-                            No teacher assigned.
-                        </p>
+                            Close
+                        </button>
 
                     </div>
-
-                </div>
-
-
-                <!-- CLOSE BUTTON -->
-
-                <div
-                    class="flex justify-end mt-6 pt-5 border-t border-gray-200 dark:border-gray-700"
-                >
-
-                    <button
-                        @click="viewingSubject = null"
-                        class="px-5 py-2.5 rounded-lg bg-gray-800 dark:bg-gray-700 text-white font-medium hover:bg-gray-900 dark:hover:bg-gray-600 transition"
-                    >
-                        Close
-                    </button>
 
                 </div>
 
@@ -1167,8 +1195,5 @@ onMounted(() => {
 
         </div>
 
-    </div>
-
-</div>
-
+    </main>
 </template>

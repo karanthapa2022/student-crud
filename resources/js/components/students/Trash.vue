@@ -1,11 +1,12 @@
 <script setup>
 
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { createApiClient, getAuthToken } from '../../services/apiConfig'
 
 
 const router = useRouter()
+const api = createApiClient()
 
 const trashedStudents = ref([])
 const loading = ref(false)
@@ -36,10 +37,10 @@ const fetchTrash = async () => {
 
     try {
 
-        const token = localStorage.getItem('token')
+        const token = getAuthToken()
 
-        const response = await axios.get(
-            'http://127.0.0.1:8000/api/students/trash',
+        const response = await api.get(
+            '/students/trash',
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -83,10 +84,10 @@ const restoreStudent = async (student) => {
 
     try {
 
-        const token = localStorage.getItem('token')
+        const token = getAuthToken()
 
-        await axios.post(
-            `http://127.0.0.1:8000/api/students/${student.id}/restore`,
+        await api.post(
+            `/students/${student.id}/restore`,
             {},
             {
                 headers: {
@@ -130,10 +131,10 @@ const forceDeleteStudent = async (student) => {
 
     try {
 
-        const token = localStorage.getItem('token')
+        const token = getAuthToken()
 
-        await axios.delete(
-            `http://127.0.0.1:8000/api/students/${student.id}/force-delete`,
+        await api.delete(
+            `/students/${student.id}/force-delete`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -208,9 +209,9 @@ const bulkRestore =async()=>{
             return
         }
         try{
-            const token=localStorage.getItem('token')
-            await axios.post(
-                'http://127.0.0.1:8000/api/students/bulk-restore',{
+            const token = getAuthToken()
+            await api.post(
+                '/students/bulk-restore',{
                     ids: selectedStudents.value
                 },
                 {
@@ -254,10 +255,10 @@ const bulkForceDelete = async () => {
 
     try {
 
-        const token = localStorage.getItem('token')
+        const token = getAuthToken()
 
-        await axios.post(
-            'http://127.0.0.1:8000/api/students/bulk-force-delete',
+        await api.post(
+            '/students/bulk-force-delete',
             {
                 ids: selectedStudents.value
             },
@@ -320,374 +321,375 @@ onMounted( async() => {
 
 
 <template>
+    <div class="min-h-screen bg-paper px-4 py-8 sm:px-6 lg:px-8">
+        <div class="mx-auto w-full max-w-7xl">
 
-<div
-    class="min-h-screen bg-gray-100 dark:bg-gray-950 p-4 sm:p-6 lg:p-8"
->
+            <!-- LETTERHEAD -->
+            <header class="border-b border-hairline pb-6">
+                <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
 
-    <div
-        class="w-full max-w-7xl mx-auto"
-    >
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="flex h-10 w-10 items-center justify-center border border-forest bg-surface text-sm font-semibold text-forest"
+                            >
+                                TR
+                            </div>
 
-        <!-- HEADER -->
+                            <div>
+                                <p class="text-sm font-semibold text-ink">
+                                    Student Records
+                                </p>
+                                <p class="text-xs text-ink-soft">
+                                    Administration
+                                </p>
+                            </div>
+                        </div>
 
-        <div
-            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"
-        >
+                        <h1
+                            class="mt-6 text-4xl font-medium tracking-tight text-ink sm:text-5xl"
+                        >
+                            Trash
+                        </h1>
 
-            <div>
+                        <p class="mt-2 max-w-2xl text-sm leading-6 text-ink-soft">
+                            Restore deleted students or permanently remove records
+                            from the system.
+                        </p>
+                    </div>
 
-                <h1
-                    class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white"
-                >
-                    Trash
-                </h1>
+                    <button
+                        type="button"
+                        @click="goBack"
+                        class="inline-flex w-fit items-center border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
+                    >
+                        ← Back to Students
+                    </button>
+                </div>
+            </header>
 
-                <p
-                    class="mt-1 text-sm text-gray-500 dark:text-gray-400"
-                >
-                    Restore deleted students or permanently remove them.
+
+            <!-- ERROR -->
+            <div
+                v-if="error"
+                class="mt-6 border border-sienna/30 bg-surface px-4 py-3 text-sm text-sienna"
+            >
+                {{ error }}
+            </div>
+
+
+            <!-- LOADING -->
+            <div
+                v-if="loading"
+                class="mt-8 border border-hairline bg-surface px-6 py-14 text-center"
+            >
+                <div
+                    class="mx-auto mb-4 h-7 w-7 animate-spin rounded-full border-2 border-hairline border-t-forest"
+                ></div>
+
+                <p class="text-sm text-ink-soft">
+                    Loading trash...
                 </p>
-
             </div>
 
 
-            <!-- BACK BUTTON -->
-
-            <button
-                type="button"
-                @click="goBack"
-                class="px-5 py-2.5 rounded-xl bg-gray-800 dark:bg-gray-700 text-white font-medium hover:bg-gray-900 dark:hover:bg-gray-600 transition"
-            >
-                ← Back to Students
-            </button>
-
-        </div>
-
-
-        <!-- ERROR -->
-
-        <div
-            v-if="error"
-            class="mb-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl"
-        >
-
-            {{ error }}
-
-        </div>
-
-
-        <!-- LOADING -->
-
-        <div
-            v-if="loading"
-            class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-10 text-center shadow-sm"
-        >
-
-            <p
-                class="text-gray-500 dark:text-gray-400"
-            >
-                Loading trash...
-            </p>
-
-        </div>
-
-
-        <!-- EMPTY TRASH -->
-
-        <div
-            v-else-if="trashedStudents.length === 0"
-            class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-12 text-center shadow-sm"
-        >
-
+            <!-- EMPTY TRASH -->
             <div
-                class="text-5xl mb-4"
+                v-else-if="trashedStudents.length === 0"
+                class="mt-8 border border-hairline bg-surface px-6 py-16 text-center"
             >
-                🗑️
+                <div
+                    class="mx-auto flex h-14 w-14 items-center justify-center border border-hairline text-2xl text-ink-soft"
+                >
+                    ∅
+                </div>
+
+                <h2
+                    class="mt-5 text-2xl font-medium text-ink"
+                >
+                    Trash is empty
+                </h2>
+
+                <p class="mt-2 text-sm text-ink-soft">
+                    Deleted students will appear here.
+                </p>
             </div>
 
 
-            <h2
-                class="text-xl font-bold text-gray-800 dark:text-white"
-            >
-                Trash is empty
-            </h2>
+            <!-- TRASH CONTENT -->
+            <div v-else class="mt-8">
 
-
-            <p
-                class="mt-2 text-sm text-gray-500 dark:text-gray-400"
-            >
-                Deleted students will appear here.
-            </p>
-
-        </div>
-
-
-        <!-- TRASH CONTENT -->
-
-        <div
-            v-else
-        >
-
-            <!-- BULK ACTIONS -->
-
-            <div
-                v-if="selectedStudents.length > 0"
-                class="mb-4 flex flex-wrap items-center gap-3"
-            >
-
-                <!-- SELECTED COUNT -->
-
-                <span
-                    class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                <!-- LEDGER SUMMARY -->
+                <section
+                    class="border border-hairline bg-surface"
                 >
-                    {{ selectedStudents.length }} selected
-                </span>
+                    <div
+                        class="grid grid-cols-2 divide-x divide-y divide-hairline sm:grid-cols-3 sm:divide-y-0"
+                    >
+                        <div class="px-5 py-4">
+                            <p class="text-xs font-medium">
+                                Deleted records
+                            </p>
+                            <p class="mt-1 text-2xl">
+                                {{ trashedStudents.length }}
+                            </p>
+                        </div>
+
+                        <div class="px-5 py-4">
+                            <p class="text-xs font-medium">
+                                Selected
+                            </p>
+                            <p class="mt-1 text-2xl">
+                                {{ selectedStudents.length }}
+                            </p>
+                        </div>
+
+                        <div class="col-span-2 px-5 py-4 sm:col-span-1">
+                            <p class="text-xs font-medium">
+                                Record status
+                            </p>
+                            <p class="mt-1 text-sm font-medium text-sienna">
+                                Archived
+                            </p>
+                        </div>
+                    </div>
+                </section>
 
 
-                <!-- RESTORE SELECTED -->
-
-                <button
-                    type="button"
-                    @click="bulkRestore"
-                    class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition"
+                <!-- BULK ACTIONS -->
+                <div
+                    v-if="selectedStudents.length > 0"
+                    class="mt-6 border border-hairline bg-surface"
                 >
-                    ↩ Restore Selected
-                </button>
+                    <div
+                        class="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                        <div>
+                            <p class="text-sm font-medium text-ink">
+                                {{ selectedStudents.length }} student{{
+                                    selectedStudents.length === 1 ? '' : 's'
+                                }}
+                                selected
+                            </p>
+
+                            <p class="mt-1 text-xs text-ink-soft">
+                                Choose an action for the selected records.
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                @click="bulkRestore"
+                                class="border border-forest bg-forest px-4 py-2.5 text-sm font-medium text-white hover:bg-forest/90"
+                            >
+                                Restore selected
+                            </button>
+
+                            <button
+                                type="button"
+                                @click="bulkForceDelete"
+                                class="border border-sienna bg-surface px-4 py-2.5 text-sm font-medium text-sienna hover:bg-sienna hover:text-white"
+                            >
+                                Delete permanently
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
 
-                <!-- DELETE SELECTED -->
-
-                <button
-                    type="button"
-                    @click="bulkForceDelete"
-                    class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition"
-                >
-                    🗑 Delete Selected Permanently
-                </button>
-
-            </div>
-
-
-            <!-- TRASH TABLE -->
-
-            <div
-                class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-x-auto"
-            >
-
-                <table
-                    class="w-full text-left"
-                >
+                <!-- TABLE -->
+                <section class="mt-6 border border-hairline bg-surface">
 
                     <!-- TABLE HEADER -->
-
-                    <thead
-                        class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+                    <div
+                        class="flex flex-col gap-2 border-b border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
                     >
-
-                        <tr>
-
-                            <!-- SELECT ALL -->
-
-                            <th
-                                class="px-5 py-4 text-sm font-semibold text-gray-700 dark:text-gray-200"
+                        <div>
+                            <h2
+                                class=" text-xl font-medium text-ink"
                             >
+                                Deleted students
+                            </h2>
 
-                                <input
-                                    type="checkbox"
-                                    :checked="
-                                        selectedStudents.length === trashedStudents.length &&
-                                        trashedStudents.length > 0
-                                    "
-                                    @change="toggleALlStudents"
-                                    class="w-4 h-4 rounded"
-                                />
+                            <p class="mt-1 text-xs text-ink-soft">
+                                Archived records currently available for recovery.
+                            </p>
+                        </div>
 
-                            </th>
-
-
-                            <!-- ID -->
-
-                            <th
-                                class="px-5 py-4 text-sm font-semibold text-gray-700 dark:text-gray-200"
-                            >
-                                ID
-                            </th>
+                        <p class="text-xs text-ink-soft">
+                            {{ trashedStudents.length }} record{{
+                                trashedStudents.length === 1 ? '' : 's'
+                            }}
+                        </p>
+                    </div>
 
 
-                            <!-- NAME -->
+                    <!-- RESPONSIVE TABLE -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[900px] text-left">
 
-                            <th
-                                class="px-5 py-4 text-sm font-semibold text-gray-700 dark:text-gray-200"
-                            >
-                                Name
-                            </th>
-
-
-                            <!-- EMAIL -->
-
-                            <th
-                                class="px-5 py-4 text-sm font-semibold text-gray-700 dark:text-gray-200"
-                            >
-                                Email
-                            </th>
-
-
-                            <!-- PHONE -->
-
-                            <th
-                                class="px-5 py-4 text-sm font-semibold text-gray-700 dark:text-gray-200"
-                            >
-                                Phone
-                            </th>
-
-
-                            <!-- STATUS -->
-
-                            <th
-                                class="px-5 py-4 text-sm font-semibold text-gray-700 dark:text-gray-200"
-                            >
-                                Status
-                            </th>
-
-
-                            <!-- ACTIONS -->
-
-                            <th
-                                class="px-5 py-4 text-sm font-semibold text-gray-700 dark:text-gray-200"
-                            >
-                                Actions
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <!-- TABLE BODY -->
-
-                    <tbody>
-
-                        <tr
-                            v-for="student in trashedStudents"
-                            :key="student.id"
-                            class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-                        >
-
-                            <!-- SELECT -->
-
-                            <td
-                                class="px-5 py-4"
-                            >
-
-                                <input
-                                    type="checkbox"
-                                    :checked="isSelected(student.id)"
-                                    @change="toggleStudent(student.id)"
-                                    class="w-4 h-4 rounded"
-                                />
-
-                            </td>
-
-
-                            <!-- ID -->
-
-                            <td
-                                class="px-5 py-4 text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                                #{{ student.id }}
-                            </td>
-
-
-                            <!-- NAME -->
-
-                            <td
-                                class="px-5 py-4 text-sm font-semibold text-gray-800 dark:text-white"
-                            >
-                                {{ student.name }}
-                            </td>
-
-
-                            <!-- EMAIL -->
-
-                            <td
-                                class="px-5 py-4 text-sm text-gray-600 dark:text-gray-300"
-                            >
-                                {{ student.email }}
-                            </td>
-
-
-                            <!-- PHONE -->
-
-                            <td
-                                class="px-5 py-4 text-sm text-gray-600 dark:text-gray-300"
-                            >
-                                {{ student.phone }}
-                            </td>
-
-
-                            <!-- STATUS -->
-
-                            <td
-                                class="px-5 py-4"
-                            >
-
-                                <span
-                                    class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                            <thead>
+                                <tr
+                                    class="border-b border-hairline bg-paper/60"
                                 >
-                                    Deleted
-                                </span>
+                                    <th class="w-12 px-5 py-3">
+                                        <input
+                                            type="checkbox"
+                                            :checked="
+                                                selectedStudents.length === trashedStudents.length &&
+                                                trashedStudents.length > 0
+                                            "
+                                            @change="toggleALlStudents"
+                                            class="h-4 w-4 rounded-none border-hairline text-forest focus:ring-forest"
+                                        />
+                                    </th>
 
-                            </td>
+                                    <th
+                                        class="px-5 py-3 text-xs font-medium"
+                                    >
+                                        ID
+                                    </th>
+
+                                    <th
+                                        class="px-5 py-3 text-xs font-medium"
+                                    >
+                                        Student
+                                    </th>
+
+                                    <th
+                                        class="px-5 py-3 text-xs font-medium"
+                                    >
+                                        Email
+                                    </th>
+
+                                    <th
+                                        class="px-5 py-3 text-xs font-medium"
+                                    >
+                                        Phone
+                                    </th>
+
+                                    <th
+                                        class="px-5 py-3 text-xs font-medium"
+                                    >
+                                        Status
+                                    </th>
+
+                                    <th
+                                        class="px-5 py-3 text-xs font-medium"
+                                    >
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
 
 
-                            <!-- ACTIONS -->
-
-                            <td
-                                class="px-5 py-4"
-                            >
-
-                                <div
-                                    class="flex flex-wrap gap-3"
+                            <tbody>
+                                <tr
+                                    v-for="student in trashedStudents"
+                                    :key="student.id"
+                                    class="border-b border-hairline last:border-b-0 hover:bg-paper/40"
                                 >
 
-                                    <!-- RESTORE -->
+                                    <!-- SELECT -->
+                                    <td class="px-5 py-4">
+                                        <input
+                                            type="checkbox"
+                                            :checked="isSelected(student.id)"
+                                            @change="toggleStudent(student.id)"
+                                            class="h-4 w-4 rounded-none border-hairline text-forest focus:ring-forest"
+                                        />
+                                    </td>
 
-                                    <button
-                                        type="button"
-                                        @click="restoreStudent(student)"
-                                        class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 font-medium text-sm"
+
+                                    <!-- ID -->
+                                    <td
+                                        class="px-5 py-4 text-sm text-ink-soft"
                                     >
-                                        Restore
-                                    </button>
+                                        #{{ student.id }}
+                                    </td>
 
 
-                                    <!-- PERMANENT DELETE -->
+                                    <!-- NAME -->
+                                    <td class="px-5 py-4">
+                                        <p
+                                            class=" text-lg font-medium"
+                                        >
+                                            {{ student.name }}
+                                        </p>
+                                    </td>
 
-                                    <button
-                                        type="button"
-                                        @click="forceDeleteStudent(student)"
-                                        class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium text-sm"
+
+                                    <!-- EMAIL -->
+                                    <td
+                                        class="px-5 py-4 text-sm"
                                     >
-                                        Delete Permanently
-                                    </button>
+                                        {{ student.email }}
+                                    </td>
 
-                                </div>
 
-                            </td>
+                                    <!-- PHONE -->
+                                    <td
+                                        class="px-5 py-4 text-sm"
+                                    >
+                                        {{ student.phone || '—' }}
+                                    </td>
 
-                        </tr>
 
-                    </tbody>
+                                    <!-- STATUS -->
+                                    <td class="px-5 py-4">
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-1 text-xs font-medium text-sienna"
+                                        >
+                                            Deleted
+                                        </span>
+                                    </td>
 
-                </table>
+
+                                    <!-- ACTIONS -->
+                                    <td class="px-5 py-4">
+                                        <div class="flex items-center gap-4">
+
+                                            <button
+                                                type="button"
+                                                @click="restoreStudent(student)"
+                                                class="text-sm font-medium text-forest hover:underline"
+                                            >
+                                                Restore
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                @click="forceDeleteStudent(student)"
+                                                class="text-sm font-medium text-sienna hover:underline"
+                                            >
+                                                Delete permanently
+                                            </button>
+
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </section>
+
+
+                <!-- FOOTER NOTE -->
+                <div
+                    class="border-t border-hairline py-5"
+                >
+                    <p class="text-xs leading-5 text-ink-soft">
+                        Permanently deleted records cannot be recovered.
+                        Restore a student if you only want to remove them from
+                        the archive.
+                    </p>
+                </div>
 
             </div>
 
         </div>
-
     </div>
-
-</div>
-
 </template>

@@ -3,6 +3,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { downloadMarksheetPdf } from '../../utils/marksheetPdf'
+import { clearAuthSessions } from '../../services/apiConfig'
 
 import {
     getMarksheets,
@@ -151,8 +152,7 @@ const downloadMarksheet = (marksheet) => {
     downloadMarksheetPdf(marksheet)
 }
 const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    clearAuthSessions()
 
     router.push('/login')
 }
@@ -169,550 +169,290 @@ onMounted(() => {
 
 
 <template>
-
-<div
-    class="p-6 lg:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors"
->
-
-    <!-- =====================================================
-         PAGE HEADER
-    ====================================================== -->
-
-    <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7"
-    >
-
-        <div>
-
-            <h1
-                class="text-2xl font-bold text-gray-900 dark:text-white"
-            >
-                Marksheets
-            </h1>
-
-            <p
-                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-            >
-                Create and manage student marksheets
-            </p>
-
-        </div>
-
-
-        <div
-            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
-        >
-
-            <!-- CREATE MARKSHEET -->
-
-            <button
-                v-if="canEdit"
-                type="button"
-                @click="$router.push('/marksheets/create')"
-                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-purple-600 text-white text-sm font-semibold shadow-sm hover:bg-purple-700 hover:shadow transition-all"
-            >
-
-                <span class="text-lg leading-none">
-                    +
-                </span>
-
-                Create Marksheet
-
-            </button>
-
-            <input ref="importInput" type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="importExcel" />
-            <button
-                v-if="canEdit"
-                type="button"
-                :disabled="importing"
-                @click="importInput?.click()"
-                class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60"
-            >
-                {{ importing ? 'Importing...' : 'Import Excel' }}
-            </button>
-
-            <button
-                v-if="canEdit"
-                type="button"
-                @click="downloadExcel()"
-                class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-            >
-                Export All
-            </button>
-
-
-            <!-- DASHBOARD — ADMIN ONLY -->
-
-<button
-    v-if="isAdmin"
-    type="button"
-    @click="$router.push('/dashboard')"
-    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-700 text-white text-sm font-semibold shadow-sm hover:bg-gray-800 dark:hover:bg-gray-600 transition-all"
->
-    ← Dashboard
-</button>
-
-<!-- Admin, Teacher & Parent -->
-    <button
-        @click="logout"
-        class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-    >
-        Logout
-    </button>
-
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         ERROR
-    ====================================================== -->
-
-    <div
-        v-if="error"
-        class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-lg"
-    >
-
-        {{ error }}
-
-    </div>
-
-
-    <!-- =====================================================
-         SUCCESS
-    ====================================================== -->
-
-    <div
-        v-if="successMessage"
-        class="mb-4"
-    >
-
-        <div
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-sm font-medium"
-        >
-
-            <span>
-                ✓
-            </span>
-
-            {{ successMessage }}
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         LOADING
-    ====================================================== -->
-
-    <div
-        v-if="loading"
-        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm py-12 transition-colors"
-    >
-
-        <div
-            class="flex flex-col items-center justify-center"
-        >
-
-            <div
-                class="w-8 h-8 border-4 border-gray-200 dark:border-gray-600 border-t-purple-600 rounded-full animate-spin mb-3"
-            ></div>
-
-            <p
-                class="text-sm text-gray-500 dark:text-gray-400"
-            >
-                Loading marksheets...
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         EMPTY STATE
-    ====================================================== -->
-
-    <div
-        v-else-if="marksheets.length === 0"
-        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-colors"
-    >
-
-        <div
-            class="flex flex-col items-center justify-center py-12"
-        >
-
-            <div
-                class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3 text-xl"
-            >
-                📄
-            </div>
-
-            <p
-                class="font-medium text-gray-700 dark:text-gray-200"
-            >
-                No marksheets found
-            </p>
-
-            <p
-                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-            >
-                Create a marksheet to get started.
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         MARKSHEETS TABLE
-    ====================================================== -->
-
-    <div
-        v-else
-        class="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-colors"
-    >
-
-        <table class="w-full min-w-[1000px]">
-
-            <!-- TABLE HEADER -->
-
-            <thead
-                class="bg-gray-50 dark:bg-gray-700"
-            >
-
-                <tr>
-
-                    <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
-                    >
-                        S.N.
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
-                    >
-                        Student
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
-                    >
-                        Class
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
-                    >
-                        Total
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
-                    >
-                        Percentage
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
-                    >
-                        Grade
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
-                    >
-                        Result
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-200"
-                    >
-                        Actions
-                    </th>
-
-                </tr>
-
-            </thead>
-
-
-            <!-- TABLE BODY -->
-
-            <tbody>
-
-                <tr
-                    v-for="(marksheet, index) in marksheets"
-                    :key="marksheet.id"
-                    class="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
-                >
-
-                    <!-- S.N. -->
-
-                    <td
-                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                    >
-                        {{ index + 1 }}
-                    </td>
-
-
-                    <!-- STUDENT -->
-
-                    <td
-                        class="px-4 py-3 font-medium text-gray-800 dark:text-gray-100"
-                    >
-                        {{ marksheet.student?.name || '-' }}
-                    </td>
-
-
-                    <!-- CLASS -->
-
-                    <td
-                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                    >
-                        {{ marksheet.student?.class || '-' }}
-                    </td>
-
-
-                    <!-- TOTAL -->
-
-                    <td
-                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                    >
-                        {{ marksheet.total }}
-                    </td>
-
-
-                    <!-- PERCENTAGE -->
-
-                    <td
-                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                    >
-
-                        <span
-                            class="font-medium"
-                        >
-                            {{ marksheet.percentage }}%
-                        </span>
-
-                    </td>
-
-
-                    <!-- GRADE -->
-
-                    <td class="px-4 py-3">
-
-                        <span
-                            class="inline-flex items-center justify-center min-w-10 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-semibold"
-                        >
-                            {{ marksheet.grade || '-' }}
-                        </span>
-
-                    </td>
-
-
-                    <!-- RESULT -->
-
-                    <td class="px-4 py-3">
-
-                        <span
-                            class="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium"
-                            :class="
-                                marksheet.result === 'Pass'
-                                    ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                    : marksheet.result === 'Fail'
-                                        ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                            "
-                        >
-                            {{ marksheet.result || '-' }}
-                        </span>
-
-                    </td>
-
-
-                    <!-- ACTIONS -->
-
-                    <td class="px-4 py-3">
-
-                        <div
-                            class="flex items-center gap-2"
-                        >
-
-                            <!-- VIEW -->
-
-                            <button
-                                type="button"
-                                @click="
-                                    $router.push(
-                                        `/marksheets/${marksheet.id}`
-                                    )
-                                "
-                                class="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
-                            >
-                                View
-                            </button>
-
-                            <button
-                                v-if="canEdit"
-                                type="button"
-                                @click="downloadExcel(marksheet.id)"
-                                class="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm font-medium hover:bg-emerald-100 transition"
-                            >
-                                Excel
-                            </button>
-
-
-                            <!-- EDIT -->
-
-                            <button
-                                v-if="canEdit"
-                                type="button"
-                                @click="
-                                    $router.push(
-                                        `/marksheets/${marksheet.id}/edit`
-                                    )
-                                "
-                                class="px-3 py-1.5 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-sm font-medium hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition"
-                            >
-                                Edit
-                            </button>
-
-
-                            <!-- DOWNLOAD -->
-
-                            <button
-                                type="button"
-                                @click="
-                                    downloadMarksheet(
-                                        marksheet
-                                    )
-                                "
-                                class="px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/50 transition"
-                            >
-                                Download
-                            </button>
-
-
-                            <!-- DELETE -->
-
-<button
-    v-if="isAdmin"
-    type="button"
-    @click="
-        confirmDeleteMarksheet(
-            marksheet.id
-        )
-    "
-    class="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition"
->
-    Delete
-</button>
-
-                        </div>
-
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-
-    <!-- =====================================================
-         DELETE CONFIRMATION MODAL
-    ====================================================== -->
-
-    <div
-        v-if="showDeleteModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 px-4"
-    >
-
-        <div
-            class="w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-xl transition-colors"
-        >
+    <div class="min-h-screen bg-[#EFF1EA] text-[#1C2B24] dark:bg-[#17221D] dark:text-[#F5F7F3]">
+        <div class="mx-auto w-full max-w-7xl px-5 py-7 lg:px-8">
 
             <!-- HEADER -->
+            <header class="mb-8 border-b border-[#D8DDD3] pb-6 dark:border-[#39483F]">
+                <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 
-            <div
-                class="flex items-center gap-3 mb-4"
-            >
+                    <div>
+                        <p class="mb-2 text-sm font-medium text-[#2F6F4E] dark:text-[#75B28F]">
+                            Academic records
+                        </p>
 
-                <div
-                    class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0"
-                >
-                    ⚠️
+                        <h1 class="text-3xl font-semibold">
+                            Marksheets
+                        </h1>
+
+                        <p class="mt-2 text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
+                            Create, review and manage student results.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            v-if="canEdit"
+                            type="button"
+                            @click="$router.push('/marksheets/create')"
+                            class="bg-[#2F6F4E] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#275E42]"
+                        >
+                            + Create marksheet
+                        </button>
+
+                        <input
+                            ref="importInput"
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            class="hidden"
+                            @change="importExcel"
+                        />
+
+                        <button
+                            v-if="canEdit"
+                            type="button"
+                            :disabled="importing"
+                            @click="importInput?.click()"
+                            class="border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-semibold hover:border-[#2F6F4E] hover:text-[#2F6F4E] disabled:opacity-50 dark:border-[#39483F] dark:bg-[#202D26] dark:hover:border-[#75B28F] dark:hover:text-[#75B28F]"
+                        >
+                            {{ importing ? 'Importing...' : 'Import Excel' }}
+                        </button>
+
+                        <button
+                            v-if="canEdit"
+                            type="button"
+                            @click="downloadExcel()"
+                            class="border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-semibold hover:border-[#2F6F4E] hover:text-[#2F6F4E] dark:border-[#39483F] dark:bg-[#202D26]"
+                        >
+                            Export
+                        </button>
+
+                        <button
+                            v-if="isAdmin"
+                            type="button"
+                            @click="$router.push('/dashboard')"
+                            class="border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-semibold hover:border-[#2F6F4E] hover:text-[#2F6F4E] dark:border-[#39483F] dark:bg-[#202D26]"
+                        >
+                            Dashboard
+                        </button>
+
+                        <button
+                            type="button"
+                            @click="logout"
+                            class="border border-[#B5563C]/40 px-4 py-2.5 text-sm font-semibold text-[#B5563C] hover:bg-[#B5563C]/5"
+                        >
+                            Logout
+                        </button>
+                    </div>
                 </div>
+            </header>
 
-                <h2
-                    class="text-xl font-semibold text-gray-900 dark:text-white"
-                >
-                    Delete Marksheet
-                </h2>
-
+            <!-- MESSAGES -->
+            <div
+                v-if="error"
+                class="mb-5 border border-[#B5563C]/30 bg-[#B5563C]/5 px-4 py-3 text-sm text-[#8F3F2B] dark:bg-[#B5563C]/10 dark:text-[#E6A18E]"
+            >
+                {{ error }}
             </div>
 
-
-            <!-- MESSAGE -->
-
-            <p
-                class="text-gray-600 dark:text-gray-300"
-            >
-                Are you sure you want to delete this marksheet?
-            </p>
-
-            <p
-                class="text-sm text-gray-500 dark:text-gray-400 mt-2"
-            >
-                This action cannot be undone.
-            </p>
-
-
-            <!-- ACTIONS -->
-
             <div
-                class="mt-6 flex justify-end gap-3"
+                v-if="successMessage"
+                class="mb-5 border border-[#2F6F4E]/30 bg-[#2F6F4E]/5 px-4 py-3 text-sm text-[#2F6F4E] dark:text-[#A8D1B8]"
             >
+                ✓ {{ successMessage }}
+            </div>
 
-                <!-- CANCEL -->
+            <!-- LOADING -->
+            <div
+                v-if="loading"
+                class="border border-[#D8DDD3] bg-white py-16 text-center dark:border-[#39483F] dark:bg-[#202D26]"
+            >
+                <div class="mx-auto mb-4 h-7 w-7 animate-spin border-2 border-[#D8DDD3] border-t-[#2F6F4E]"></div>
+                <p class="text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
+                    Loading marksheets...
+                </p>
+            </div>
+
+            <!-- EMPTY -->
+            <div
+                v-else-if="marksheets.length === 0"
+                class="border border-[#D8DDD3] bg-white px-6 py-16 text-center dark:border-[#39483F] dark:bg-[#202D26]"
+            >
+                <p class="text-2xl font-semibold">
+                    No marksheets yet
+                </p>
+
+                <p class="mt-2 text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
+                    Create a marksheet to begin building the academic register.
+                </p>
 
                 <button
+                    v-if="canEdit"
                     type="button"
-                    @click="
-                        showDeleteModal = false
-                    "
-                    class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    @click="$router.push('/marksheets/create')"
+                    class="mt-6 bg-[#2F6F4E] px-5 py-2.5 text-sm font-semibold text-white"
                 >
-                    Cancel
+                    Create marksheet
                 </button>
+            </div>
 
+            <!-- TABLE -->
+            <div
+                v-else
+                class="overflow-x-auto border border-[#D8DDD3] bg-white dark:border-[#39483F] dark:bg-[#202D26]"
+            >
+                <table class="w-full min-w-[1100px]">
+                    <thead class="border-b border-[#D8DDD3] bg-[#EFF1EA] dark:border-[#39483F] dark:bg-[#17221D]">
+                        <tr>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-[#5B6B62]">S.N.</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-[#5B6B62]">Student</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-[#5B6B62]">Class</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-[#5B6B62]">Total</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-[#5B6B62]">Percentage</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-[#5B6B62]">Grade</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-[#5B6B62]">Result</th>
+                            <th class="px-4 py-4 text-left text-xs font-semibold text-[#5B6B62]">Actions</th>
+                        </tr>
+                    </thead>
 
-                <!-- DELETE -->
+                    <tbody>
+                        <tr
+                            v-for="(marksheet, index) in marksheets"
+                            :key="marksheet.id"
+                            class="border-b border-[#D8DDD3] last:border-b-0 hover:bg-[#EFF1EA]/50 dark:border-[#39483F] dark:hover:bg-[#17221D]"
+                        >
+                            <td class="px-4 py-4 text-sm text-[#5B6B62]">
+                                {{ index + 1 }}
+                            </td>
 
-                <button
-                    type="button"
-                    @click="
-                        deleteMarksheetItem(
-                            deleteMarksheetId
-                        )
-                    "
-                    class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-                >
-                    Delete
-                </button>
+                            <td class="px-4 py-4">
+                                <p class=" text-lg font-semibold">
+                                    {{ marksheet.student?.name || '-' }}
+                                </p>
+                            </td>
 
+                            <td class="px-4 py-4 text-sm">
+                                {{ marksheet.student?.class || '-' }}
+                            </td>
+
+                            <td class="px-4 py-4 text-sm font-semibold">
+                                {{ marksheet.total }}
+                            </td>
+
+                            <td class="px-4 py-4 text-sm">
+                                {{ marksheet.percentage }}%
+                            </td>
+
+                            <td class="px-4 py-4">
+                                <span class="font-semibold text-[#2F6F4E] dark:text-[#75B28F]">
+                                    {{ marksheet.grade || '-' }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-4">
+                                <span
+                                    class="font-semibold"
+                                    :class="
+                                        marksheet.result === 'Pass'
+                                            ? 'text-[#2F6F4E] dark:text-[#75B28F]'
+                                            : marksheet.result === 'Fail'
+                                                ? 'text-[#B5563C]'
+                                                : 'text-[#5B6B62]'
+                                    "
+                                >
+                                    {{ marksheet.result || '-' }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-4">
+                                <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                                    <button
+                                        type="button"
+                                        @click="$router.push(`/marksheets/${marksheet.id}`)"
+                                        class="font-semibold text-[#2F6F4E] hover:underline dark:text-[#75B28F]"
+                                    >
+                                        View
+                                    </button>
+
+                                    <button
+                                        v-if="canEdit"
+                                        type="button"
+                                        @click="downloadExcel(marksheet.id)"
+                                        class="font-semibold text-[#5B6B62] hover:text-[#1C2B24] hover:underline dark:text-[#AEBBB3] dark:hover:text-white"
+                                    >
+                                        Excel
+                                    </button>
+
+                                    <button
+                                        v-if="canEdit"
+                                        type="button"
+                                        @click="$router.push(`/marksheets/${marksheet.id}/edit`)"
+                                        class="font-semibold text-[#5B6B62] hover:text-[#1C2B24] hover:underline dark:text-[#AEBBB3] dark:hover:text-white"
+                                    >
+                                        Edit
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        @click="downloadMarksheet(marksheet)"
+                                        class="font-semibold text-[#2F6F4E] hover:underline dark:text-[#75B28F]"
+                                    >
+                                        Download
+                                    </button>
+
+                                    <button
+                                        v-if="isAdmin"
+                                        type="button"
+                                        @click="confirmDeleteMarksheet(marksheet.id)"
+                                        class="font-semibold text-[#B5563C] hover:underline"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- DELETE MODAL -->
+            <div
+                v-if="showDeleteModal"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-[#1C2B24]/60 px-4"
+            >
+                <div class="w-full max-w-md border border-[#D8DDD3] bg-white p-6 dark:border-[#39483F] dark:bg-[#202D26]">
+                    <p class="text-sm font-medium text-[#B5563C]">
+                        Confirmation
+                    </p>
+
+                    <h2 class="mt-1 font-serif text-2xl font-semibold">
+                        Delete marksheet?
+                    </h2>
+
+                    <p class="mt-3 text-sm leading-6 text-[#5B6B62] dark:text-[#AEBBB3]">
+                        This action cannot be undone. The selected marksheet will be permanently removed.
+                    </p>
+
+                    <div class="mt-6 flex justify-end gap-3 border-t border-[#D8DDD3] pt-5 dark:border-[#39483F]">
+                        <button
+                            type="button"
+                            @click="showDeleteModal = false"
+                            class="border border-[#D8DDD3] px-4 py-2.5 text-sm font-semibold dark:border-[#39483F]"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            @click="deleteMarksheetItem(deleteMarksheetId)"
+                            class="bg-[#B5563C] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#9F4932]"
+                        >
+                            Delete marksheet
+                        </button>
+                    </div>
+                </div>
             </div>
 
         </div>
-
     </div>
-
-</div>
-
 </template>

@@ -1,8 +1,9 @@
 
 import axios from 'axios'
+import { API_BASE_URL, getAuthToken } from '../apiConfig'
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: API_BASE_URL,
     headers: {
         Accept: 'application/json'
     }
@@ -17,7 +18,7 @@ export const getTeachers = (
     search = ''
 ) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.get('/teachers', {
         params: {
@@ -38,7 +39,7 @@ export const getTeachers = (
 
 export const getTeacher = (id) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.get(`/teachers/${id}`, {
         headers: {
@@ -55,7 +56,7 @@ export const getTeacher = (id) => {
 
 export const createTeacher = (teacherData) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.post('/teachers', teacherData, {
         headers: {
@@ -72,7 +73,7 @@ export const createTeacher = (teacherData) => {
 
 export const updateTeacher = (id, teacherData) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.put(`/teachers/${id}`, teacherData, {
         headers: {
@@ -89,7 +90,7 @@ export const updateTeacher = (id, teacherData) => {
 
 export const deleteTeacher = (id) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.delete(`/teachers/${id}`, {
         headers: {
@@ -107,7 +108,7 @@ export const deleteTeacher = (id) => {
 
 export const getSubjects = () => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.get('/subjects', {
         headers: {
@@ -124,7 +125,7 @@ export const getSubjects = () => {
 
 export const assignTeacherSubjects = (teacherId, subjectIds) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.put(
         `/teachers/${teacherId}/subjects`,

@@ -4,14 +4,14 @@
 <template>
 
     <div
-        class="bg-white rounded-xl shadow-md border border-gray-200 p-5"
+        class="bg-white dark:bg-[#1E2B24] rounded-md border border-[#D8DDD3] dark:border-[#2E3B33] p-5"
     >
 
         <!-- Card Header -->
 
         <div
             v-if="$slots.header"
-            class="mb-4 pb-4 border-b border-gray-200"
+            class="mb-4 pb-4 border-b border-[#D8DDD3] dark:border-[#2E3B33]"
         >
             <slot name="header" />
         </div>
@@ -28,7 +28,7 @@
 
         <div
             v-if="$slots.footer"
-            class="mt-5 pt-4 border-t border-gray-200"
+            class="mt-5 pt-4 border-t border-[#D8DDD3] dark:border-[#2E3B33]"
         >
             <slot name="footer" />
         </div>

@@ -199,424 +199,190 @@ const saveChanges = async () => {
 
 
 <template>
+    <div class="min-h-screen bg-[#EFF1EA] text-[#1C2B24] dark:bg-[#17221D] dark:text-[#F5F7F3]">
+        <div class="mx-auto w-full max-w-6xl px-5 py-7 lg:px-8">
 
-<div
-    class="p-6 lg:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors"
->
+            <header class="mb-8 border-b border-[#D8DDD3] pb-6 dark:border-[#39483F]">
+                <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p class="mb-2 text-sm font-medium text-[#2F6F4E] dark:text-[#75B28F]">
+                            Academic records
+                        </p>
 
-    <!-- =====================================================
-         PAGE HEADER
-    ====================================================== -->
+                        <h1 class=" text-3xl font-semibold tracking-tight">
+                            Edit Marksheet
+                        </h1>
 
-    <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7"
-    >
+                        <p class="mt-2 text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
+                            Update the student's subject marks and result.
+                        </p>
+                    </div>
 
-        <div>
-
-            <h1
-                class="text-2xl font-bold text-gray-900 dark:text-white"
-            >
-                Edit Marksheet
-            </h1>
-
-            <p
-                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-            >
-                Update student marks and result
-            </p>
-
-        </div>
-
-
-        <!-- BACK BUTTON -->
-
-        <button
-            type="button"
-            @click="router.push('/marksheets')"
-            class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-gray-800 dark:bg-gray-700 text-white text-sm font-semibold shadow-sm hover:bg-gray-900 dark:hover:bg-gray-600 transition"
-        >
-            ← Back to Marksheets
-        </button>
-
-    </div>
-
-
-    <!-- =====================================================
-         LOADING
-    ====================================================== -->
-
-    <div
-        v-if="loading"
-        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm py-12 transition-colors"
-    >
-
-        <div
-            class="flex flex-col items-center justify-center"
-        >
+                    <button
+                        type="button"
+                        @click="router.push('/marksheets')"
+                        class="border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-semibold hover:border-[#2F6F4E] hover:text-[#2F6F4E] dark:border-[#39483F] dark:bg-[#202D26] dark:hover:border-[#75B28F] dark:hover:text-[#75B28F]"
+                    >
+                        Back to marksheets
+                    </button>
+                </div>
+            </header>
 
             <div
-                class="w-8 h-8 border-4 border-gray-200 dark:border-gray-600 border-t-purple-600 rounded-full animate-spin mb-3"
-            ></div>
-
-            <p
-                class="text-sm text-gray-500 dark:text-gray-400"
+                v-if="error"
+                class="mb-5 border border-[#B5563C]/30 bg-[#B5563C]/5 px-4 py-3 text-sm text-[#8F3F2B] dark:bg-[#B5563C]/10 dark:text-[#E6A18E]"
             >
-                Loading marksheet...
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         ERROR
-    ====================================================== -->
-
-    <div
-        v-else-if="error"
-        class="p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-xl"
-    >
-        {{ error }}
-    </div>
-
-
-    <!-- =====================================================
-         EDIT MARKSHEET CARD
-    ====================================================== -->
-
-    <div
-        v-else-if="marksheet"
-        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden transition-colors"
-    >
-
-        <!-- =================================================
-             STUDENT INFORMATION
-        ================================================== -->
-
-        <div
-            class="p-6 border-b border-gray-200 dark:border-gray-700"
-        >
-
-            <h2
-                class="text-xl font-semibold text-gray-900 dark:text-white"
-            >
-                Student Information
-            </h2>
-
-            <p
-                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-            >
-                Student whose marksheet is being updated
-            </p>
-
-
-            <!-- STUDENT INFO -->
+                {{ error }}
+            </div>
 
             <div
-                class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6"
+                v-if="loading"
+                class="border border-[#D8DDD3] bg-white py-16 text-center dark:border-[#39483F] dark:bg-[#202D26]"
+            >
+                <div class="mx-auto mb-4 h-7 w-7 animate-spin border-2 border-[#D8DDD3] border-t-[#2F6F4E] dark:border-[#39483F] dark:border-t-[#75B28F]"></div>
+                <p class="text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
+                    Loading marksheet...
+                </p>
+            </div>
+
+            <section
+                v-else-if="marksheet"
+                class="border border-[#D8DDD3] bg-white dark:border-[#39483F] dark:bg-[#202D26]"
             >
 
                 <!-- STUDENT -->
-
-                <div
-                    class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
-                >
-
-                    <p
-                        class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                    >
+                <div class="border-b border-[#D8DDD3] p-6 dark:border-[#39483F] lg:p-7">
+                    <p class="text-sm font-medium text-[#2F6F4E] dark:text-[#75B28F]">
                         Student
                     </p>
 
-                    <p
-                        class="mt-1 text-base font-semibold text-gray-900 dark:text-white"
-                    >
-                        {{ marksheet.student?.name || '-' }}
-                    </p>
+                    <div class="mt-2 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h2 class=" text-3xl font-semibold">
+                                {{ marksheet.student?.name || '-' }}
+                            </h2>
 
+                            <p class="mt-1 text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
+                                Class {{ marksheet.student?.class || '-' }}
+                            </p>
+                        </div>
+
+                        <div class="text-left sm:text-right">
+                            <p class="text-xs text-[#5B6B62] dark:text-[#AEBBB3]">
+                                Marksheet ID
+                            </p>
+
+                            <p class="mt-1 font-mono text-sm font-semibold">
+                                #{{ marksheet.id }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- MARKS -->
+                <div class="p-6 lg:p-7">
+                    <div class="mb-6">
+                        <h2 class=" text-2xl font-semibold">
+                            Update subject marks
+                        </h2>
 
-                <!-- CLASS -->
+                        <p class="mt-1 text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
+                            Enter marks for every subject. Use
+                            <strong class="text-[#1C2B24] dark:text-white">A</strong>
+                            for absent.
+                        </p>
+                    </div>
 
-                <div
-                    class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
-                >
+                    <div class="border-y border-[#D8DDD3] dark:border-[#39483F]">
+                        <div
+                            v-for="subject in subjectStore.subjects"
+                            :key="subject.id"
+                            class="grid grid-cols-1 gap-3 border-b border-[#D8DDD3] py-4 last:border-b-0 dark:border-[#39483F] sm:grid-cols-[1fr_280px] sm:items-center"
+                        >
+                            <div>
+                                <p class="font-medium">
+                                    {{ subject.name }}
+                                </p>
+                                <p class="mt-1 text-xs text-[#5B6B62] dark:text-[#AEBBB3]">
+                                    Subject {{ subject.id }}
+                                </p>
+                            </div>
 
-                    <p
-                        class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                            <input
+                                v-model="marks[subject.id]"
+                                type="text"
+                                inputmode="decimal"
+                                placeholder="Enter marks or A"
+                                class="w-full border border-[#D8DDD3] bg-white px-4 py-3 text-sm outline-none focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#39483F] dark:bg-[#17221D]"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- RESULT LEDGER -->
+                    <div class="mt-7">
+                        <h2 class="mb-4 text-2xl font-semibold">
+                            Result preview
+                        </h2>
+
+                        <div class="border-y border-[#D8DDD3] dark:border-[#39483F]">
+                            <div class="grid grid-cols-2 md:grid-cols-4">
+                                <div class="border-r border-[#D8DDD3] p-5 dark:border-[#39483F]">
+                                    <p class="text-xs text-[#5B6B62] dark:text-[#AEBBB3]">Total</p>
+                                    <p class="mt-1 text-2xl font-semibold">{{ totalMarks }}</p>
+                                </div>
+
+                                <div class="border-r border-[#D8DDD3] p-5 dark:border-[#39483F]">
+                                    <p class="text-xs text-[#5B6B62] dark:text-[#AEBBB3]">Percentage</p>
+                                    <p class="mt-1 text-2xl font-semibold">{{ percentage }}%</p>
+                                </div>
+
+                                <div class="border-t border-[#D8DDD3] p-5 dark:border-[#39483F] md:border-t-0 md:border-r">
+                                    <p class="text-xs text-[#5B6B62] dark:text-[#AEBBB3]">Grade</p>
+                                    <p class="mt-1 text-2xl font-semibold text-[#2F6F4E] dark:text-[#75B28F]">
+                                        {{ grade }}
+                                    </p>
+                                </div>
+
+                                <div class="border-t border-[#D8DDD3] p-5 dark:border-[#39483F] md:border-t-0">
+                                    <p class="text-xs text-[#5B6B62] dark:text-[#AEBBB3]">Result</p>
+                                    <p
+                                        class="mt-1 text-2xl font-semibold"
+                                        :class="result === 'Pass' ? 'text-[#2F6F4E] dark:text-[#75B28F]' : 'text-[#B5563C]'"
+                                    >
+                                        {{ result }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        v-if="successMessage"
+                        class="mt-6 border border-[#2F6F4E]/30 bg-[#2F6F4E]/5 px-4 py-3 text-sm font-medium text-[#2F6F4E] dark:text-[#A8D1B8]"
                     >
-                        Class
-                    </p>
+                        ✓ {{ successMessage }}
+                    </div>
 
-                    <p
-                        class="mt-1 text-base font-semibold text-gray-900 dark:text-white"
-                    >
-                        {{ marksheet.student?.class || '-' }}
-                    </p>
+                    <div class="mt-6 flex flex-col-reverse gap-3 border-t border-[#D8DDD3] pt-6 dark:border-[#39483F] sm:flex-row sm:justify-end">
+                        <button
+                            type="button"
+                            @click="router.push('/marksheets')"
+                            class="border border-[#D8DDD3] px-5 py-2.5 text-sm font-semibold text-[#5B6B62] hover:border-[#1C2B24] hover:text-[#1C2B24] dark:border-[#39483F] dark:text-[#AEBBB3]"
+                        >
+                            Cancel
+                        </button>
 
+                        <button
+                            type="button"
+                            :disabled="saving"
+                            @click="saveChanges"
+                            class="bg-[#2F6F4E] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#275E42] disabled:opacity-50"
+                        >
+                            {{ saving ? 'Saving...' : 'Save changes' }}
+                        </button>
+                    </div>
                 </div>
-
-            </div>
-
+            </section>
         </div>
-
-
-        <!-- =================================================
-             SUBJECT MARKS
-        ================================================== -->
-
-        <div class="p-6">
-
-            <div class="mb-5">
-
-                <h2
-                    class="text-xl font-semibold text-gray-900 dark:text-white"
-                >
-                    Update Subject Marks
-                </h2>
-
-                <p
-                    class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                >
-                    Enter marks for each subject. Use <strong class="text-gray-700 dark:text-gray-200">A</strong> for an absent student.
-                </p>
-
-            </div>
-
-
-            <!-- SUBJECT LIST -->
-
-            <div
-                class="space-y-3"
-            >
-
-                <div
-                    v-for="subject in subjectStore.subjects"
-                    :key="subject.id"
-                    class="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600 transition-colors"
-                >
-
-                    <!-- SUBJECT NAME -->
-
-                    <label
-                        class="w-full sm:w-56 font-medium text-gray-800 dark:text-gray-100"
-                    >
-                        {{ subject.name }}
-                    </label>
-
-
-                    <!-- MARK INPUT -->
-
-                    <input
-                        v-model="marks[subject.id]"
-                        type="text"
-                        inputmode="decimal"
-                        placeholder="Enter marks or A"
-                        class="w-full sm:max-w-xs px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                    >
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 RESULT PREVIEW
-            ================================================== -->
-
-            <div class="mt-8">
-
-                <div class="mb-4">
-
-                    <h2
-                        class="text-xl font-semibold text-gray-900 dark:text-white"
-                    >
-                        Result Preview
-                    </h2>
-
-                    <p
-                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                    >
-                        The result is calculated automatically from the marks above.
-                    </p>
-
-                </div>
-
-
-                <div
-                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-                >
-
-                    <!-- TOTAL -->
-
-                    <div
-                        class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
-                    >
-
-                        <p
-                            class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                        >
-                            Total
-                        </p>
-
-                        <p
-                            class="mt-1 text-xl font-bold text-gray-900 dark:text-white"
-                        >
-                            {{ totalMarks }}
-                        </p>
-
-                    </div>
-
-
-                    <!-- PERCENTAGE -->
-
-                    <div
-                        class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600"
-                    >
-
-                        <p
-                            class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                        >
-                            Percentage
-                        </p>
-
-                        <p
-                            class="mt-1 text-xl font-bold text-gray-900 dark:text-white"
-                        >
-                            {{ percentage }}%
-                        </p>
-
-                    </div>
-
-
-                    <!-- GRADE -->
-
-                    <div
-                        class="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800"
-                    >
-
-                        <p
-                            class="text-xs font-medium uppercase tracking-wide text-purple-600 dark:text-purple-300"
-                        >
-                            Grade
-                        </p>
-
-                        <p
-                            class="mt-1 text-xl font-bold text-purple-700 dark:text-purple-200"
-                        >
-                            {{ grade }}
-                        </p>
-
-                    </div>
-
-
-                    <!-- RESULT -->
-
-                    <div
-                        class="p-4 rounded-xl border"
-                        :class="
-                            result === 'Pass'
-                                ? 'bg-green-50 dark:bg-green-900/30 border-green-100 dark:border-green-800'
-                                : 'bg-red-50 dark:bg-red-900/30 border-red-100 dark:border-red-800'
-                        "
-                    >
-
-                        <p
-                            class="text-xs font-medium uppercase tracking-wide"
-                            :class="
-                                result === 'Pass'
-                                    ? 'text-green-600 dark:text-green-300'
-                                    : 'text-red-600 dark:text-red-300'
-                            "
-                        >
-                            Result
-                        </p>
-
-                        <p
-                            class="mt-1 text-xl font-bold"
-                            :class="
-                                result === 'Pass'
-                                    ? 'text-green-700 dark:text-green-200'
-                                    : 'text-red-700 dark:text-red-200'
-                            "
-                        >
-                            {{ result }}
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 SUCCESS MESSAGE
-            ================================================== -->
-
-            <div
-                v-if="successMessage"
-                class="mt-6"
-            >
-
-                <div
-                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-sm font-medium"
-                >
-
-                    <span>
-                        ✓
-                    </span>
-
-                    {{ successMessage }}
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 SAVE BUTTON
-            ================================================== -->
-
-            <div
-                class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col-reverse sm:flex-row sm:justify-end gap-3"
-            >
-
-                <button
-                    type="button"
-                    @click="router.push('/marksheets')"
-                    class="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                >
-                    Cancel
-                </button>
-
-
-                <button
-                    type="button"
-                    :disabled="saving"
-                    @click="saveChanges"
-                    class="px-5 py-2.5 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-
-                    <span v-if="saving">
-                        Saving...
-                    </span>
-
-                    <span v-else>
-                        Save Changes
-                    </span>
-
-                </button>
-
-            </div>
-
-        </div>
-
     </div>
-
-</div>
-
 </template>

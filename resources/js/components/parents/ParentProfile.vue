@@ -185,46 +185,46 @@ onMounted(() => {
 
 </script>
 
-<template>
+<<template>
+    <div class="min-h-screen bg-paper text-ink">
+        <!-- HEADER / LETTERHEAD -->
 
-    <div
-        class="min-h-screen bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 transition-colors duration-300"
-    >
-
-        <!-- HEADER -->
-
-        <header
-            class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm"
-        >
-
+        <header class="border-b border-hairline">
             <div
-                class="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                class="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
             >
-
                 <div>
+                    <div class="mb-3 flex items-center gap-3">
+                        <div
+                            class="flex h-10 w-10 items-center justify-center border border-hairline bg-surface text-lg"
+                        >
+                            👤
+                        </div>
+
+                        <span class="text-sm font-medium text-forest">
+                            Parent Portal
+                        </span>
+                    </div>
 
                     <h1
-                        class="text-2xl font-bold text-gray-800 dark:text-white"
+                        class="font-serif text-4xl font-medium leading-tight text-ink"
                     >
                         My Profile
                     </h1>
 
-                    <p
-                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                    >
+                    <p class="mt-2 text-sm text-ink-soft">
                         Manage your parent account information.
                     </p>
-
                 </div>
 
                 <div class="flex items-center gap-3">
+                    <!-- DARK MODE -->
 
                     <button
                         @click="toggleDarkMode"
                         type="button"
-                        class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 transition"
+                        class="border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
                     >
-
                         <span v-if="darkMode">
                             ☀️ Light
                         </span>
@@ -232,43 +232,35 @@ onMounted(() => {
                         <span v-else>
                             🌙 Dark
                         </span>
-
                     </button>
+
+                    <!-- DASHBOARD -->
 
                     <button
                         @click="goBack"
                         type="button"
-                        class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-800 text-white transition"
+                        class="border border-forest bg-forest px-4 py-2.5 text-sm font-medium text-white hover:bg-ink"
                     >
                         ← Dashboard
                     </button>
-
                 </div>
-
             </div>
-
         </header>
 
 
         <!-- MAIN -->
 
-        <main
-            class="max-w-5xl mx-auto px-4 sm:px-6 py-8"
-        >
+        <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
 
             <!-- LOADING -->
 
             <div
                 v-if="loading"
-                class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-12 text-center"
+                class="border border-hairline bg-surface px-6 py-16 text-center"
             >
-
-                <p
-                    class="text-gray-500 dark:text-gray-400"
-                >
+                <p class="text-sm text-ink-soft">
                     Loading profile...
                 </p>
-
             </div>
 
 
@@ -276,11 +268,13 @@ onMounted(() => {
 
             <div
                 v-else-if="errorMessage"
-                class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 rounded-xl p-5"
+                class="border border-sienna bg-surface p-5"
             >
-
-                {{ errorMessage }}
-
+                <div
+                    class="border border-sienna bg-paper px-4 py-3 text-sm leading-6 text-sienna"
+                >
+                    {{ errorMessage }}
+                </div>
             </div>
 
 
@@ -288,57 +282,51 @@ onMounted(() => {
 
             <div
                 v-else
-                class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden"
+                class="border border-hairline bg-surface"
             >
 
                 <!-- PROFILE HEADER -->
 
-                <div
-                    class="px-6 py-8 border-b border-gray-200 dark:border-gray-800"
+                <section
+                    class="border-b border-hairline px-6 py-8 sm:px-8"
                 >
-
                     <div
-                        class="flex flex-col sm:flex-row items-center sm:items-start gap-5"
+                        class="flex flex-col gap-5 sm:flex-row sm:items-center"
                     >
-
                         <div
-                            class="w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900 flex items-center justify-center text-4xl"
+                            class="flex h-20 w-20 shrink-0 items-center justify-center border border-hairline bg-paper text-4xl"
                         >
                             👤
                         </div>
 
-                        <div
-                            class="text-center sm:text-left"
-                        >
+                        <div>
+                            <p
+                                class="mb-1 text-sm font-medium text-forest"
+                            >
+                                Account Holder
+                            </p>
 
                             <h2
-                                class="text-2xl font-bold text-gray-800 dark:text-white"
+                                class="font-serif text-3xl font-medium text-ink"
                             >
                                 {{ form.name || 'Parent' }}
                             </h2>
 
-                            <p
-                                class="text-gray-500 dark:text-gray-400 mt-1"
-                            >
+                            <p class="mt-1 text-sm text-ink-soft">
                                 Parent Account
                             </p>
-
                         </div>
-
                     </div>
-
-                </div>
+                </section>
 
 
                 <!-- SUCCESS -->
 
                 <div
                     v-if="successMessage"
-                    class="mx-6 mt-6 p-4 rounded-xl bg-green-100 dark:bg-green-950/40 border border-green-200 dark:border-green-900 text-green-700 dark:text-green-300"
+                    class="mx-6 mt-6 border border-forest bg-paper px-4 py-3 text-sm text-forest sm:mx-8"
                 >
-
                     {{ successMessage }}
-
                 </div>
 
 
@@ -346,19 +334,37 @@ onMounted(() => {
 
                 <form
                     @submit.prevent="updateProfile"
-                    class="p-6 space-y-6"
+                    class="p-6 sm:p-8"
                 >
 
+                    <div class="mb-7">
+                        <p class="text-sm font-medium text-forest">
+                            Account Details
+                        </p>
+
+                        <h3
+                            class="mt-1 font-serif text-2xl font-medium text-ink"
+                        >
+                            Personal Information
+                        </h3>
+
+                        <p class="mt-2 text-sm text-ink-soft">
+                            Keep your parent account information up to date.
+                        </p>
+                    </div>
+
+
+                    <!-- FORM FIELDS -->
+
                     <div
-                        class="grid grid-cols-1 md:grid-cols-2 gap-6"
+                        class="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2"
                     >
 
                         <!-- NAME -->
 
                         <div>
-
                             <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                                class="mb-2 block text-sm font-medium text-ink"
                             >
                                 Full Name
                             </label>
@@ -367,19 +373,17 @@ onMounted(() => {
                                 v-model="form.name"
                                 type="text"
                                 required
-                                class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                class="w-full border border-hairline bg-paper px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
                                 placeholder="Enter your full name"
                             >
-
                         </div>
 
 
                         <!-- EMAIL -->
 
                         <div>
-
                             <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                                class="mb-2 block text-sm font-medium text-ink"
                             >
                                 Email
                             </label>
@@ -388,19 +392,17 @@ onMounted(() => {
                                 v-model="form.email"
                                 type="email"
                                 required
-                                class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                class="w-full border border-hairline bg-paper px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
                                 placeholder="Enter your email"
                             >
-
                         </div>
 
 
                         <!-- PHONE -->
 
                         <div>
-
                             <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                                class="mb-2 block text-sm font-medium text-ink"
                             >
                                 Phone
                             </label>
@@ -408,19 +410,17 @@ onMounted(() => {
                             <input
                                 v-model="form.phone"
                                 type="text"
-                                class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                class="w-full border border-hairline bg-paper px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
                                 placeholder="Enter your phone number"
                             >
-
                         </div>
 
 
                         <!-- RELATIONSHIP -->
 
                         <div>
-
                             <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                                class="mb-2 block text-sm font-medium text-ink"
                             >
                                 Relationship
                             </label>
@@ -428,10 +428,9 @@ onMounted(() => {
                             <input
                                 v-model="form.relationship"
                                 type="text"
-                                class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                class="w-full border border-hairline bg-paper px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
                                 placeholder="e.g. Father, Mother, Guardian"
                             >
-
                         </div>
 
                     </div>
@@ -441,26 +440,22 @@ onMounted(() => {
 
                     <div
                         v-if="errorMessage"
-                        class="p-4 rounded-xl bg-red-100 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300"
+                        class="mt-6 border border-sienna bg-paper px-4 py-3 text-sm leading-6 text-sienna"
                     >
-
                         {{ errorMessage }}
-
                     </div>
 
 
-                    <!-- BUTTON -->
+                    <!-- ACTION -->
 
                     <div
-                        class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800"
+                        class="mt-8 flex justify-end border-t border-hairline pt-6"
                     >
-
                         <button
                             type="submit"
                             :disabled="saving"
-                            class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition"
+                            class="border border-forest bg-forest px-6 py-3 text-sm font-medium text-white hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
                         >
-
                             <span v-if="saving">
                                 Saving...
                             </span>
@@ -468,18 +463,24 @@ onMounted(() => {
                             <span v-else>
                                 Save Changes
                             </span>
-
                         </button>
-
                     </div>
 
                 </form>
 
             </div>
 
+
+            <!-- FOOTER NOTE -->
+
+            <div
+                class="mt-6 border-t border-hairline pt-5 text-xs leading-5 text-ink-soft"
+            >
+                Your profile information is used to maintain your parent
+                account and provide access to your child's academic records.
+            </div>
+
         </main>
-
     </div>
-
 </template>
 

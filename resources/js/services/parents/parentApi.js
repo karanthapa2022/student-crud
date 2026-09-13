@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { API_BASE_URL, getAuthToken } from '../apiConfig'
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: API_BASE_URL,
 })
 
 
@@ -28,7 +29,7 @@ export const getParents = (page = 1,
     perPage = 5
 ) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.get('/parents', {
         params: {
@@ -52,7 +53,7 @@ export const getParents = (page = 1,
 
 export const getParent = (id) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.get(`/parents/${id}`, {
         headers: {
@@ -70,7 +71,7 @@ export const getParent = (id) => {
 
 export const createParent = (parentData) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.post('/parents', parentData, {
         headers: {
@@ -88,7 +89,7 @@ export const createParent = (parentData) => {
 
 export const updateParent = (id, parentData) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.put(`/parents/${id}`, parentData, {
         headers: {
@@ -106,7 +107,7 @@ export const updateParent = (id, parentData) => {
 
 export const deleteParent = (id) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.delete(`/parents/${id}`, {
         headers: {
@@ -123,7 +124,7 @@ export const deleteParent = (id) => {
 
 export const updateParentChildren = (id, studentIds) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.put(`/parents/${id}/children`, {
         student_ids: studentIds
@@ -145,7 +146,7 @@ export const changeParentPassword = (
     passwordConfirmation
 ) => {
 
-    const token = localStorage.getItem('token')
+    const token = getAuthToken('admin')
 
     return api.put(
         `/parents/${parentId}/change-password`,

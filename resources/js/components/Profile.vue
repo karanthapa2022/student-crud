@@ -12,24 +12,9 @@ import {
     changePassword
 } from '../services/authApi'
 
-
 const router = useRouter()
 
-const goToStudents = () => {
-    router.push('/students')
-}
-
-
-// =========================================================
-// USER
-// =========================================================
-
 const user = ref(null)
-
-
-// =========================================================
-// LOADING / ERROR / SUCCESS
-// =========================================================
 
 const loading = ref(true)
 const saving = ref(false)
@@ -39,257 +24,85 @@ const passwordLoading = ref(false)
 const error = ref('')
 const successMessage = ref('')
 
-
-// =========================================================
-// EDIT PROFILE
-// =========================================================
-
 const editing = ref(false)
+const changingPassword = ref(false)
 
 const editName = ref('')
 const editEmail = ref('')
-
-
-// =========================================================
-// CHANGE PASSWORD
-// =========================================================
-
-const changingPassword = ref(false)
 
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
 
-
-// =========================================================
-// PHOTO
-// =========================================================
-
 const photoInput = ref(null)
 
 
 // =========================================================
-// DOCUMENT
+// NAVIGATION
 // =========================================================
 
-const handleDocumentChange = async (event) => {
-
-    const file = event.target.files?.[0]
-
-    if (!file) return
-
-
-    console.log('Selected file:', file)
-    console.log('Is File:', file instanceof File)
-
-
-    // =====================================================
-    // CHECK PDF
-    // =====================================================
-
-    if (file.type !== 'application/pdf') {
-
-        error.value =
-            'Please select a PDF file.'
-
-        event.target.value = ''
-
-        return
-    }
-
-
-    // =====================================================
-    // CHECK SIZE
-    // =====================================================
-
-    if (file.size > 5 * 1024 * 1024) {
-
-        error.value =
-            'PDF must be smaller than 5MB.'
-
-        event.target.value = ''
-
-        return
-    }
-
-
-    try {
-
-        const token = localStorage.getItem('token')
-
-
-        if (!token) {
-
-            error.value =
-                'You are not logged in.'
-
-            return
-        }
-
-
-        // =================================================
-        // FORM DATA
-        // =================================================
-
-        const formData = new FormData()
-
-        formData.append(
-            'document',
-            file
-        )
-
-
-        console.log(
-            'FormData document:',
-            formData.get('document')
-        )
-
-
-        // =================================================
-        // UPLOAD
-        // =================================================
-
-        const response = await updateDocument(
-            token,
-            formData
-        )
-
-
-        // =================================================
-        // UPDATE USER
-        // =================================================
-
-        user.value =
-            response.data.user
-
-
-        // =================================================
-        // UPDATE LOCAL STORAGE
-        // =================================================
-
-        localStorage.setItem(
-            'user',
-            JSON.stringify(response.data.user)
-        )
-
-
-        successMessage.value =
-            'Document uploaded successfully.'
-
-
-        setTimeout(() => {
-
-            successMessage.value = ''
-
-        }, 3000)
-
-
-    } catch (err) {
-
-        console.error(
-            'Document upload error:',
-            err
-        )
-
-        error.value =
-            err.response?.data?.message ||
-            'Failed to upload document.'
-
-    } finally {
-
-        event.target.value = ''
-
-    }
-
+const goToStudents = () => {
+    router.push('/students')
 }
 
 
 // =========================================================
-// DELETE DOCUMENT
+// HELPERS
 // =========================================================
 
-const deleteDocumentFile = async () => {
+const clearMessages = () => {
+    error.value = ''
+    successMessage.value = ''
+}
+
+const showSuccess = (message) => {
+
+    successMessage.value = message
+
+    setTimeout(() => {
+        successMessage.value = ''
+    }, 3000)
+}
+
+const getInitial = () => {
+    return user.value?.name?.charAt(0)?.toUpperCase() || 'U'
+}
+
+const formatDate = (date) => {
+
+    if (!date) return 'N/A'
+
+    return new Date(date).toLocaleDateString(
+        'en-US',
+        {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }
+    )
+}
+
+const profilePhotoUrl = () => {
+
+    if (!user.value?.profile_photo) {
+        return null
+    }
+
+    return `http://127.0.0.1:8000/storage/${user.value.profile_photo}`
+}
+
+const documentUrl = () => {
 
     if (!user.value?.document) {
-        return
+        return null
     }
 
-
-    const confirmed = confirm(
-        'Are you sure you want to delete this document?'
-    )
-
-
-    if (!confirmed) {
-        return
-    }
-
-
-    try {
-
-        const token = localStorage.getItem('token')
-
-
-        if (!token) {
-
-            error.value =
-                'You are not logged in.'
-
-            return
-        }
-
-
-        const response =
-            await deleteDocument(token)
-
-
-        // =================================================
-        // UPDATE USER
-        // =================================================
-
-        user.value =
-            response.data.user
-
-
-        // =================================================
-        // UPDATE LOCAL STORAGE
-        // =================================================
-
-        localStorage.setItem(
-            'user',
-            JSON.stringify(response.data.user)
-        )
-
-
-        successMessage.value =
-            'Document deleted successfully.'
-
-
-        setTimeout(() => {
-
-            successMessage.value = ''
-
-        }, 3000)
-
-
-    } catch (err) {
-
-        console.error(
-            'Document delete error:',
-            err
-        )
-
-        error.value =
-            err.response?.data?.message ||
-            'Failed to delete document.'
-
-    }
-
+    return `http://127.0.0.1:8000/storage/${user.value.document}`
 }
 
 
 // =========================================================
-// GET USER
+// FETCH USER
 // =========================================================
 
 const fetchUser = async () => {
@@ -298,7 +111,6 @@ const fetchUser = async () => {
 
         const token = localStorage.getItem('token')
 
-
         if (!token) {
 
             error.value =
@@ -307,24 +119,16 @@ const fetchUser = async () => {
             return
         }
 
-
         const response =
             await getUser(token)
 
-
         user.value =
             response.data
-
-
-        // =================================================
-        // UPDATE LOCAL STORAGE
-        // =================================================
 
         localStorage.setItem(
             'user',
             JSON.stringify(response.data)
         )
-
 
     } catch (err) {
 
@@ -340,9 +144,7 @@ const fetchUser = async () => {
     } finally {
 
         loading.value = false
-
     }
-
 }
 
 
@@ -354,25 +156,16 @@ const editProfile = () => {
 
     if (!user.value) return
 
-
     editName.value =
         user.value.name
 
     editEmail.value =
         user.value.email
 
-
     editing.value = true
 
-    error.value = ''
-    successMessage.value = ''
-
+    clearMessages()
 }
-
-
-// =========================================================
-// CANCEL EDIT
-// =========================================================
 
 const cancelEdit = () => {
 
@@ -382,13 +175,7 @@ const cancelEdit = () => {
     editEmail.value = ''
 
     error.value = ''
-
 }
-
-
-// =========================================================
-// SAVE PROFILE
-// =========================================================
 
 const saveProfile = async () => {
 
@@ -403,18 +190,13 @@ const saveProfile = async () => {
         return
     }
 
-
     saving.value = true
-
-    error.value = ''
-    successMessage.value = ''
-
+    clearMessages()
 
     try {
 
         const token =
             localStorage.getItem('token')
-
 
         if (!token) {
 
@@ -424,7 +206,6 @@ const saveProfile = async () => {
             return
         }
 
-
         const response =
             await updateProfile(
                 token,
@@ -433,46 +214,23 @@ const saveProfile = async () => {
                         editName.value.trim(),
 
                     email:
-                        editEmail.value.trim(),
+                        editEmail.value.trim()
                 }
             )
 
-
-        // =================================================
-        // UPDATE USER
-        // =================================================
-
         user.value =
             response.data.user
-
-
-        // =================================================
-        // UPDATE LOCAL STORAGE
-        // =================================================
 
         localStorage.setItem(
             'user',
             JSON.stringify(response.data.user)
         )
 
-
-        // =================================================
-        // CLOSE EDIT MODE
-        // =================================================
-
         editing.value = false
 
-
-        successMessage.value =
+        showSuccess(
             'Profile updated successfully.'
-
-
-        setTimeout(() => {
-
-            successMessage.value = ''
-
-        }, 3000)
-
+        )
 
     } catch (err) {
 
@@ -488,186 +246,12 @@ const saveProfile = async () => {
     } finally {
 
         saving.value = false
-
     }
-
 }
 
 
 // =========================================================
-// OPEN CHANGE PASSWORD
-// =========================================================
-
-const openChangePassword = () => {
-
-    changingPassword.value = true
-
-    error.value = ''
-    successMessage.value = ''
-
-}
-
-
-// =========================================================
-// CANCEL CHANGE PASSWORD
-// =========================================================
-
-const cancelChangePassword = () => {
-
-    changingPassword.value = false
-
-    currentPassword.value = ''
-    newPassword.value = ''
-    confirmPassword.value = ''
-
-    error.value = ''
-
-}
-
-
-// =========================================================
-// CHANGE PASSWORD
-// =========================================================
-
-const savePassword = async () => {
-
-    // =====================================================
-    // REQUIRED FIELDS
-    // =====================================================
-
-    if (
-        !currentPassword.value ||
-        !newPassword.value ||
-        !confirmPassword.value
-    ) {
-
-        error.value =
-            'All password fields are required.'
-
-        return
-    }
-
-
-    // =====================================================
-    // PASSWORD LENGTH
-    // =====================================================
-
-    if (
-        newPassword.value.length < 8
-    ) {
-
-        error.value =
-            'New password must be at least 8 characters.'
-
-        return
-    }
-
-
-    // =====================================================
-    // PASSWORD CONFIRMATION
-    // =====================================================
-
-    if (
-        newPassword.value !==
-        confirmPassword.value
-    ) {
-
-        error.value =
-            'New passwords do not match.'
-
-        return
-    }
-
-
-    passwordLoading.value = true
-
-    error.value = ''
-    successMessage.value = ''
-
-
-    try {
-
-        const token =
-            localStorage.getItem('token')
-
-
-        if (!token) {
-
-            error.value =
-                'You are not logged in.'
-
-            return
-        }
-
-
-        // =================================================
-        // CHANGE PASSWORD API
-        // =================================================
-
-        await changePassword(
-            token,
-            {
-                current_password:
-                    currentPassword.value,
-
-                new_password:
-                    newPassword.value,
-
-                new_password_confirmation:
-                    confirmPassword.value,
-            }
-        )
-
-
-        // =================================================
-        // CLEAR PASSWORD FIELDS
-        // =================================================
-
-        currentPassword.value = ''
-        newPassword.value = ''
-        confirmPassword.value = ''
-
-
-        // =================================================
-        // CLOSE FORM
-        // =================================================
-
-        changingPassword.value = false
-
-
-        successMessage.value =
-            'Password changed successfully.'
-
-
-        setTimeout(() => {
-
-            successMessage.value = ''
-
-        }, 3000)
-
-
-    } catch (err) {
-
-        console.error(
-            'Change password error:',
-            err
-        )
-
-        error.value =
-            err.response?.data?.message ||
-            'Failed to change password.'
-
-    } finally {
-
-        passwordLoading.value = false
-
-    }
-
-}
-
-
-// =========================================================
-// OPEN PHOTO SELECTOR
+// PHOTO
 // =========================================================
 
 const selectPhoto = () => {
@@ -677,33 +261,20 @@ const selectPhoto = () => {
     }
 
     photoInput.value?.click()
-
 }
-
-
-// =========================================================
-// UPLOAD PROFILE PHOTO
-// =========================================================
 
 const handlePhotoUpload = async (event) => {
 
     const file =
         event.target.files?.[0]
 
-
     if (!file) return
-
-
-    // =====================================================
-    // ALLOWED TYPES
-    // =====================================================
 
     const allowedTypes = [
         'image/jpeg',
         'image/png',
         'image/webp'
     ]
-
 
     if (!allowedTypes.includes(file.type)) {
 
@@ -715,15 +286,7 @@ const handlePhotoUpload = async (event) => {
         return
     }
 
-
-    // =====================================================
-    // FILE SIZE
-    // =====================================================
-
-    if (
-        file.size >
-        2 * 1024 * 1024
-    ) {
+    if (file.size > 2 * 1024 * 1024) {
 
         error.value =
             'Photo must be smaller than 2MB.'
@@ -733,18 +296,13 @@ const handlePhotoUpload = async (event) => {
         return
     }
 
-
     uploadingPhoto.value = true
-
-    error.value = ''
-    successMessage.value = ''
-
+    clearMessages()
 
     try {
 
         const token =
             localStorage.getItem('token')
-
 
         if (!token) {
 
@@ -754,24 +312,13 @@ const handlePhotoUpload = async (event) => {
             return
         }
 
-
-        // =================================================
-        // FORM DATA
-        // =================================================
-
         const formData =
             new FormData()
-
 
         formData.append(
             'profile_photo',
             file
         )
-
-
-        // =================================================
-        // UPLOAD PHOTO
-        // =================================================
 
         const response =
             await updateProfilePhoto(
@@ -779,35 +326,17 @@ const handlePhotoUpload = async (event) => {
                 formData
             )
 
-
-        // =================================================
-        // UPDATE USER
-        // =================================================
-
         user.value =
             response.data.user
-
-
-        // =================================================
-        // UPDATE LOCAL STORAGE
-        // =================================================
 
         localStorage.setItem(
             'user',
             JSON.stringify(response.data.user)
         )
 
-
-        successMessage.value =
+        showSuccess(
             'Profile photo updated successfully.'
-
-
-        setTimeout(() => {
-
-            successMessage.value = ''
-
-        }, 3000)
-
+        )
 
     } catch (err) {
 
@@ -825,64 +354,264 @@ const handlePhotoUpload = async (event) => {
         uploadingPhoto.value = false
 
         event.target.value = ''
-
     }
-
 }
 
 
 // =========================================================
-// PROFILE PHOTO URL
+// PASSWORD
 // =========================================================
 
-const profilePhotoUrl = () => {
+const openChangePassword = () => {
 
-    if (!user.value?.profile_photo) {
-        return null
+    changingPassword.value = true
+
+    clearMessages()
+}
+
+const cancelChangePassword = () => {
+
+    changingPassword.value = false
+
+    currentPassword.value = ''
+    newPassword.value = ''
+    confirmPassword.value = ''
+
+    error.value = ''
+}
+
+const savePassword = async () => {
+
+    if (
+        !currentPassword.value ||
+        !newPassword.value ||
+        !confirmPassword.value
+    ) {
+
+        error.value =
+            'All password fields are required.'
+
+        return
     }
 
+    if (newPassword.value.length < 8) {
 
-    return `http://127.0.0.1:8000/storage/${user.value.profile_photo}`
+        error.value =
+            'New password must be at least 8 characters.'
 
+        return
+    }
+
+    if (
+        newPassword.value !==
+        confirmPassword.value
+    ) {
+
+        error.value =
+            'New passwords do not match.'
+
+        return
+    }
+
+    passwordLoading.value = true
+    clearMessages()
+
+    try {
+
+        const token =
+            localStorage.getItem('token')
+
+        if (!token) {
+
+            error.value =
+                'You are not logged in.'
+
+            return
+        }
+
+        await changePassword(
+            token,
+            {
+                current_password:
+                    currentPassword.value,
+
+                new_password:
+                    newPassword.value,
+
+                new_password_confirmation:
+                    confirmPassword.value
+            }
+        )
+
+        currentPassword.value = ''
+        newPassword.value = ''
+        confirmPassword.value = ''
+
+        changingPassword.value = false
+
+        showSuccess(
+            'Password changed successfully.'
+        )
+
+    } catch (err) {
+
+        console.error(
+            'Change password error:',
+            err
+        )
+
+        error.value =
+            err.response?.data?.message ||
+            'Failed to change password.'
+
+    } finally {
+
+        passwordLoading.value = false
+    }
 }
 
 
 // =========================================================
-// DOCUMENT URL
+// DOCUMENT
 // =========================================================
 
-const documentUrl = () => {
+const handleDocumentChange = async (event) => {
+
+    const file =
+        event.target.files?.[0]
+
+    if (!file) return
+
+    if (file.type !== 'application/pdf') {
+
+        error.value =
+            'Please select a PDF file.'
+
+        event.target.value = ''
+
+        return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+
+        error.value =
+            'PDF must be smaller than 5MB.'
+
+        event.target.value = ''
+
+        return
+    }
+
+    try {
+
+        const token =
+            localStorage.getItem('token')
+
+        if (!token) {
+
+            error.value =
+                'You are not logged in.'
+
+            return
+        }
+
+        const formData =
+            new FormData()
+
+        formData.append(
+            'document',
+            file
+        )
+
+        const response =
+            await updateDocument(
+                token,
+                formData
+            )
+
+        user.value =
+            response.data.user
+
+        localStorage.setItem(
+            'user',
+            JSON.stringify(response.data.user)
+        )
+
+        showSuccess(
+            'Document uploaded successfully.'
+        )
+
+    } catch (err) {
+
+        console.error(
+            'Document upload error:',
+            err
+        )
+
+        error.value =
+            err.response?.data?.message ||
+            'Failed to upload document.'
+
+    } finally {
+
+        event.target.value = ''
+    }
+}
+
+const deleteDocumentFile = async () => {
 
     if (!user.value?.document) {
-        return null
+        return
     }
 
+    const confirmed =
+        confirm(
+            'Are you sure you want to delete this document?'
+        )
 
-    return `http://127.0.0.1:8000/storage/${user.value.document}`
-
-}
-
-
-// =========================================================
-// FORMAT DATE
-// =========================================================
-
-const formatDate = (date) => {
-
-    if (!date) {
-        return 'N/A'
+    if (!confirmed) {
+        return
     }
 
+    try {
 
-    return new Date(date).toLocaleDateString(
-        'en-US',
-        {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+        const token =
+            localStorage.getItem('token')
+
+        if (!token) {
+
+            error.value =
+                'You are not logged in.'
+
+            return
         }
-    )
 
+        const response =
+            await deleteDocument(token)
+
+        user.value =
+            response.data.user
+
+        localStorage.setItem(
+            'user',
+            JSON.stringify(response.data.user)
+        )
+
+        showSuccess(
+            'Document deleted successfully.'
+        )
+
+    } catch (err) {
+
+        console.error(
+            'Document delete error:',
+            err
+        )
+
+        error.value =
+            err.response?.data?.message ||
+            'Failed to delete document.'
+    }
 }
 
 
@@ -891,262 +620,227 @@ const formatDate = (date) => {
 // =========================================================
 
 onMounted(() => {
-    const savedTheme=localStorage.getItem('theme')
-    if(savedTheme==='dark'){
+
+    const savedTheme =
+        localStorage.getItem('theme')
+
+    if (savedTheme === 'dark') {
+
         document.documentElement.classList.add('dark')
-    }else{
+
+    } else {
+
         document.documentElement.classList.remove('dark')
     }
-    fetchUser()
 
+    fetchUser()
 })
 
 </script>
-
-
 <template>
+    <div class="min-h-screen bg-paper text-ink">
 
-<div class="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
-
-
-<!-- ================================================= -->
-<!-- LOADING -->
-<!-- ================================================= -->
-
-<div
-    v-if="loading"
-    class="min-h-screen flex items-center justify-center"
->
-
-    <div class="text-center">
+        <!-- =====================================================
+             LOADING
+        ====================================================== -->
 
         <div
-            class="w-10 h-10 border-4 border-gray-300 dark:border-gray-700 border-t-gray-900 dark:border-t-white rounded-full animate-spin mx-auto mb-4"
-        ></div>
+            v-if="loading"
+            class="flex min-h-screen items-center justify-center"
+        >
+            <div class="text-center">
 
-        <p class="text-gray-500 dark:text-gray-400">
-            Loading profile...
-        </p>
+                <div
+                    class="mx-auto h-8 w-8 animate-spin border-2 border-hairline border-t-forest"
+                ></div>
 
-    </div>
+                <p class="mt-4 text-sm text-ink-soft">
+                    Loading profile...
+                </p>
 
-</div>
-
-
-<!-- ================================================= -->
-<!-- ERROR WITHOUT USER -->
-<!-- ================================================= -->
-
-<div
-    v-else-if="error && !user"
-    class="max-w-4xl mx-auto px-4 pt-10"
->
-
-    <div
-        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl p-4"
-    >
-
-        {{ error }}
-
-    </div>
-
-</div>
-
-
-<!-- ================================================= -->
-<!-- PROFILE -->
-<!-- ================================================= -->
-
-<div
-    v-else-if="user"
-    class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
->
-
-
-    <!-- ================================================= -->
-    <!-- PAGE HEADER -->
-    <!-- ================================================= -->
-
-    <div
-        class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-    >
-
-        <div>
-
-            <h1
-                class="text-3xl font-bold text-gray-900 dark:text-white"
-            >
-                Profile
-            </h1>
-
-            <p
-                class="mt-1 text-gray-500 dark:text-gray-400"
-            >
-                View and manage your account information
-            </p>
-
+            </div>
         </div>
 
 
-        <!-- BACK BUTTON -->
-
-        <button
-            @click="goToStudents"
-            class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-sm"
-        >
-
-            <span>←</span>
-
-            Back to Students
-
-        </button>
-
-    </div>
-
-
-    <!-- ================================================= -->
-    <!-- SUCCESS MESSAGE -->
-    <!-- ================================================= -->
-
-    <div
-        v-if="successMessage"
-        class="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-5 py-4 rounded-xl flex items-center gap-3"
-    >
+        <!-- =====================================================
+             ERROR
+        ====================================================== -->
 
         <div
-            class="w-7 h-7 rounded-full bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 flex items-center justify-center font-bold"
+            v-else-if="error && !user"
+            class="flex min-h-screen items-center justify-center px-5"
         >
-            ✓
-        </div>
-
-        <span>
-            {{ successMessage }}
-        </span>
-
-    </div>
-
-
-    <!-- ================================================= -->
-    <!-- ERROR MESSAGE -->
-    <!-- ================================================= -->
-
-    <div
-        v-if="error"
-        class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-5 py-4 rounded-xl"
-    >
-
-        {{ error }}
-
-    </div>
-
-
-    <!-- ================================================= -->
-    <!-- MAIN PROFILE CARD -->
-    <!-- ================================================= -->
-
-    <div
-        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-300"
-    >
-
-
-        <!-- ================================================= -->
-        <!-- COVER -->
-        <!-- ================================================= -->
-
-        <div
-            class="h-40 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"
-        ></div>
-
-
-        <!-- ================================================= -->
-        <!-- USER SECTION -->
-        <!-- ================================================= -->
-
-        <div
-            class="px-6 sm:px-10"
-        >
-
-
-            <!-- ================================================= -->
-            <!-- AVATAR -->
-            <!-- ================================================= -->
 
             <div
-                class="-mt-14"
+                class="w-full max-w-md border border-sienna bg-surface p-6"
             >
 
                 <div
-                    class="relative w-28 h-28"
+                    class="mb-4 flex h-10 w-10 items-center justify-center bg-[#FFF3EF] text-sienna"
                 >
+                    !
+                </div>
 
-                    <!-- AVATAR -->
+                <h2 class="text-lg font-semibold text-ink">
+                    Unable to load profile
+                </h2>
+
+                <p class="mt-2 text-sm leading-6 text-ink-soft">
+                    {{ error }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             MAIN PAGE
+        ====================================================== -->
+
+        <div
+            v-else-if="user"
+            class="mx-auto max-w-7xl px-5 py-6 sm:px-8 lg:py-9"
+        >
+
+            <!-- =================================================
+                 PAGE HEADER
+            ================================================== -->
+
+            <header
+                class="mb-7 flex flex-col gap-5 border-b border-hairline pb-6 sm:flex-row sm:items-end sm:justify-between"
+            >
+
+                <div>
+
+                    <p class="text-sm font-medium text-forest">
+                        Student Portal
+                    </p>
+
+                    <h1
+                        class="mt-1 text-3xl font-semibold text-ink"
+                    >
+                        My Profile
+                    </h1>
+
+                    <p
+                        class="mt-2 text-sm text-ink-soft"
+                    >
+                        Manage your account information, documents and security.
+                    </p>
+
+                </div>
+
+
+                <button
+                    @click="goToStudents"
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 self-start border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:border-forest hover:text-forest sm:self-auto"
+                >
+                    <span>←</span>
+                    Back to Students
+                </button>
+
+            </header>
+
+
+            <!-- =================================================
+                 NOTIFICATIONS
+            ================================================== -->
+
+            <div
+                v-if="successMessage"
+                class="mb-5 flex items-center gap-3 border border-[#C9DDCE] bg-[#F1F7F2] px-4 py-3 text-sm font-medium text-forest"
+            >
+
+                <span
+                    class="flex h-6 w-6 shrink-0 items-center justify-center bg-forest text-xs text-white"
+                >
+                    ✓
+                </span>
+
+                {{ successMessage }}
+
+            </div>
+
+
+            <div
+                v-if="error"
+                class="mb-5 flex items-center gap-3 border border-[#E9C9BE] bg-[#FFF5F2] px-4 py-3 text-sm font-medium text-sienna"
+            >
+
+                <span
+                    class="flex h-6 w-6 shrink-0 items-center justify-center bg-sienna text-xs text-white"
+                >
+                    !
+                </span>
+
+                {{ error }}
+
+            </div>
+
+
+            <!-- =================================================
+                 PROFILE HEADER
+            ================================================== -->
+
+<section
+    class="border border-hairline bg-surface"
+>
+
+    <div class="px-5 py-6 sm:px-8 sm:py-7">
+
+        <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+
+            <!-- PHOTO + USER INFO -->
+
+            <div class="flex items-center gap-5">
+
+                <!-- PHOTO -->
+
+                <div class="relative shrink-0">
 
                     <div
-                        class="w-28 h-28 rounded-full bg-white dark:bg-gray-800 p-2 shadow-lg"
+                        class="h-24 w-24 overflow-hidden border-4 border-paper bg-paper sm:h-28 sm:w-28"
                     >
-
-                        <!-- UPLOADED PHOTO -->
 
                         <img
                             v-if="profilePhotoUrl()"
                             :src="profilePhotoUrl()"
-                            alt="Profile Photo"
-                            class="w-full h-full rounded-full object-cover"
+                            alt="Profile photo"
+                            class="h-full w-full object-cover"
                         />
-
-
-                        <!-- DEFAULT AVATAR -->
 
                         <div
                             v-else
-                            class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"
+                            class="flex h-full w-full items-center justify-center bg-[#EDF4EE] text-4xl font-semibold text-forest"
                         >
-
-                            <span
-                                class="text-4xl font-bold text-white"
-                            >
-
-                                {{
-                                    user.name
-                                        .charAt(0)
-                                        .toUpperCase()
-                                }}
-
-                            </span>
-
+                            {{ getInitial() }}
                         </div>
 
                     </div>
 
 
-                    <!-- CAMERA BUTTON -->
+                    <!-- CHANGE PHOTO -->
 
                     <button
                         type="button"
                         @click="selectPhoto"
                         :disabled="uploadingPhoto"
-                        class="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center shadow-lg hover:bg-gray-700 dark:hover:bg-gray-200 transition border-2 border-white dark:border-gray-800 disabled:opacity-60"
                         title="Change profile photo"
+                        class="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center border-2 border-surface bg-forest text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
                     >
 
-                        <span
-                            v-if="!uploadingPhoto"
-                            class="text-lg"
-                        >
-                            📷
+                        <span v-if="!uploadingPhoto">
+                            +
                         </span>
 
-                        <span
-                            v-else
-                            class="text-xs"
-                        >
-                            ...
+                        <span v-else>
+                            …
                         </span>
 
                     </button>
 
-
-                    <!-- HIDDEN INPUT -->
 
                     <input
                         ref="photoInput"
@@ -1159,654 +853,887 @@ onMounted(() => {
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- DOCUMENT UPLOAD -->
-                <!-- ================================================= -->
+                <!-- USER INFORMATION -->
 
-                <div
-                    class="mt-6"
-                >
+                <div class="min-w-0">
 
-                    <label
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                        Upload PDF Document
-                    </label>
+                    <div class="flex flex-wrap items-center gap-3">
 
-                    <input
-                        type="file"
-                        accept=".pdf,application/pdf"
-                        @change="handleDocumentChange"
-                        class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-900 dark:file:bg-white file:text-white dark:file:text-gray-900 file:font-medium hover:file:bg-gray-800 dark:hover:file:bg-gray-200"
-                    />
+                        <h2
+                            class="text-2xl font-semibold text-ink sm:text-3xl"
+                        >
+                            {{ user.name }}
+                        </h2>
 
-                    <p
-                        class="text-xs text-gray-400 dark:text-gray-500 mt-2"
-                    >
-                        PDF only, maximum 5MB.
-                    </p>
+                        <span
+                            class="inline-flex items-center gap-2 bg-[#EDF4EE] px-3 py-1.5 text-xs font-medium text-forest"
+                        >
 
-                </div>
+                            <span
+                                class="h-1.5 w-1.5 bg-forest"
+                            ></span>
 
-            </div>
+                            Active
 
+                        </span>
 
-            <!-- ================================================= -->
-            <!-- NAME + EDIT BUTTON -->
-            <!-- ================================================= -->
-
-            <div
-                class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 pt-5 pb-7"
-            >
-
-                <div
-                    class="min-w-0"
-                >
-
-                    <h2
-                        class="text-3xl font-bold text-gray-900 dark:text-white leading-tight break-words"
-                    >
-                        {{ user.name }}
-                    </h2>
+                    </div>
 
                     <p
-                        class="text-gray-500 dark:text-gray-400 mt-2 break-all"
+                        class="mt-1 break-all text-sm text-ink-soft"
                     >
                         {{ user.email }}
                     </p>
 
-                    <p
-                        class="text-xs text-gray-400 dark:text-gray-500 mt-2"
-                    >
-                        Click the camera icon to change your photo
-                    </p>
-
                 </div>
-
-
-                <!-- EDIT BUTTON -->
-
-                <button
-                    v-if="!editing"
-                    @click="editProfile"
-                    class="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-sm"
-                >
-                    Edit Profile
-                </button>
 
             </div>
 
 
-            <!-- ================================================= -->
-            <!-- EDIT PROFILE -->
-            <!-- ================================================= -->
+            <!-- EDIT BUTTON -->
 
-            <div
-                v-if="editing"
-                class="mb-8 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-6"
+            <button
+                v-if="!editing"
+                @click="editProfile"
+                type="button"
+                class="inline-flex items-center justify-center gap-2 self-start border border-hairline bg-white px-5 py-2.5 text-sm font-medium text-ink transition hover:border-forest hover:text-forest sm:self-center"
             >
-
-                <h3
-                    class="text-lg font-semibold text-gray-900 dark:text-white mb-5"
-                >
-                    Edit Profile
-                </h3>
-
-
-                <div
-                    class="grid grid-cols-1 md:grid-cols-2 gap-5"
-                >
-
-                    <!-- NAME -->
-
-                    <div>
-
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Full Name
-                        </label>
-
-                        <input
-                            v-model="editName"
-                            type="text"
-                            class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
-                            placeholder="Enter your name"
-                        />
-
-                    </div>
-
-
-                    <!-- EMAIL -->
-
-                    <div>
-
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Email Address
-                        </label>
-
-                        <input
-                            v-model="editEmail"
-                            type="email"
-                            class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
-                            placeholder="Enter your email"
-                        />
-
-                    </div>
-
-                </div>
-
-
-                <!-- BUTTONS -->
-
-                <div
-                    class="flex flex-col sm:flex-row gap-3 mt-6"
-                >
-
-                    <button
-                        @click="saveProfile"
-                        :disabled="saving"
-                        class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-                    >
-
-                        {{
-                            saving
-                                ? 'Saving...'
-                                : 'Save Changes'
-                        }}
-
-                    </button>
-
-
-                    <button
-                        @click="cancelEdit"
-                        :disabled="saving"
-                        class="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                    >
-
-                        Cancel
-
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================= -->
-            <!-- ACCOUNT INFORMATION -->
-            <!-- ================================================= -->
-
-            <div
-                class="border-t border-gray-200 dark:border-gray-700 py-8"
-            >
-
-                <h3
-                    class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
-                >
-                    Account Information
-                </h3>
-
-
-                <div
-                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-                >
-
-                    <!-- USER ID -->
-
-                    <div
-                        class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 hover:shadow-sm transition"
-                    >
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mb-2"
-                        >
-                            User ID
-                        </p>
-
-                        <p
-                            class="text-xl font-semibold text-gray-900 dark:text-white"
-                        >
-                            #{{ user.id }}
-                        </p>
-
-                    </div>
-
-
-                    <!-- EMAIL -->
-
-                    <div
-                        class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 hover:shadow-sm transition"
-                    >
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mb-2"
-                        >
-                            Email Address
-                        </p>
-
-                        <p
-                            class="font-semibold text-gray-900 dark:text-white break-all"
-                        >
-                            {{ user.email }}
-                        </p>
-
-                    </div>
-
-
-                    <!-- STATUS -->
-
-                    <div
-                        class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 hover:shadow-sm transition"
-                    >
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mb-2"
-                        >
-                            Account Status
-                        </p>
-
-                        <div
-                            class="flex items-center gap-2"
-                        >
-
-                            <span
-                                class="w-2.5 h-2.5 rounded-full bg-green-500"
-                            ></span>
-
-                            <span
-                                class="font-semibold text-green-600 dark:text-green-400"
-                            >
-                                Active
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================= -->
-            <!-- ACCOUNT DETAILS -->
-            <!-- ================================================= -->
-
-            <div
-                class="border-t border-gray-200 dark:border-gray-700 py-8"
-            >
-
-                <h3
-                    class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
-                >
-                    Account Details
-                </h3>
-
-
-                <div
-                    class="space-y-6"
-                >
-
-                    <!-- NAME -->
-
-                    <div>
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400"
-                        >
-                            Full Name
-                        </p>
-
-                        <p
-                            class="font-medium text-gray-900 dark:text-white mt-1 break-words"
-                        >
-                            {{ user.name }}
-                        </p>
-
-                    </div>
-
-
-                    <!-- EMAIL -->
-
-                    <div>
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400"
-                        >
-                            Email
-                        </p>
-
-                        <p
-                            class="font-medium text-gray-900 dark:text-white mt-1 break-all"
-                        >
-                            {{ user.email }}
-                        </p>
-
-                    </div>
-
-
-                    <!-- MEMBER SINCE -->
-
-                    <div>
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400"
-                        >
-                            Member Since
-                        </p>
-
-                        <p
-                            class="font-medium text-gray-900 dark:text-white mt-1"
-                        >
-                            {{ formatDate(user.created_at) }}
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================= -->
-            <!-- CHANGE PASSWORD -->
-            <!-- ================================================= -->
-
-            <div
-                class="border-t border-gray-200 dark:border-gray-700 py-8"
-            >
-
-                <div
-                    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-                >
-
-                    <div>
-
-                        <h3
-                            class="text-xl font-semibold text-gray-900 dark:text-white"
-                        >
-                            Password
-                        </h3>
-
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                        >
-                            Change your account password
-                        </p>
-
-                    </div>
-
-
-                    <button
-                        v-if="!changingPassword"
-                        @click="openChangePassword"
-                        class="px-5 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition"
-                    >
-                        Change Password
-                    </button>
-
-                </div>
-
-
-                <!-- PASSWORD FORM -->
-
-                <div
-                    v-if="changingPassword"
-                    class="mt-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-6"
-                >
-
-                    <div
-                        class="space-y-5"
-                    >
-
-                        <!-- CURRENT PASSWORD -->
-
-                        <div>
-
-                            <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                            >
-                                Current Password
-                            </label>
-
-                            <input
-                                v-model="currentPassword"
-                                type="password"
-                                autocomplete="current-password"
-                                class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter current password"
-                            />
-
-                        </div>
-
-
-                        <!-- NEW PASSWORD -->
-
-                        <div>
-
-                            <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                            >
-                                New Password
-                            </label>
-
-                            <input
-                                v-model="newPassword"
-                                type="password"
-                                autocomplete="new-password"
-                                class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter new password"
-                            />
-
-                            <p
-                                class="text-xs text-gray-400 dark:text-gray-500 mt-2"
-                            >
-                                Minimum 8 characters.
-                            </p>
-
-                        </div>
-
-
-                        <!-- CONFIRM PASSWORD -->
-
-                        <div>
-
-                            <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                            >
-                                Confirm New Password
-                            </label>
-
-                            <input
-                                v-model="confirmPassword"
-                                type="password"
-                                autocomplete="new-password"
-                                class="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Confirm new password"
-                            />
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- PASSWORD BUTTONS -->
-
-                    <div
-                        class="flex flex-col sm:flex-row gap-3 mt-6"
-                    >
-
-                        <button
-                            @click="savePassword"
-                            :disabled="passwordLoading"
-                            class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-                        >
-
-                            {{
-                                passwordLoading
-                                    ? 'Changing...'
-                                    : 'Change Password'
-                            }}
-
-                        </button>
-
-
-                        <button
-                            @click="cancelChangePassword"
-                            :disabled="passwordLoading"
-                            class="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                        >
-
-                            Cancel
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================= -->
-            <!-- DOCUMENT -->
-            <!-- ================================================= -->
-
-            <div
-                class="border-t border-gray-200 dark:border-gray-700 py-8"
-            >
-
-                <h3
-                    class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
-                >
-                    Documents
-                </h3>
-
-
-                <!-- DOCUMENT EXISTS -->
-
-                <div
-                    v-if="user.document"
-                    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5"
-                >
-
-                    <div
-                        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-                    >
-
-                        <!-- FILE INFO -->
-
-                        <div
-                            class="flex items-center gap-4"
-                        >
-
-                            <div
-                                class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center"
-                            >
-
-                                <span
-                                    class="text-2xl"
-                                >
-                                    📄
-                                </span>
-
-                            </div>
-
-
-                            <div>
-
-                                <p
-                                    class="font-semibold text-gray-900 dark:text-white"
-                                >
-                                    PDF Document
-                                </p>
-
-                                <p
-                                    class="text-sm text-gray-500 dark:text-gray-400"
-                                >
-                                    Uploaded document
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- BUTTONS -->
-
-                        <div
-                            class="flex flex-wrap gap-2"
-                        >
-
-                            <!-- VIEW -->
-
-                            <a
-                                :href="documentUrl()"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
-                            >
-                                View
-                            </a>
-
-
-                            <!-- DOWNLOAD -->
-
-                            <a
-                                :href="documentUrl()"
-                                download
-                                class="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition"
-                            >
-                                Download
-                            </a>
-
-
-                            <!-- DELETE -->
-
-                            <button
-                                type="button"
-                                @click="deleteDocumentFile"
-                                class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
-                            >
-                                Delete
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- NO DOCUMENT -->
-
-                <div
-                    v-else
-                    class="border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-6 text-center"
-                >
-
-                    <p
-                        class="text-gray-500 dark:text-gray-400"
-                    >
-                        No document uploaded.
-                    </p>
-
-                </div>
-
-            </div>
-
+                <span>✎</span>
+                Edit Profile
+            </button>
 
         </div>
 
     </div>
 
-</div>
+</section>
 
 
-</div>
+            <!-- =================================================
+                 ACCOUNT SUMMARY
+            ================================================== -->
 
+            <section
+                class="mt-5 grid grid-cols-1 border border-hairline bg-surface sm:grid-cols-3"
+            >
+
+                <!-- MEMBER -->
+
+                <div
+                    class="border-b border-hairline p-5 sm:border-b-0 sm:border-r"
+                >
+
+                    <p class="text-sm text-ink-soft">
+                        Member since
+                    </p>
+
+                    <p class="mt-2 text-lg font-semibold text-ink">
+                        {{ formatDate(user.created_at) }}
+                    </p>
+
+                </div>
+
+
+                <!-- USER ID -->
+
+                <div
+                    class="border-b border-hairline p-5 sm:border-b-0 sm:border-r"
+                >
+
+                    <p class="text-sm text-ink-soft">
+                        User ID
+                    </p>
+
+                    <p class="mt-2 text-lg font-semibold text-ink">
+                        #{{ user.id }}
+                    </p>
+
+                </div>
+
+
+                <!-- DOCUMENT -->
+
+                <div class="p-5">
+
+                    <p class="text-sm text-ink-soft">
+                        Document
+                    </p>
+
+                    <p
+                        class="mt-2 text-lg font-semibold"
+                        :class="user.document ? 'text-forest' : 'text-ink'"
+                    >
+                        {{ user.document ? 'Uploaded' : 'Not uploaded' }}
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 MAIN GRID
+            ================================================== -->
+
+            <div
+                class="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-3"
+            >
+
+
+                <!-- =================================================
+                     LEFT COLUMN
+                ================================================== -->
+
+                <div class="space-y-5 lg:col-span-2">
+
+
+                    <!-- =============================================
+                         EDIT PROFILE
+                    ============================================== -->
+
+                    <section
+                        v-if="editing"
+                        class="border border-forest bg-surface"
+                    >
+
+                        <div
+                            class="border-b border-hairline px-6 py-5"
+                        >
+
+                            <h3
+                                class="text-lg font-semibold text-ink"
+                            >
+                                Edit Profile
+                            </h3>
+
+                            <p
+                                class="mt-1 text-sm text-ink-soft"
+                            >
+                                Update your basic account information.
+                            </p>
+
+                        </div>
+
+
+                        <div class="p-6">
+
+                            <div
+                                class="grid grid-cols-1 gap-5 md:grid-cols-2"
+                            >
+
+                                <!-- NAME -->
+
+                                <div>
+
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-ink"
+                                    >
+                                        Full name
+                                    </label>
+
+                                    <input
+                                        v-model="editName"
+                                        type="text"
+                                        placeholder="Enter your name"
+                                        class="w-full border border-hairline bg-paper px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                                    />
+
+                                </div>
+
+
+                                <!-- EMAIL -->
+
+                                <div>
+
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-ink"
+                                    >
+                                        Email address
+                                    </label>
+
+                                    <input
+                                        v-model="editEmail"
+                                        type="email"
+                                        placeholder="Enter your email"
+                                        class="w-full border border-hairline bg-paper px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                                    />
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="mt-6 flex flex-wrap gap-3"
+                            >
+
+                                <button
+                                    @click="saveProfile"
+                                    :disabled="saving"
+                                    type="button"
+                                    class="bg-forest px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {{ saving ? 'Saving...' : 'Save Changes' }}
+                                </button>
+
+
+                                <button
+                                    @click="cancelEdit"
+                                    :disabled="saving"
+                                    type="button"
+                                    class="border border-hairline bg-surface px-5 py-2.5 text-sm font-medium text-ink transition hover:border-forest hover:text-forest disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- =============================================
+                         PERSONAL INFORMATION
+                    ============================================== -->
+
+                    <section
+                        class="border border-hairline bg-surface"
+                    >
+
+                        <div
+                            class="border-b border-hairline px-6 py-5"
+                        >
+
+                            <h3
+                                class="text-lg font-semibold text-ink"
+                            >
+                                Personal Information
+                            </h3>
+
+                            <p
+                                class="mt-1 text-sm text-ink-soft"
+                            >
+                                Information associated with your account.
+                            </p>
+
+                        </div>
+
+
+                        <div class="p-6">
+
+                            <div class="grid grid-cols-1 gap-0 border border-hairline sm:grid-cols-2">
+
+                                <!-- NAME -->
+
+                                <div
+                                    class="border-b border-hairline p-5 sm:border-r"
+                                >
+
+                                    <p class="text-xs font-medium text-ink-soft">
+                                        Full name
+                                    </p>
+
+                                    <p
+                                        class="mt-2 break-words text-sm font-semibold text-ink"
+                                    >
+                                        {{ user.name }}
+                                    </p>
+
+                                </div>
+
+
+                                <!-- EMAIL -->
+
+                                <div
+                                    class="border-b border-hairline p-5"
+                                >
+
+                                    <p class="text-xs font-medium text-ink-soft">
+                                        Email address
+                                    </p>
+
+                                    <p
+                                        class="mt-2 break-all text-sm font-semibold text-ink"
+                                    >
+                                        {{ user.email }}
+                                    </p>
+
+                                </div>
+
+
+                                <!-- MEMBER -->
+
+                                <div
+                                    class="p-5 sm:border-r"
+                                >
+
+                                    <p class="text-xs font-medium text-ink-soft">
+                                        Member since
+                                    </p>
+
+                                    <p
+                                        class="mt-2 text-sm font-semibold text-ink"
+                                    >
+                                        {{ formatDate(user.created_at) }}
+                                    </p>
+
+                                </div>
+
+
+                                <!-- PHOTO -->
+
+                                <div class="p-5">
+
+                                    <p class="text-xs font-medium text-ink-soft">
+                                        Profile photo
+                                    </p>
+
+                                    <p
+                                        class="mt-2 text-sm font-semibold"
+                                        :class="user.profile_photo ? 'text-forest' : 'text-ink'"
+                                    >
+                                        {{
+                                            user.profile_photo
+                                                ? 'Uploaded'
+                                                : 'Not uploaded'
+                                        }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- =============================================
+                         DOCUMENTS
+                    ============================================== -->
+
+                    <section
+                        class="border border-hairline bg-surface"
+                    >
+
+                        <div
+                            class="border-b border-hairline px-6 py-5"
+                        >
+
+                            <h3
+                                class="text-lg font-semibold text-ink"
+                            >
+                                Documents
+                            </h3>
+
+                            <p
+                                class="mt-1 text-sm text-ink-soft"
+                            >
+                                Manage your uploaded PDF document.
+                            </p>
+
+                        </div>
+
+
+                        <div class="p-6">
+
+                            <!-- DOCUMENT EXISTS -->
+
+                            <div
+                                v-if="user.document"
+                                class="border border-hairline bg-paper"
+                            >
+
+                                <div
+                                    class="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between"
+                                >
+
+                                    <div
+                                        class="flex items-center gap-4"
+                                    >
+
+                                        <div
+                                            class="flex h-12 w-12 shrink-0 items-center justify-center bg-[#FFF0EB] text-xs font-semibold text-sienna"
+                                        >
+                                            PDF
+                                        </div>
+
+                                        <div>
+
+                                            <p
+                                                class="text-sm font-semibold text-ink"
+                                            >
+                                                Student Document
+                                            </p>
+
+                                            <p
+                                                class="mt-1 text-sm text-ink-soft"
+                                            >
+                                                Your document is currently uploaded.
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        class="flex flex-wrap gap-2"
+                                    >
+
+                                        <a
+                                            :href="documentUrl()"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="border border-hairline bg-surface px-4 py-2 text-sm font-medium text-ink transition hover:border-forest hover:text-forest"
+                                        >
+                                            View
+                                        </a>
+
+
+                                        <a
+                                            :href="documentUrl()"
+                                            download
+                                            class="border border-hairline bg-surface px-4 py-2 text-sm font-medium text-ink transition hover:border-forest hover:text-forest"
+                                        >
+                                            Download
+                                        </a>
+
+
+                                        <button
+                                            type="button"
+                                            @click="deleteDocumentFile"
+                                            class="border border-[#E9C9BE] bg-surface px-4 py-2 text-sm font-medium text-sienna transition hover:bg-sienna hover:text-white"
+                                        >
+                                            Delete
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- NO DOCUMENT -->
+
+                            <div
+                                v-else
+                                class="border border-dashed border-hairline bg-paper px-6 py-8 text-center"
+                            >
+
+                                <div
+                                    class="mx-auto flex h-11 w-11 items-center justify-center bg-[#F5F1EB] text-ink"
+                                >
+                                    PDF
+                                </div>
+
+                                <p
+                                    class="mt-4 text-sm font-semibold text-ink"
+                                >
+                                    No document uploaded
+                                </p>
+
+                                <p
+                                    class="mx-auto mt-1 max-w-md text-sm leading-5 text-ink-soft"
+                                >
+                                    Upload a PDF document to keep it attached to your profile.
+                                </p>
+
+                            </div>
+
+
+                            <!-- UPLOAD -->
+
+                            <label
+                                class="mt-4 inline-flex cursor-pointer items-center justify-center bg-forest px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+                            >
+                                Upload PDF
+
+                                <input
+                                    type="file"
+                                    accept=".pdf,application/pdf"
+                                    class="hidden"
+                                    @change="handleDocumentChange"
+                                />
+
+                            </label>
+
+                        </div>
+
+                    </section>
+
+                </div>
+
+
+                <!-- =================================================
+                     RIGHT COLUMN
+                ================================================== -->
+
+                <aside class="space-y-5">
+
+
+                    <!-- =============================================
+                         ACCOUNT STATUS
+                    ============================================== -->
+
+                    <section
+                        class="border border-hairline bg-surface"
+                    >
+
+                        <div class="p-6">
+
+                            <p class="text-sm font-medium text-ink-soft">
+                                Account status
+                            </p>
+
+                            <div
+                                class="mt-3 flex items-center gap-3"
+                            >
+
+                                <span
+                                    class="h-3 w-3 bg-forest"
+                                ></span>
+
+                                <span
+                                    class="text-lg font-semibold text-forest"
+                                >
+                                    Active
+                                </span>
+
+                            </div>
+
+                            <p
+                                class="mt-4 border-t border-hairline pt-4 text-sm leading-6 text-ink-soft"
+                            >
+                                Your student account is active and ready to use.
+                            </p>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- =============================================
+                         SECURITY
+                    ============================================== -->
+
+                    <section
+                        class="border border-hairline bg-surface"
+                    >
+
+                        <div
+                            class="border-b border-hairline px-6 py-5"
+                        >
+
+                            <h3
+                                class="text-lg font-semibold text-ink"
+                            >
+                                Security
+                            </h3>
+
+                            <p
+                                class="mt-1 text-sm text-ink-soft"
+                            >
+                                Manage your account password.
+                            </p>
+
+                        </div>
+
+
+                        <div class="p-6">
+
+                            <!-- CLOSED -->
+
+                            <div
+                                v-if="!changingPassword"
+                            >
+
+                                <div
+                                    class="border border-hairline bg-paper p-4"
+                                >
+
+                                    <p
+                                        class="text-sm font-medium text-ink"
+                                    >
+                                        Password protection
+                                    </p>
+
+                                    <p
+                                        class="mt-1 text-sm leading-5 text-ink-soft"
+                                    >
+                                        Keep your account secure by using a strong password.
+                                    </p>
+
+                                </div>
+
+
+                                <button
+                                    @click="openChangePassword"
+                                    type="button"
+                                    class="mt-4 w-full border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:border-forest hover:text-forest"
+                                >
+                                    Change Password
+                                </button>
+
+                            </div>
+
+
+                            <!-- PASSWORD FORM -->
+
+                            <div
+                                v-else
+                                class="space-y-4"
+                            >
+
+                                <!-- CURRENT -->
+
+                                <div>
+
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-ink"
+                                    >
+                                        Current password
+                                    </label>
+
+                                    <input
+                                        v-model="currentPassword"
+                                        type="password"
+                                        autocomplete="current-password"
+                                        placeholder="Current password"
+                                        class="w-full border border-hairline bg-paper px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                                    />
+
+                                </div>
+
+
+                                <!-- NEW -->
+
+                                <div>
+
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-ink"
+                                    >
+                                        New password
+                                    </label>
+
+                                    <input
+                                        v-model="newPassword"
+                                        type="password"
+                                        autocomplete="new-password"
+                                        placeholder="New password"
+                                        class="w-full border border-hairline bg-paper px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                                    />
+
+                                    <p class="mt-1.5 text-xs text-ink-soft">
+                                        Minimum 8 characters.
+                                    </p>
+
+                                </div>
+
+
+                                <!-- CONFIRM -->
+
+                                <div>
+
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-ink"
+                                    >
+                                        Confirm password
+                                    </label>
+
+                                    <input
+                                        v-model="confirmPassword"
+                                        type="password"
+                                        autocomplete="new-password"
+                                        placeholder="Confirm password"
+                                        class="w-full border border-hairline bg-paper px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                                    />
+
+                                </div>
+
+
+                                <!-- ACTIONS -->
+
+                                <div class="space-y-2 pt-2">
+
+                                    <button
+                                        @click="savePassword"
+                                        :disabled="passwordLoading"
+                                        type="button"
+                                        class="w-full bg-forest px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        {{
+                                            passwordLoading
+                                                ? 'Changing...'
+                                                : 'Update Password'
+                                        }}
+                                    </button>
+
+
+                                    <button
+                                        @click="cancelChangePassword"
+                                        :disabled="passwordLoading"
+                                        type="button"
+                                        class="w-full border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:border-forest hover:text-forest disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- =============================================
+                         QUICK ACTIONS
+                    ============================================== -->
+
+                    <section
+                        class="border border-hairline bg-surface"
+                    >
+
+                        <div
+                            class="border-b border-hairline px-6 py-5"
+                        >
+
+                            <h3
+                                class="text-lg font-semibold text-ink"
+                            >
+                                Quick Actions
+                            </h3>
+
+                            <p
+                                class="mt-1 text-sm text-ink-soft"
+                            >
+                                Common account actions.
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <!-- EDIT -->
+
+                            <button
+                                v-if="!editing"
+                                @click="editProfile"
+                                type="button"
+                                class="flex w-full items-center justify-between border-b border-hairline px-6 py-4 text-left transition hover:bg-paper"
+                            >
+
+                                <div>
+
+                                    <p class="text-sm font-medium text-ink">
+                                        Edit Profile
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-ink-soft">
+                                        Update your information
+                                    </p>
+
+                                </div>
+
+                                <span
+                                    class="text-lg text-ink-soft"
+                                >
+                                    →
+                                </span>
+
+                            </button>
+
+
+                            <!-- PASSWORD -->
+
+                            <button
+                                @click="openChangePassword"
+                                type="button"
+                                class="flex w-full items-center justify-between border-b border-hairline px-6 py-4 text-left transition hover:bg-paper"
+                            >
+
+                                <div>
+
+                                    <p class="text-sm font-medium text-ink">
+                                        Change Password
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-ink-soft">
+                                        Update account security
+                                    </p>
+
+                                </div>
+
+                                <span
+                                    class="text-lg text-ink-soft"
+                                >
+                                    →
+                                </span>
+
+                            </button>
+
+
+                            <!-- STUDENTS -->
+
+                            <button
+                                @click="goToStudents"
+                                type="button"
+                                class="flex w-full items-center justify-between px-6 py-4 text-left transition hover:bg-paper"
+                            >
+
+                                <div>
+
+                                    <p class="text-sm font-medium text-ink">
+                                        Student Records
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-ink-soft">
+                                        Return to student list
+                                    </p>
+
+                                </div>
+
+                                <span
+                                    class="text-lg text-ink-soft"
+                                >
+                                    →
+                                </span>
+
+                            </button>
+
+                        </div>
+
+                    </section>
+
+                </aside>
+
+            </div>
+
+
+            <!-- =================================================
+                 FOOTER
+            ================================================== -->
+
+            <footer
+                class="mt-8 flex flex-col gap-2 border-t border-hairline pt-5 text-xs text-ink-soft sm:flex-row sm:items-center sm:justify-between"
+            >
+
+                <span>
+                    Student Registry
+                </span>
+
+                <span>
+                    Account #{{ user.id }}
+                </span>
+
+            </footer>
+
+        </div>
+
+    </div>
 </template>
-

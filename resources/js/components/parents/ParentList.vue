@@ -537,1085 +537,1041 @@ onMounted(() => {
 
 
 <template>
-
-<div
-    class="min-h-screen p-6 bg-gray-100 dark:bg-gray-950 transition-colors duration-200"
->
-
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
-
-    <div
-        class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6"
-    >
-
-        <div>
-
-            <h1
-                class="text-2xl font-bold text-gray-900 dark:text-white"
+    <div class="min-h-screen bg-paper text-ink">
+        <!-- HEADER -->
+        <header class="border-b border-hairline">
+            <div
+                class="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-6 md:flex-row md:items-end md:justify-between"
             >
-                Parents
-            </h1>
-
-            <p
-                class="text-gray-500 dark:text-gray-400"
-            >
-                Manage student parents
-            </p>
-
-        </div>
-
-
-        <div class="flex items-center gap-3">
-
-            <!-- DARK MODE -->
-
-            <button
-                @click="toggleDarkMode"
-                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-            >
-
-                {{ darkMode ? '☀️ Light' : '🌙 Dark' }}
-
-            </button>
-
-
-            <!-- ADD PARENT -->
-
-            <button
-                @click="openAddModal"
-                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-            >
-                + Add Parent
-            </button>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         SEARCH & FILTER
-    ====================================================== -->
-
-    <div
-        class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6"
-    >
-
-        <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search parents by name, email, or phone..."
-            class="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-
-
-        <select
-            v-model="relationshipFilter"
-            class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-        >
-
-            <option value="all">
-                All Relationships
-            </option>
-
-            <option value="Father">
-                Father
-            </option>
-
-            <option value="Mother">
-                Mother
-            </option>
-
-            <option value="Guardian">
-                Guardian
-            </option>
-
-            <option value="Other">
-                Other
-            </option>
-
-        </select>
-
-    </div>
-
-
-    <!-- =====================================================
-         ERROR
-    ====================================================== -->
-
-    <div
-        v-if="parentStore.error"
-        class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg"
-    >
-        {{ parentStore.error }}
-    </div>
-
-
-    <!-- =====================================================
-         TABLE
-    ====================================================== -->
-
-    <div
-        class="overflow-x-auto bg-white dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-800"
-    >
-
-        <table class="w-full">
-
-            <thead
-                class="bg-gray-100 dark:bg-gray-800"
-            >
-
-                <tr>
-
-                    <th
-                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
-                    >
-                        S.N.
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
-                    >
-                        Name
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
-                    >
-                        Email
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
-                    >
-                        Phone
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
-                    >
-                        Relationship
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
-                    >
-                        Students
-                    </th>
-
-                    <th
-                        class="px-4 py-3 text-left text-gray-700 dark:text-gray-200"
-                    >
-                        Actions
-                    </th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-                <!-- LOADING -->
-
-                <tr v-if="parentStore.loading">
-
-                    <td
-                        colspan="7"
-                        class="text-center py-8 text-gray-500 dark:text-gray-400"
-                    >
-                        Loading parents...
-                    </td>
-
-                </tr>
-
-
-                <!-- EMPTY -->
-
-                <tr
-                    v-else-if="parentStore.parents.length === 0"
-                >
-
-                    <td
-                        colspan="7"
-                        class="text-center py-8 text-gray-500 dark:text-gray-400"
-                    >
-                        No parents found.
-                    </td>
-
-                </tr>
-
-
-                <!-- PARENTS -->
-
-                <tr
-                    v-else
-                    v-for="(parent, index) in parentStore.parents"
-                    :key="parent.id"
-                    class="border-t border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                >
-
-                    <td
-                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                    >
-                        {{
-                            (parentStore.pagination.currentPage - 1)
-                            * parentStore.pagination.perPage
-                            + index + 1
-                        }}
-                    </td>
-
-
-                    <td
-                        class="px-4 py-3 font-medium text-gray-900 dark:text-white"
-                    >
-                        {{ parent.name }}
-                    </td>
-
-
-                    <td
-                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                    >
-                        {{ parent.email || '-' }}
-                    </td>
-
-
-                    <td
-                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                    >
-                        {{ parent.phone || '-' }}
-                    </td>
-
-
-                    <td
-                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                    >
-                        {{ parent.relationship || '-' }}
-                    </td>
-
-
-                    <td
-                        class="px-4 py-3 text-gray-700 dark:text-gray-300"
-                    >
-                        {{ parent.students?.length || 0 }}
-                    </td>
-
-
-                    <!-- ACTIONS -->
-
-                    <td class="px-4 py-3">
-
-                        <div
-                            class="flex flex-wrap gap-2"
+                <div>
+                    <div class="mb-3 flex items-center gap-3">
+                        <span
+                            class="flex h-10 w-10 items-center justify-center border border-hairline bg-surface text-lg"
                         >
-
-                            <!-- VIEW -->
-
-                            <button
-                                @click="openViewModal(parent)"
-                                class="px-3 py-1.5 text-sm font-medium bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                            >
-                                View
-                            </button>
-
-
-                            <!-- EDIT -->
-
-                            <button
-                                @click="openEditModal(parent)"
-                                class="px-3 py-1.5 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
-                            >
-                                Edit
-                            </button>
-
-
-                            <!-- PASSWORD -->
-
-                            <button
-                                @click="openPasswordModal(parent)"
-                                class="px-3 py-1.5 text-sm font-medium bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition"
-                            >
-                                Password
-                            </button>
-
-
-                            <!-- DELETE -->
-
-                            <button
-                                @click="removeParent(parent.id)"
-                                class="px-3 py-1.5 text-sm font-medium bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition"
-                            >
-                                Delete
-                            </button>
-
-                        </div>
-
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-
-    <!-- =====================================================
-         PAGINATION
-    ====================================================== -->
-
-    <div
-        v-if="parentStore.pagination.lastPage > 1"
-        class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4"
-    >
-
-        <p
-            class="text-sm text-gray-500 dark:text-gray-400"
-        >
-
-            Showing
-            {{ parentStore.pagination.from }}
-            -
-            {{ parentStore.pagination.to }}
-            of
-            {{ parentStore.pagination.totalParents }}
-
-        </p>
-
-
-        <div class="flex items-center gap-2">
-
-            <button
-                @click="
-                    changePage(
-                        parentStore.pagination.currentPage - 1
-                    )
-                "
-                :disabled="
-                    parentStore.pagination.currentPage === 1
-                "
-                class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-200 disabled:opacity-50"
-            >
-                Previous
-            </button>
-
-
-            <span
-                class="px-3 py-1.5 text-gray-700 dark:text-gray-300"
-            >
-
-                Page
-                {{ parentStore.pagination.currentPage }}
-                of
-                {{ parentStore.pagination.lastPage }}
-
-            </span>
-
-
-            <button
-                @click="
-                    changePage(
-                        parentStore.pagination.currentPage + 1
-                    )
-                "
-                :disabled="
-                    parentStore.pagination.currentPage ===
-                    parentStore.pagination.lastPage
-                "
-                class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-200 disabled:opacity-50"
-            >
-                Next
-            </button>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         ADD / EDIT MODAL
-    ====================================================== -->
-
-    <div
-        v-if="showModal"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    >
-
-        <div
-            class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-lg p-6 border border-gray-200 dark:border-gray-800"
-        >
-
-            <div
-                class="flex justify-between items-center mb-6"
-            >
-
-                <h2
-                    class="text-xl font-bold text-gray-900 dark:text-white"
-                >
-
-                    {{
-                        editingParent
-                            ? 'Edit Parent'
-                            : 'Add Parent'
-                    }}
-
-                </h2>
-
-
-                <button
-                    @click="closeModal"
-                    class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white text-xl"
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            <!-- ERROR -->
-
-            <div
-                v-if="errorMessage"
-                class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg"
-            >
-                {{ errorMessage }}
-            </div>
-
-
-            <!-- NAME -->
-
-            <div class="mb-4">
-
-                <label
-                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                    Name
-                </label>
-
-                <input
-                    v-model="form.name"
-                    type="text"
-                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
-                    placeholder="Enter parent name"
-                >
-
-            </div>
-
-
-            <!-- EMAIL -->
-
-            <div class="mb-4">
-
-                <label
-                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                    Email
-                </label>
-
-                <input
-                    v-model="form.email"
-                    type="email"
-                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
-                    placeholder="Enter email"
-                >
-
-            </div>
-
-
-            <!-- PHONE -->
-
-            <div class="mb-4">
-
-                <label
-                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                    Phone
-                </label>
-
-                <input
-                    v-model="form.phone"
-                    type="text"
-                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
-                    placeholder="Enter phone number"
-                >
-
-            </div>
-
-
-            <!-- RELATIONSHIP -->
-
-            <div class="mb-4">
-
-                <label
-                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                    Relationship
-                </label>
-
-                <select
-                    v-model="form.relationship"
-                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
-                >
-
-                    <option value="">
-                        Select relationship
-                    </option>
-
-                    <option value="Father">
-                        Father
-                    </option>
-
-                    <option value="Mother">
-                        Mother
-                    </option>
-
-                    <option value="Guardian">
-                        Guardian
-                    </option>
-
-                    <option value="Other">
-                        Other
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- PASSWORD ONLY WHEN ADDING -->
-
-            <div
-                v-if="!editingParent"
-                class="mb-6"
-            >
-
-                <label
-                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                    Password
-                </label>
-
-                <input
-                    v-model="form.password"
-                    type="password"
-                    minlength="8"
-                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
-                    placeholder="Enter password"
-                >
-
-                <p
-                    class="text-xs text-gray-500 dark:text-gray-400 mt-1"
-                >
-                    Minimum 8 characters.
-                </p>
-
-            </div>
-
-
-            <!-- ACTIONS -->
-
-            <div
-                class="flex justify-end gap-3"
-            >
-
-                <button
-                    @click="closeModal"
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                    Cancel
-                </button>
-
-
-                <button
-                    @click="saveParent"
-                    :disabled="parentStore.loading"
-                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                >
-
-                    {{
-                        editingParent
-                            ? 'Update Parent'
-                            : 'Add Parent'
-                    }}
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         VIEW PARENT MODAL
-    ====================================================== -->
-
-    <div
-        v-if="showViewModal"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    >
-
-        <div
-            class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-3xl p-6 max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-800"
-        >
-
-            <!-- HEADER -->
-
-            <div
-                class="flex justify-between items-center mb-6"
-            >
-
-                <h2
-                    class="text-xl font-bold text-gray-900 dark:text-white"
-                >
-                    Parent Details
-                </h2>
-
-
-                <button
-                    @click="closeViewModal"
-                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xl"
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            <!-- PARENT INFORMATION -->
-
-            <div
-                v-if="viewingParent"
-                class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
-            >
-
-                <div>
-
-                    <p
-                        class="text-sm text-gray-500 dark:text-gray-400"
-                    >
-                        Name
-                    </p>
-
-                    <p
-                        class="font-medium text-gray-900 dark:text-white"
-                    >
-                        {{ viewingParent.name }}
-                    </p>
-
-                </div>
-
-
-                <div>
-
-                    <p
-                        class="text-sm text-gray-500 dark:text-gray-400"
-                    >
-                        Email
-                    </p>
-
-                    <p
-                        class="font-medium text-gray-900 dark:text-white"
-                    >
-                        {{ viewingParent.email || '-' }}
-                    </p>
-
-                </div>
-
-
-                <div>
-
-                    <p
-                        class="text-sm text-gray-500 dark:text-gray-400"
-                    >
-                        Phone
-                    </p>
-
-                    <p
-                        class="font-medium text-gray-900 dark:text-white"
-                    >
-                        {{ viewingParent.phone || '-' }}
-                    </p>
-
-                </div>
-
-
-                <div>
-
-                    <p
-                        class="text-sm text-gray-500 dark:text-gray-400"
-                    >
-                        Relationship
-                    </p>
-
-                    <p
-                        class="font-medium text-gray-900 dark:text-white"
-                    >
-                        {{ viewingParent.relationship || '-' }}
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <!-- CHILDREN -->
-
-            <div>
-
-                <div
-                    class="flex items-center justify-between mb-4"
-                >
-
-                    <h3
-                        class="text-lg font-semibold text-gray-900 dark:text-white"
-                    >
-                        Children
-                    </h3>
-
-                </div>
-
-
-                <div
-                    v-if="
-                        viewingParent?.students &&
-                        viewingParent.students.length
-                    "
-                    class="space-y-3"
-                >
-
-                    <div
-                        v-for="child in viewingParent.students"
-                        :key="child.id"
-                        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
-                    >
-
-                        <div>
-
-                            <p
-                                class="font-medium text-gray-900 dark:text-white"
-                            >
-                                {{ child.name }}
-                            </p>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
-                                Class:
-                                {{ child.class || '-' }}
-
-                                <span class="mx-1">
-                                    •
-                                </span>
-
-                                Symbol:
-                                {{ child.symbol_no || '-' }}
-                            </p>
-
-                        </div>
-
-
-                        <button
-                            @click="openReassignModal(child)"
-                            class="px-3 py-1.5 text-sm bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition"
-                        >
-                            Reassign
-                        </button>
-
+                            👨‍👩‍👧
+                        </span>
+
+                        <span class="text-sm font-medium text-ink-soft">
+                            Student Administration
+                        </span>
                     </div>
 
-                </div>
-
-
-                <div
-                    v-else
-                    class="p-6 text-center bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-500 dark:text-gray-400"
-                >
-                    No children assigned.
-                </div>
-
-            </div>
-
-
-            <!-- CLOSE -->
-
-            <div
-                class="flex justify-end mt-6"
-            >
-
-                <button
-                    @click="closeViewModal"
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                    Close
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         PASSWORD MODAL
-         ADMIN CAN DIRECTLY SET A NEW PASSWORD
-    ====================================================== -->
-
-    <div
-        v-if="showPasswordModal"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
-    >
-
-        <div
-            class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md p-6 border border-gray-200 dark:border-gray-800"
-        >
-
-            <!-- HEADER -->
-
-            <div
-                class="flex justify-between items-center mb-6"
-            >
-
-                <div>
-
-                    <h2
-                        class="text-xl font-bold text-gray-900 dark:text-white"
+                    <h1
+                        class="font-serif text-4xl font-medium tracking-tight text-ink"
                     >
-                        Change Parent Password
-                    </h2>
+                        Parents
+                    </h1>
 
-                    <p
-                        v-if="passwordParent"
-                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                    >
-                        {{ passwordParent.name }}
+                    <p class="mt-1 text-sm text-ink-soft">
+                        Manage student parents and guardians
                     </p>
-
                 </div>
 
+                <div class="flex items-center gap-3">
+                    <!-- DARK MODE -->
+                    <button
+                        @click="toggleDarkMode"
+                        class="border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:bg-paper"
+                    >
+                        {{ darkMode ? '☀️ Light' : '🌙 Dark' }}
+                    </button>
 
-                <button
-                    @click="closePasswordModal"
-                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xl"
+                    <!-- ADD PARENT -->
+                    <button
+                        @click="openAddModal"
+                        class="border border-forest bg-forest px-4 py-2.5 text-sm font-medium text-white hover:bg-ink"
+                    >
+                        + Add Parent
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="mx-auto max-w-7xl px-6 py-8">
+            <!-- SEARCH & FILTER -->
+            <section class="mb-6 border border-hairline bg-surface">
+                <div
+                    class="flex flex-col gap-3 p-4 sm:flex-row"
                 >
-                    ×
-                </button>
+                    <div class="relative flex-1">
+                        <input
+                            v-model="searchQuery"
+                            type="text"
+                            placeholder="Search parents by name, email, or phone..."
+                            class="w-full border border-hairline bg-paper px-4 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                        />
+                    </div>
 
-            </div>
+                    <select
+                        v-model="relationshipFilter"
+                        class="border border-hairline bg-paper px-4 py-2.5 text-sm text-ink outline-none focus:border-forest"
+                    >
+                        <option value="all">
+                            All Relationships
+                        </option>
 
+                        <option value="Father">
+                            Father
+                        </option>
 
-            <!-- SUCCESS -->
+                        <option value="Mother">
+                            Mother
+                        </option>
 
-            <div
-                v-if="passwordSuccess"
-                class="mb-4 p-3 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 rounded-lg"
-            >
-                {{ passwordSuccess }}
-            </div>
+                        <option value="Guardian">
+                            Guardian
+                        </option>
 
+                        <option value="Other">
+                            Other
+                        </option>
+                    </select>
+                </div>
+            </section>
 
             <!-- ERROR -->
-
             <div
-                v-if="passwordError"
-                class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg"
+                v-if="parentStore.error"
+                class="mb-6 border border-sienna bg-surface px-5 py-4 text-sm text-sienna"
             >
-                {{ passwordError }}
+                <div class="flex items-start gap-3">
+                    <span class="font-semibold">
+                        Error
+                    </span>
+
+                    <span>
+                        {{ parentStore.error }}
+                    </span>
+                </div>
             </div>
 
-
-            <!-- NEW PASSWORD -->
-
-            <div class="mb-4">
-
-                <label
-                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                    New Password
-                </label>
-
-                <input
-                    v-model="passwordForm.password"
-                    type="password"
-                    minlength="8"
-                    autocomplete="new-password"
-                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                    placeholder="Enter new password"
-                >
-
-                <p
-                    class="text-xs text-gray-500 dark:text-gray-400 mt-1"
-                >
-                    Password must be at least 8 characters.
-                </p>
-
-            </div>
-
-
-            <!-- CONFIRM PASSWORD -->
-
-            <div class="mb-6">
-
-                <label
-                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                    Confirm New Password
-                </label>
-
-                <input
-                    v-model="passwordForm.password_confirmation"
-                    type="password"
-                    minlength="8"
-                    autocomplete="new-password"
-                    @keyup.enter="savePassword"
-                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                    placeholder="Confirm new password"
-                >
-
-            </div>
-
-
-            <!-- ACTIONS -->
-
+            <!-- SUMMARY -->
             <div
-                class="flex justify-end gap-3"
+                class="mb-6 grid grid-cols-2 border border-hairline bg-surface sm:grid-cols-4"
             >
-
-                <button
-                    @click="closePasswordModal"
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                    Cancel
-                </button>
-
-
-                <button
-                    @click="savePassword"
-                    :disabled="changingPassword"
-                    class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-
-                    {{
-                        changingPassword
-                            ? 'Changing...'
-                            : 'Change Password'
-                    }}
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         REASSIGN CHILD MODAL
-    ====================================================== -->
-
-    <div
-        v-if="showReassignModal"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4"
-    >
-
-        <div
-            class="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md p-6 border border-gray-200 dark:border-gray-800"
-        >
-
-            <div
-                class="flex justify-between items-center mb-6"
-            >
-
-                <div>
-
-                    <h2
-                        class="text-xl font-bold text-gray-900 dark:text-white"
-                    >
-                        Reassign Child
-                    </h2>
-
-                    <p
-                        v-if="reassigningChild"
-                        class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                    >
-                        {{ reassigningChild.name }}
+                <div class="border-r border-hairline px-5 py-4">
+                    <p class="text-xs text-ink-soft">
+                        Parents shown
                     </p>
 
+                    <p
+                        class="mt-1 font-serif text-2xl font-medium text-ink"
+                    >
+                        {{ parentStore.parents.length }}
+                    </p>
                 </div>
 
-
-                <button
-                    @click="closeReassignModal"
-                    class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xl"
+                <div
+                    class="border-r border-hairline px-5 py-4 sm:border-r"
                 >
-                    ×
-                </button>
+                    <p class="text-xs text-ink-soft">
+                        Total parents
+                    </p>
 
-            </div>
-
-
-            <div class="mb-6">
-
-                <label
-                    class="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                    New Parent
-                </label>
-
-                <select
-                    v-model="reassignParentId"
-                    class="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2"
-                >
-
-                    <option value="">
-                        Select parent
-                    </option>
-
-                    <option
-                        v-for="parent in parentStore.parents"
-                        :key="parent.id"
-                        :value="parent.id"
+                    <p
+                        class="mt-1 font-serif text-2xl font-medium text-ink"
                     >
-                        {{ parent.name }}
-                    </option>
+                        {{ parentStore.pagination.totalParents }}
+                    </p>
+                </div>
 
-                </select>
+                <div
+                    class="border-r border-hairline px-5 py-4"
+                >
+                    <p class="text-xs text-ink-soft">
+                        Page
+                    </p>
 
+                    <p
+                        class="mt-1 font-serif text-2xl font-medium text-ink"
+                    >
+                        {{ parentStore.pagination.currentPage }}
+                    </p>
+                </div>
+
+                <div class="px-5 py-4">
+                    <p class="text-xs text-ink-soft">
+                        Total pages
+                    </p>
+
+                    <p
+                        class="mt-1 font-serif text-2xl font-medium text-ink"
+                    >
+                        {{ parentStore.pagination.lastPage }}
+                    </p>
+                </div>
             </div>
 
+            <!-- TABLE -->
+            <div class="overflow-x-auto border border-hairline bg-surface">
+                <table class="w-full min-w-[900px]">
+                    <thead class="border-b border-hairline bg-paper">
+                        <tr>
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                            >
+                                S.N.
+                            </th>
 
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                            >
+                                Name
+                            </th>
+
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                            >
+                                Email
+                            </th>
+
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                            >
+                                Phone
+                            </th>
+
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                            >
+                                Relationship
+                            </th>
+
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                            >
+                                Students
+                            </th>
+
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                            >
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-hairline">
+                        <!-- LOADING -->
+                        <tr v-if="parentStore.loading">
+                            <td
+                                colspan="7"
+                                class="px-4 py-14 text-center text-sm text-ink-soft"
+                            >
+                                Loading parents...
+                            </td>
+                        </tr>
+
+                        <!-- EMPTY -->
+                        <tr
+                            v-else-if="parentStore.parents.length === 0"
+                        >
+                            <td
+                                colspan="7"
+                                class="px-4 py-14 text-center"
+                            >
+                                <div
+                                    class="mx-auto mb-4 flex h-12 w-12 items-center justify-center border border-hairline bg-paper text-xl"
+                                >
+                                    👨‍👩‍👧
+                                </div>
+
+                                <p
+                                    class="font-serif text-xl font-medium text-ink"
+                                >
+                                    No parents found
+                                </p>
+
+                                <p
+                                    class="mt-1 text-sm text-ink-soft"
+                                >
+                                    Try changing your search or relationship filter.
+                                </p>
+                            </td>
+                        </tr>
+
+                        <!-- PARENTS -->
+                        <tr
+                            v-else
+                            v-for="(parent, index) in parentStore.parents"
+                            :key="parent.id"
+                            class="hover:bg-paper"
+                        >
+                            <!-- S.N. -->
+                            <td
+                                class="px-4 py-4 text-sm text-ink-soft"
+                            >
+                                {{
+                                    (parentStore.pagination.currentPage - 1)
+                                    * parentStore.pagination.perPage
+                                    + index + 1
+                                }}
+                            </td>
+
+                            <!-- NAME -->
+                            <td class="px-4 py-4">
+                                <p
+                                    class="font-medium text-ink"
+                                >
+                                    {{ parent.name }}
+                                </p>
+                            </td>
+
+                            <!-- EMAIL -->
+                            <td
+                                class="px-4 py-4 text-sm text-ink-soft"
+                            >
+                                {{ parent.email || '-' }}
+                            </td>
+
+                            <!-- PHONE -->
+                            <td
+                                class="px-4 py-4 text-sm text-ink-soft"
+                            >
+                                {{ parent.phone || '-' }}
+                            </td>
+
+                            <!-- RELATIONSHIP -->
+                            <td class="px-4 py-4">
+                                <span
+                                    class="text-sm font-medium text-forest"
+                                >
+                                    {{ parent.relationship || '-' }}
+                                </span>
+                            </td>
+
+                            <!-- STUDENTS -->
+                            <td class="px-4 py-4">
+                                <span
+                                    class="font-serif text-lg font-medium text-ink"
+                                >
+                                    {{ parent.students?.length || 0 }}
+                                </span>
+                            </td>
+
+                            <!-- ACTIONS -->
+                            <td class="px-4 py-4">
+                                <div
+                                    class="flex flex-wrap gap-2"
+                                >
+                                    <!-- VIEW -->
+                                    <button
+                                        @click="openViewModal(parent)"
+                                        class="border border-hairline px-3 py-1.5 text-sm font-medium text-ink hover:border-ink hover:bg-paper"
+                                    >
+                                        View
+                                    </button>
+
+                                    <!-- EDIT -->
+                                    <button
+                                        @click="openEditModal(parent)"
+                                        class="border border-forest px-3 py-1.5 text-sm font-medium text-forest hover:bg-forest hover:text-white"
+                                    >
+                                        Edit
+                                    </button>
+
+                                    <!-- PASSWORD -->
+                                    <button
+                                        @click="openPasswordModal(parent)"
+                                        class="border border-hairline px-3 py-1.5 text-sm font-medium text-ink-soft hover:border-ink hover:bg-paper hover:text-ink"
+                                    >
+                                        Password
+                                    </button>
+
+                                    <!-- DELETE -->
+                                    <button
+                                        @click="removeParent(parent.id)"
+                                        class="border border-sienna px-3 py-1.5 text-sm font-medium text-sienna hover:bg-sienna hover:text-white"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION -->
             <div
-                class="flex justify-end gap-3"
+                v-if="parentStore.pagination.lastPage > 1"
+                class="flex flex-col gap-4 border-b border-hairline py-4 sm:flex-row sm:items-center sm:justify-between"
             >
+                <p class="text-sm text-ink-soft">
+                    Showing
+                    <span class="font-medium text-ink">
+                        {{ parentStore.pagination.from }}
+                    </span>
+                    -
+                    <span class="font-medium text-ink">
+                        {{ parentStore.pagination.to }}
+                    </span>
+                    of
+                    <span class="font-medium text-ink">
+                        {{ parentStore.pagination.totalParents }}
+                    </span>
+                </p>
 
-                <button
-                    @click="closeReassignModal"
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                    Cancel
-                </button>
+                <div class="flex items-center gap-2">
+                    <button
+                        @click="
+                            changePage(
+                                parentStore.pagination.currentPage - 1
+                            )
+                        "
+                        :disabled="
+                            parentStore.pagination.currentPage === 1
+                        "
+                        class="border border-hairline px-3 py-1.5 text-sm font-medium text-ink hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        Previous
+                    </button>
 
+                    <span
+                        class="px-3 py-1.5 text-sm text-ink-soft"
+                    >
+                        Page
+                        <span class="font-medium text-ink">
+                            {{ parentStore.pagination.currentPage }}
+                        </span>
+                        of
+                        <span class="font-medium text-ink">
+                            {{ parentStore.pagination.lastPage }}
+                        </span>
+                    </span>
 
-                <button
-                    @click="saveReassignment"
-                    :disabled="!reassignParentId"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                    Reassign
-                </button>
-
+                    <button
+                        @click="
+                            changePage(
+                                parentStore.pagination.currentPage + 1
+                            )
+                        "
+                        :disabled="
+                            parentStore.pagination.currentPage ===
+                            parentStore.pagination.lastPage
+                        "
+                        class="border border-hairline px-3 py-1.5 text-sm font-medium text-ink hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
+        </main>
 
+        <!-- =====================================================
+             ADD / EDIT MODAL
+        ====================================================== -->
+
+        <div
+            v-if="showModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
+        >
+            <div
+                class="max-h-[90vh] w-full max-w-lg overflow-y-auto border border-hairline bg-surface"
+            >
+                <!-- HEADER -->
+                <div
+                    class="flex items-start justify-between gap-4 border-b border-hairline px-6 py-5"
+                >
+                    <div>
+                        <p class="mb-1 text-xs text-ink-soft">
+                            Parent record
+                        </p>
+
+                        <h2
+                            class="font-serif text-2xl font-medium text-ink"
+                        >
+                            {{
+                                editingParent
+                                    ? 'Edit Parent'
+                                    : 'Add Parent'
+                            }}
+                        </h2>
+                    </div>
+
+                    <button
+                        @click="closeModal"
+                        class="flex h-9 w-9 items-center justify-center border border-hairline text-xl text-ink-soft hover:border-ink hover:text-ink"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div class="px-6 py-6">
+                    <!-- ERROR -->
+                    <div
+                        v-if="errorMessage"
+                        class="mb-5 border border-sienna bg-paper px-4 py-3 text-sm text-sienna"
+                    >
+                        {{ errorMessage }}
+                    </div>
+
+                    <!-- NAME -->
+                    <div class="mb-5">
+                        <label
+                            class="mb-1.5 block text-sm font-medium text-ink"
+                        >
+                            Name
+                        </label>
+
+                        <input
+                            v-model="form.name"
+                            type="text"
+                            placeholder="Enter parent name"
+                            class="w-full border border-hairline bg-paper px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                        />
+                    </div>
+
+                    <!-- EMAIL -->
+                    <div class="mb-5">
+                        <label
+                            class="mb-1.5 block text-sm font-medium text-ink"
+                        >
+                            Email
+                        </label>
+
+                        <input
+                            v-model="form.email"
+                            type="email"
+                            placeholder="Enter email"
+                            class="w-full border border-hairline bg-paper px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                        />
+                    </div>
+
+                    <!-- PHONE -->
+                    <div class="mb-5">
+                        <label
+                            class="mb-1.5 block text-sm font-medium text-ink"
+                        >
+                            Phone
+                        </label>
+
+                        <input
+                            v-model="form.phone"
+                            type="text"
+                            placeholder="Enter phone number"
+                            class="w-full border border-hairline bg-paper px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                        />
+                    </div>
+
+                    <!-- RELATIONSHIP -->
+                    <div class="mb-5">
+                        <label
+                            class="mb-1.5 block text-sm font-medium text-ink"
+                        >
+                            Relationship
+                        </label>
+
+                        <select
+                            v-model="form.relationship"
+                            class="w-full border border-hairline bg-paper px-3 py-2.5 text-sm text-ink outline-none focus:border-forest"
+                        >
+                            <option value="">
+                                Select relationship
+                            </option>
+
+                            <option value="Father">
+                                Father
+                            </option>
+
+                            <option value="Mother">
+                                Mother
+                            </option>
+
+                            <option value="Guardian">
+                                Guardian
+                            </option>
+
+                            <option value="Other">
+                                Other
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- PASSWORD -->
+                    <div
+                        v-if="!editingParent"
+                        class="mb-6"
+                    >
+                        <label
+                            class="mb-1.5 block text-sm font-medium text-ink"
+                        >
+                            Password
+                        </label>
+
+                        <input
+                            v-model="form.password"
+                            type="password"
+                            minlength="8"
+                            placeholder="Enter password"
+                            class="w-full border border-hairline bg-paper px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                        />
+
+                        <p
+                            class="mt-1.5 text-xs text-ink-soft"
+                        >
+                            Minimum 8 characters.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ACTIONS -->
+                <div
+                    class="flex justify-end gap-3 border-t border-hairline px-6 py-4"
+                >
+                    <button
+                        @click="closeModal"
+                        class="border border-hairline px-4 py-2 text-sm font-medium text-ink hover:bg-paper"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        @click="saveParent"
+                        :disabled="parentStore.loading"
+                        class="border border-forest bg-forest px-4 py-2 text-sm font-medium text-white hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {{
+                            editingParent
+                                ? 'Update Parent'
+                                : 'Add Parent'
+                        }}
+                    </button>
+                </div>
+            </div>
         </div>
 
+        <!-- =====================================================
+             VIEW PARENT MODAL
+        ====================================================== -->
+
+        <div
+            v-if="showViewModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
+        >
+            <div
+                class="max-h-[90vh] w-full max-w-3xl overflow-y-auto border border-hairline bg-surface"
+            >
+                <!-- HEADER -->
+                <div
+                    class="flex items-start justify-between gap-4 border-b border-hairline px-6 py-5"
+                >
+                    <div>
+                        <p class="mb-1 text-xs text-ink-soft">
+                            Parent record
+                        </p>
+
+                        <h2
+                            class="font-serif text-2xl font-medium text-ink"
+                        >
+                            Parent Details
+                        </h2>
+                    </div>
+
+                    <button
+                        @click="closeViewModal"
+                        class="flex h-9 w-9 items-center justify-center border border-hairline text-xl text-ink-soft hover:border-ink hover:text-ink"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div
+                    v-if="viewingParent"
+                    class="px-6 py-6"
+                >
+                    <!-- INFORMATION -->
+                    <section class="mb-8">
+                        <div
+                            class="mb-4 border-b border-hairline pb-2"
+                        >
+                            <h3
+                                class="font-serif text-xl font-medium text-ink"
+                            >
+                                Parent Information
+                            </h3>
+                        </div>
+
+                        <div
+                            class="grid grid-cols-1 divide-y divide-hairline border border-hairline md:grid-cols-2 md:divide-x md:divide-y-0"
+                        >
+                            <div
+                                class="px-5 py-4 md:border-b md:border-hairline"
+                            >
+                                <p class="text-xs text-ink-soft">
+                                    Name
+                                </p>
+
+                                <p
+                                    class="mt-1 font-medium text-ink"
+                                >
+                                    {{ viewingParent.name }}
+                                </p>
+                            </div>
+
+                            <div
+                                class="px-5 py-4 md:border-b md:border-hairline"
+                            >
+                                <p class="text-xs text-ink-soft">
+                                    Email
+                                </p>
+
+                                <p
+                                    class="mt-1 font-medium text-ink"
+                                >
+                                    {{ viewingParent.email || '-' }}
+                                </p>
+                            </div>
+
+                            <div class="px-5 py-4">
+                                <p class="text-xs text-ink-soft">
+                                    Phone
+                                </p>
+
+                                <p
+                                    class="mt-1 font-medium text-ink"
+                                >
+                                    {{ viewingParent.phone || '-' }}
+                                </p>
+                            </div>
+
+                            <div class="px-5 py-4">
+                                <p class="text-xs text-ink-soft">
+                                    Relationship
+                                </p>
+
+                                <p
+                                    class="mt-1 font-medium text-forest"
+                                >
+                                    {{
+                                        viewingParent.relationship || '-'
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- CHILDREN -->
+                    <section>
+                        <div
+                            class="mb-4 flex items-end justify-between border-b border-hairline pb-2"
+                        >
+                            <div>
+                                <h3
+                                    class="font-serif text-xl font-medium text-ink"
+                                >
+                                    Children
+                                </h3>
+
+                                <p
+                                    class="mt-1 text-xs text-ink-soft"
+                                >
+                                    Students currently linked to this parent
+                                </p>
+                            </div>
+
+                            <span
+                                class="font-serif text-xl font-medium text-ink"
+                            >
+                                {{
+                                    viewingParent?.students?.length || 0
+                                }}
+                            </span>
+                        </div>
+
+                        <!-- CHILDREN LIST -->
+                        <div
+                            v-if="
+                                viewingParent?.students &&
+                                viewingParent.students.length
+                            "
+                            class="divide-y divide-hairline border border-hairline"
+                        >
+                            <div
+                                v-for="child in viewingParent.students"
+                                :key="child.id"
+                                class="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between hover:bg-paper"
+                            >
+                                <div>
+                                    <p
+                                        class="font-medium text-ink"
+                                    >
+                                        {{ child.name }}
+                                    </p>
+
+                                    <p
+                                        class="mt-1 text-sm text-ink-soft"
+                                    >
+                                        Class:
+                                        <span class="text-ink">
+                                            {{ child.class || '-' }}
+                                        </span>
+
+                                        <span class="mx-2">
+                                            •
+                                        </span>
+
+                                        Symbol:
+                                        <span class="text-ink">
+                                            {{ child.symbol_no || '-' }}
+                                        </span>
+                                    </p>
+                                </div>
+
+                                <button
+                                    @click="openReassignModal(child)"
+                                    class="self-start border border-sienna px-3 py-1.5 text-sm font-medium text-sienna hover:bg-sienna hover:text-white sm:self-auto"
+                                >
+                                    Reassign
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- NO CHILDREN -->
+                        <div
+                            v-else
+                            class="border border-hairline bg-paper px-5 py-10 text-center"
+                        >
+                            <p
+                                class="text-sm text-ink-soft"
+                            >
+                                No children assigned.
+                            </p>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- FOOTER -->
+                <div
+                    class="flex justify-end border-t border-hairline px-6 py-4"
+                >
+                    <button
+                        @click="closeViewModal"
+                        class="border border-hairline px-5 py-2 text-sm font-medium text-ink hover:bg-paper"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+             PASSWORD MODAL
+        ====================================================== -->
+
+        <div
+            v-if="showPasswordModal"
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-ink/50 p-4"
+        >
+            <div
+                class="w-full max-w-md border border-hairline bg-surface"
+            >
+                <!-- HEADER -->
+                <div
+                    class="flex items-start justify-between gap-4 border-b border-hairline px-6 py-5"
+                >
+                    <div>
+                        <p class="mb-1 text-xs text-ink-soft">
+                            Account security
+                        </p>
+
+                        <h2
+                            class="font-serif text-2xl font-medium text-ink"
+                        >
+                            Change Parent Password
+                        </h2>
+
+                        <p
+                            v-if="passwordParent"
+                            class="mt-1 text-sm text-ink-soft"
+                        >
+                            {{ passwordParent.name }}
+                        </p>
+                    </div>
+
+                    <button
+                        @click="closePasswordModal"
+                        class="flex h-9 w-9 items-center justify-center border border-hairline text-xl text-ink-soft hover:border-ink hover:text-ink"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div class="px-6 py-6">
+                    <!-- SUCCESS -->
+                    <div
+                        v-if="passwordSuccess"
+                        class="mb-4 border border-forest bg-paper px-4 py-3 text-sm text-forest"
+                    >
+                        {{ passwordSuccess }}
+                    </div>
+
+                    <!-- ERROR -->
+                    <div
+                        v-if="passwordError"
+                        class="mb-4 border border-sienna bg-paper px-4 py-3 text-sm text-sienna"
+                    >
+                        {{ passwordError }}
+                    </div>
+
+                    <!-- NEW PASSWORD -->
+                    <div class="mb-5">
+                        <label
+                            class="mb-1.5 block text-sm font-medium text-ink"
+                        >
+                            New Password
+                        </label>
+
+                        <input
+                            v-model="passwordForm.password"
+                            type="password"
+                            minlength="8"
+                            autocomplete="new-password"
+                            placeholder="Enter new password"
+                            class="w-full border border-hairline bg-paper px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                        />
+
+                        <p
+                            class="mt-1.5 text-xs text-ink-soft"
+                        >
+                            Password must be at least 8 characters.
+                        </p>
+                    </div>
+
+                    <!-- CONFIRM -->
+                    <div class="mb-2">
+                        <label
+                            class="mb-1.5 block text-sm font-medium text-ink"
+                        >
+                            Confirm New Password
+                        </label>
+
+                        <input
+                            v-model="passwordForm.password_confirmation"
+                            type="password"
+                            minlength="8"
+                            autocomplete="new-password"
+                            @keyup.enter="savePassword"
+                            placeholder="Confirm new password"
+                            class="w-full border border-hairline bg-paper px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
+                        />
+                    </div>
+                </div>
+
+                <!-- ACTIONS -->
+                <div
+                    class="flex justify-end gap-3 border-t border-hairline px-6 py-4"
+                >
+                    <button
+                        @click="closePasswordModal"
+                        class="border border-hairline px-4 py-2 text-sm font-medium text-ink hover:bg-paper"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        @click="savePassword"
+                        :disabled="changingPassword"
+                        class="border border-forest bg-forest px-4 py-2 text-sm font-medium text-white hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {{
+                            changingPassword
+                                ? 'Changing...'
+                                : 'Change Password'
+                        }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+             REASSIGN CHILD MODAL
+        ====================================================== -->
+
+        <div
+            v-if="showReassignModal"
+            class="fixed inset-0 z-[70] flex items-center justify-center bg-ink/50 p-4"
+        >
+            <div
+                class="w-full max-w-md border border-hairline bg-surface"
+            >
+                <!-- HEADER -->
+                <div
+                    class="flex items-start justify-between gap-4 border-b border-hairline px-6 py-5"
+                >
+                    <div>
+                        <p class="mb-1 text-xs text-ink-soft">
+                            Student relationship
+                        </p>
+
+                        <h2
+                            class="font-serif text-2xl font-medium text-ink"
+                        >
+                            Reassign Child
+                        </h2>
+
+                        <p
+                            v-if="reassigningChild"
+                            class="mt-1 text-sm text-ink-soft"
+                        >
+                            {{ reassigningChild.name }}
+                        </p>
+                    </div>
+
+                    <button
+                        @click="closeReassignModal"
+                        class="flex h-9 w-9 items-center justify-center border border-hairline text-xl text-ink-soft hover:border-ink hover:text-ink"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div class="px-6 py-6">
+                    <label
+                        class="mb-1.5 block text-sm font-medium text-ink"
+                    >
+                        New Parent
+                    </label>
+
+                    <select
+                        v-model="reassignParentId"
+                        class="w-full border border-hairline bg-paper px-3 py-2.5 text-sm text-ink outline-none focus:border-forest"
+                    >
+                        <option value="">
+                            Select parent
+                        </option>
+
+                        <option
+                            v-for="parent in parentStore.parents"
+                            :key="parent.id"
+                            :value="parent.id"
+                        >
+                            {{ parent.name }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- ACTIONS -->
+                <div
+                    class="flex justify-end gap-3 border-t border-hairline px-6 py-4"
+                >
+                    <button
+                        @click="closeReassignModal"
+                        class="border border-hairline px-4 py-2 text-sm font-medium text-ink hover:bg-paper"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        @click="saveReassignment"
+                        :disabled="!reassignParentId"
+                        class="border border-forest bg-forest px-4 py-2 text-sm font-medium text-white hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Reassign
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-
-</div>
-
 </template>

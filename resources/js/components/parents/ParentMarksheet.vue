@@ -60,43 +60,49 @@ onMounted(() => {
 </script>
 
 <template>
-
-    <div
-        class="min-h-screen bg-gray-100 dark:bg-gray-950 px-4 py-10"
-    >
-
-        <div class="max-w-5xl mx-auto">
+    <div class="min-h-screen bg-paper px-4 py-8 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-5xl">
 
             <!-- ================================================= -->
-            <!-- HEADER -->
+            <!-- HEADER / LETTERHEAD -->
             <!-- ================================================= -->
 
-            <div class="flex items-center justify-between mb-8">
+            <header class="border-b border-hairline pb-6">
+                <div class="flex items-start justify-between gap-6">
 
-                <div>
+                    <div>
+                        <div class="mb-4 flex items-center gap-3">
+                            <div
+                                class="flex h-10 w-10 items-center justify-center border border-hairline bg-surface text-lg"
+                            >
+                                🎓
+                            </div>
 
-                    <h1
-                        class="text-3xl font-bold text-gray-800 dark:text-white"
+                            <span class="text-sm font-medium text-forest">
+                                Academic Records
+                            </span>
+                        </div>
+
+                        <h1
+                            class="font-serif text-4xl font-medium leading-tight text-ink sm:text-5xl"
+                        >
+                            Student Marksheet
+                        </h1>
+
+                        <p class="mt-2 text-sm text-ink-soft">
+                            View your child's academic results.
+                        </p>
+                    </div>
+
+                    <button
+                        @click="goBack"
+                        class="shrink-0 border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
                     >
-                        Student Marksheet
-                    </h1>
-
-                    <p
-                        class="mt-2 text-sm text-gray-500 dark:text-gray-400"
-                    >
-                        View your child's academic results.
-                    </p>
+                        ← Back
+                    </button>
 
                 </div>
-
-                <button
-                    @click="goBack"
-                    class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-800 text-white transition"
-                >
-                    ← Back
-                </button>
-
-            </div>
+            </header>
 
 
             <!-- ================================================= -->
@@ -105,13 +111,11 @@ onMounted(() => {
 
             <div
                 v-if="loading"
-                class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-12 text-center"
+                class="mt-8 border border-hairline bg-surface px-6 py-16 text-center"
             >
-
-                <div class="text-lg text-gray-600 dark:text-gray-300">
+                <div class="text-sm text-ink-soft">
                     Loading marksheet...
                 </div>
-
             </div>
 
 
@@ -121,22 +125,20 @@ onMounted(() => {
 
             <div
                 v-else-if="error"
-                class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8"
+                class="mt-8 border border-hairline bg-surface p-6 sm:p-8"
             >
-
                 <div
-                    class="p-4 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                    class="border border-sienna bg-paper px-4 py-3 text-sm leading-6 text-sienna"
                 >
                     {{ error }}
                 </div>
 
                 <button
                     @click="goBack"
-                    class="mt-5 px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white transition"
+                    class="mt-5 border border-forest bg-forest px-5 py-3 text-sm font-medium text-white hover:bg-ink"
                 >
                     Back to Dashboard
                 </button>
-
             </div>
 
 
@@ -146,7 +148,7 @@ onMounted(() => {
 
             <div
                 v-else-if="marksheet"
-                class="space-y-6"
+                class="mt-8 space-y-6"
             >
 
                 <!-- ================================================= -->
@@ -154,92 +156,85 @@ onMounted(() => {
                 <!-- ================================================= -->
 
                 <section
-                    class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8"
+                    class="border border-hairline bg-surface"
                 >
+                    <div class="border-b border-hairline p-6 sm:p-8">
 
-                    <div class="flex items-center justify-between">
+                        <div class="flex items-start justify-between gap-6">
 
-                        <div>
+                            <div>
+                                <p
+                                    class="mb-2 text-sm font-medium text-forest"
+                                >
+                                    Academic Record
+                                </p>
 
-                            <h2
-                                class="text-2xl font-bold text-gray-800 dark:text-white"
+                                <h2
+                                    class="font-serif text-3xl font-medium text-ink sm:text-4xl"
+                                >
+                                    {{ marksheet.student?.name || '-' }}
+                                </h2>
+
+                                <p class="mt-2 text-sm text-ink-soft">
+                                    Academic Marksheet
+                                </p>
+                            </div>
+
+                            <div
+                                class="hidden h-12 w-12 shrink-0 items-center justify-center border border-hairline bg-paper text-xl sm:flex"
                             >
-                                {{ marksheet.student?.name || '-' }}
-                            </h2>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400 mt-1"
-                            >
-                                Academic Marksheet
-                            </p>
+                                🎓
+                            </div>
 
                         </div>
-
-                        <div
-                            class="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl"
-                        >
-                            🎓
-                        </div>
-
                     </div>
 
 
+                    <!-- STUDENT DETAILS LEDGER -->
+
                     <div
-                        class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8"
+                        class="grid grid-cols-1 divide-y divide-hairline sm:grid-cols-3 sm:divide-x sm:divide-y-0"
                     >
 
-                        <div>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
+                        <div class="px-6 py-5 sm:px-8">
+                            <p class="text-xs text-ink-soft">
                                 Symbol No.
                             </p>
 
                             <p
-                                class="font-semibold text-gray-800 dark:text-white mt-1"
+                                class="mt-1 text-sm font-medium text-ink"
                             >
                                 {{ marksheet.student?.symbol_no || '-' }}
                             </p>
-
                         </div>
 
 
-                        <div>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
+                        <div class="px-6 py-5 sm:px-8">
+                            <p class="text-xs text-ink-soft">
                                 Date of Birth
                             </p>
 
                             <p
-                                class="font-semibold text-gray-800 dark:text-white mt-1"
+                                class="mt-1 text-sm font-medium text-ink"
                             >
                                 {{ marksheet.student?.date_of_birth || '-' }}
                             </p>
-
                         </div>
 
 
-                        <div>
-
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
+                        <div class="px-6 py-5 sm:px-8">
+                            <p class="text-xs text-ink-soft">
                                 Class
                             </p>
 
                             <p
-                                class="font-semibold text-gray-800 dark:text-white mt-1"
+                                class="mt-1 text-sm font-medium text-ink"
                             >
                                 {{ marksheet.student?.class || '-' }}
                             </p>
-
                         </div>
 
                     </div>
-
                 </section>
 
 
@@ -248,62 +243,62 @@ onMounted(() => {
                 <!-- ================================================= -->
 
                 <section
-                    class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden"
+                    class="border border-hairline bg-surface"
                 >
 
-                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div
+                        class="border-b border-hairline px-6 py-5 sm:px-8"
+                    >
+                        <p class="text-sm font-medium text-forest">
+                            Assessment
+                        </p>
 
                         <h2
-                            class="text-xl font-bold text-gray-800 dark:text-white"
+                            class="mt-1 font-serif text-2xl font-medium text-ink"
                         >
                             Subject Results
                         </h2>
-
                     </div>
 
 
                     <div class="overflow-x-auto">
 
-                        <table class="w-full text-sm">
+                        <table class="w-full min-w-[700px] text-sm">
 
-                            <thead
-                                class="bg-gray-100 dark:bg-gray-800"
-                            >
-
-                                <tr>
-
+                            <thead>
+                                <tr
+                                    class="border-b border-hairline bg-paper"
+                                >
                                     <th
-                                        class="px-6 py-4 text-left text-gray-700 dark:text-gray-300"
+                                        class="px-6 py-4 text-left text-xs font-medium text-ink-soft sm:px-8"
                                     >
                                         S.N.
                                     </th>
 
                                     <th
-                                        class="px-6 py-4 text-left text-gray-700 dark:text-gray-300"
+                                        class="px-6 py-4 text-left text-xs font-medium text-ink-soft"
                                     >
                                         Subject
                                     </th>
 
                                     <th
-                                        class="px-6 py-4 text-left text-gray-700 dark:text-gray-300"
+                                        class="px-6 py-4 text-left text-xs font-medium text-ink-soft"
                                     >
                                         Full Marks
                                     </th>
 
                                     <th
-                                        class="px-6 py-4 text-left text-gray-700 dark:text-gray-300"
+                                        class="px-6 py-4 text-left text-xs font-medium text-ink-soft"
                                     >
                                         Pass Marks
                                     </th>
 
                                     <th
-                                        class="px-6 py-4 text-left text-gray-700 dark:text-gray-300"
+                                        class="px-6 py-4 text-left text-xs font-medium text-ink-soft"
                                     >
                                         Obtained
                                     </th>
-
                                 </tr>
-
                             </thead>
 
 
@@ -312,35 +307,39 @@ onMounted(() => {
                                 <tr
                                     v-for="(item, index) in marksheet.items"
                                     :key="item.id"
-                                    class="border-t border-gray-200 dark:border-gray-700"
+                                    class="border-b border-hairline last:border-b-0"
                                 >
 
                                     <td
-                                        class="px-6 py-4 text-gray-700 dark:text-gray-300"
+                                        class="px-6 py-4 text-ink-soft sm:px-8"
                                     >
                                         {{ index + 1 }}
                                     </td>
 
                                     <td
-                                        class="px-6 py-4 font-medium text-gray-800 dark:text-white"
+                                        class="px-6 py-4 font-medium text-ink"
                                     >
-                                        {{ item.subject_name || item.subject?.name || '-' }}
+                                        {{
+                                            item.subject_name ||
+                                            item.subject?.name ||
+                                            '-'
+                                        }}
                                     </td>
 
                                     <td
-                                        class="px-6 py-4 text-gray-700 dark:text-gray-300"
+                                        class="px-6 py-4 text-ink-soft"
                                     >
                                         {{ item.full_marks }}
                                     </td>
 
                                     <td
-                                        class="px-6 py-4 text-gray-700 dark:text-gray-300"
+                                        class="px-6 py-4 text-ink-soft"
                                     >
                                         {{ item.pass_marks }}
                                     </td>
 
                                     <td
-                                        class="px-6 py-4 font-semibold text-gray-800 dark:text-white"
+                                        class="px-6 py-4 font-semibold text-ink"
                                     >
                                         {{ item.marks }}
                                     </td>
@@ -352,7 +351,6 @@ onMounted(() => {
                         </table>
 
                     </div>
-
                 </section>
 
 
@@ -361,93 +359,87 @@ onMounted(() => {
                 <!-- ================================================= -->
 
                 <section
-                    class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8"
+                    class="border border-hairline bg-surface"
                 >
 
-                    <h2
-                        class="text-xl font-bold text-gray-800 dark:text-white mb-6"
+                    <div
+                        class="border-b border-hairline px-6 py-5 sm:px-8"
                     >
-                        Result Summary
-                    </h2>
+                        <p class="text-sm font-medium text-forest">
+                            Final Assessment
+                        </p>
 
+                        <h2
+                            class="mt-1 font-serif text-2xl font-medium text-ink"
+                        >
+                            Result Summary
+                        </h2>
+                    </div>
+
+
+                    <!-- RESULT LEDGER -->
 
                     <div
-                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+                        class="grid grid-cols-1 divide-y divide-hairline sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-y-0"
                     >
 
-                        <div
-                            class="rounded-xl bg-gray-100 dark:bg-gray-800 p-5"
-                        >
+                        <!-- TOTAL -->
 
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
+                        <div class="px-6 py-6 sm:px-8">
+                            <p class="text-xs text-ink-soft">
                                 Total
                             </p>
 
                             <p
-                                class="text-2xl font-bold text-gray-800 dark:text-white mt-1"
+                                class="mt-2 font-serif text-3xl font-medium text-ink"
                             >
                                 {{ marksheet.total }}
                             </p>
-
                         </div>
 
 
-                        <div
-                            class="rounded-xl bg-gray-100 dark:bg-gray-800 p-5"
-                        >
+                        <!-- PERCENTAGE -->
 
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
+                        <div class="px-6 py-6 sm:px-8">
+                            <p class="text-xs text-ink-soft">
                                 Percentage
                             </p>
 
                             <p
-                                class="text-2xl font-bold text-gray-800 dark:text-white mt-1"
+                                class="mt-2 font-serif text-3xl font-medium text-ink"
                             >
                                 {{ marksheet.percentage }}%
                             </p>
-
                         </div>
 
 
-                        <div
-                            class="rounded-xl bg-gray-100 dark:bg-gray-800 p-5"
-                        >
+                        <!-- GRADE -->
 
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
+                        <div class="px-6 py-6 sm:px-8">
+                            <p class="text-xs text-ink-soft">
                                 Grade
                             </p>
 
                             <p
-                                class="text-2xl font-bold text-gray-800 dark:text-white mt-1"
+                                class="mt-2 font-serif text-3xl font-medium text-ink"
                             >
                                 {{ marksheet.grade || '-' }}
                             </p>
-
                         </div>
 
 
-                        <div
-                            class="rounded-xl bg-gray-100 dark:bg-gray-800 p-5"
-                        >
+                        <!-- RESULT -->
 
-                            <p
-                                class="text-sm text-gray-500 dark:text-gray-400"
-                            >
+                        <div class="px-6 py-6 sm:px-8">
+                            <p class="text-xs text-ink-soft">
                                 Result
                             </p>
 
                             <p
-                                class="text-2xl font-bold text-gray-800 dark:text-white mt-1"
+                                class="mt-2 font-serif text-3xl font-medium text-ink"
                             >
                                 {{ marksheet.result || '-' }}
                             </p>
-
                         </div>
 
                     </div>
@@ -457,21 +449,23 @@ onMounted(() => {
                     <!-- DOWNLOAD -->
                     <!-- ================================================= -->
 
-                    <button
-                        type="button"
-                        @click="downloadMarksheetPdf(marksheet)"
-                        class="w-full mt-8 px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium transition"
-                    >
-                        Download Marksheet
-                    </button>
+                    <div class="border-t border-hairline p-6 sm:p-8">
+
+                        <button
+                            type="button"
+                            @click="downloadMarksheetPdf(marksheet)"
+                            class="w-full border border-forest bg-forest px-5 py-3 text-sm font-medium text-white hover:bg-ink"
+                        >
+                            Download Marksheet
+                        </button>
+
+                    </div>
 
                 </section>
 
             </div>
 
         </div>
-
     </div>
-
 </template>
 

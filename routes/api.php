@@ -124,9 +124,9 @@ Route::middleware('auth:sanctum')->group(function () {
         );
 
         Route::get(
-            '/students/{id}',
+            '/students/{student}',
             [StudentController::class, 'show']
-        );
+        )->whereNumber('student');
 
     });
 

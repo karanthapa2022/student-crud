@@ -19,14 +19,14 @@ defineProps({
 <template>
 
     <div
-        class="bg-white dark:bg-gray-900
-               rounded-xl shadow-md
+        class="bg-white dark:bg-[#1E2B24]
+               rounded-md
                overflow-x-auto
-               border border-gray-200 dark:border-gray-700"
+               border border-[#D8DDD3] dark:border-[#2E3B33]"
     >
 
         <table
-            class="w-full bg-white dark:bg-gray-900"
+            class="w-full bg-white dark:bg-[#1E2B24]"
         >
 
             <!-- ================================================= -->
@@ -36,16 +36,16 @@ defineProps({
             <thead>
 
                 <tr
-                    class="bg-gray-50 dark:bg-gray-800
-                           border-b border-gray-200 dark:border-gray-700"
+                    class="bg-[#F7F8F3] dark:bg-[#16211B]
+                           border-b border-[#D8DDD3] dark:border-[#2E3B33]"
                 >
 
                     <th
                         v-for="header in headers"
                         :key="header.key"
                         class="px-5 py-4
-                               text-left text-sm font-semibold
-                               text-gray-700 dark:text-gray-200"
+                               text-left text-sm font-medium
+                               text-[#5B6B62] dark:text-[#9AA79E]"
                     >
 
                         {{ header.label }}
@@ -62,7 +62,7 @@ defineProps({
             <!-- ================================================= -->
 
             <tbody
-                class="bg-white dark:bg-gray-900"
+                class="bg-white dark:bg-[#1E2B24] divide-y divide-[#D8DDD3] dark:divide-[#2E3B33]"
             >
 
                 <slot />

@@ -3,6 +3,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { API_BASE_URL, clearAuthSessions } from '../../services/apiConfig'
 
 const router = useRouter()
 
@@ -25,7 +26,7 @@ const showModal = ref(false)
 // =========================================================
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: API_BASE_URL,
     headers: {
         Accept: 'application/json'
     }
@@ -83,13 +84,7 @@ const fetchSubjects = async () => {
 
         if (err.response?.status === 401) {
 
-            localStorage.removeItem(
-                'teacher_token'
-            )
-
-            localStorage.removeItem(
-                'teacher_user'
-            )
+            clearAuthSessions()
 
             router.push('/login')
             return
@@ -146,13 +141,7 @@ const viewSubject = async (subject) => {
 
         if (err.response?.status === 401) {
 
-            localStorage.removeItem(
-                'teacher_token'
-            )
-
-            localStorage.removeItem(
-                'teacher_user'
-            )
+            clearAuthSessions()
 
             router.push('/login')
             return
@@ -212,13 +201,7 @@ const logout = async () => {
 
     }
 
-    localStorage.removeItem(
-        'teacher_token'
-    )
-
-    localStorage.removeItem(
-        'teacher_user'
-    )
+    clearAuthSessions()
 
     router.push('/login')
 }
@@ -236,724 +219,403 @@ onMounted(() => {
 
 
 <template>
-
-    <div
-        class="
-            min-h-screen
-            bg-gray-100
-            dark:bg-gray-950
-            text-gray-900
-            dark:text-gray-100
-            p-6
-        "
-    >
-
-        <!-- ================================================= -->
+    <div class="min-h-screen bg-paper text-ink">
         <!-- HEADER -->
-        <!-- ================================================= -->
-
-        <div
-            class="
-                max-w-7xl
-                mx-auto
-                flex
-                flex-col
-                md:flex-row
-                md:items-center
-                md:justify-between
-                gap-4
-                mb-8
-            "
-        >
-
-            <div>
-
-                <button
-                    @click="router.push('/dashboard')"
-                    class="
-                        text-sm
-                        text-blue-600
-                        dark:text-blue-400
-                        hover:underline
-                        mb-2
-                    "
-                >
-                    ← Back to Dashboard
-                </button>
-
-                <h1
-                    class="
-                        text-3xl
-                        font-bold
-                    "
-                >
-                    My Subjects
-                </h1>
-
-                <p
-                    v-if="teacher"
-                    class="
-                        text-gray-600
-                        dark:text-gray-400
-                        mt-1
-                    "
-                >
-                    {{ teacher.name }}
-                </p>
-
-            </div>
-
-
-            <button
-                @click="logout"
-                class="
-                    px-5
-                    py-2.5
-                    rounded-lg
-                    bg-red-600
-                    text-white
-                    hover:bg-red-700
-                    transition
-                "
-            >
-                Logout
-            </button>
-
-        </div>
-
-
-        <!-- ================================================= -->
-        <!-- ERROR -->
-        <!-- ================================================= -->
-
-        <div
-            v-if="error"
-            class="
-                max-w-7xl
-                mx-auto
-                mb-6
-                p-4
-                rounded-lg
-                bg-red-100
-                dark:bg-red-900/30
-                text-red-700
-                dark:text-red-300
-            "
-        >
-            {{ error }}
-        </div>
-
-
-        <!-- ================================================= -->
-        <!-- LOADING -->
-        <!-- ================================================= -->
-
-        <div
-            v-if="loading"
-            class="
-                max-w-7xl
-                mx-auto
-                text-center
-                py-16
-                text-gray-500
-                dark:text-gray-400
-            "
-        >
-            Loading your subjects...
-        </div>
-
-
-        <!-- ================================================= -->
-        <!-- EMPTY -->
-        <!-- ================================================= -->
-
-        <div
-            v-else-if="subjects.length === 0"
-            class="
-                max-w-7xl
-                mx-auto
-                text-center
-                py-16
-                bg-white
-                dark:bg-gray-900
-                rounded-xl
-                shadow
-            "
-        >
-
-            <div class="text-5xl mb-4">
-                📚
-            </div>
-
-            <h2
-                class="
-                    text-xl
-                    font-semibold
-                    mb-2
-                "
-            >
-                No Subjects Assigned
-            </h2>
-
-            <p
-                class="
-                    text-gray-500
-                    dark:text-gray-400
-                "
-            >
-                You currently don't have any subjects assigned to you.
-            </p>
-
-        </div>
-
-
-        <!-- ================================================= -->
-        <!-- SUBJECT CARDS -->
-        <!-- ================================================= -->
-
-        <div
-            v-else
-            class="
-                max-w-7xl
-                mx-auto
-                grid
-                grid-cols-1
-                md:grid-cols-2
-                lg:grid-cols-3
-                gap-6
-            "
-        >
-
+        <header class="border-b border-hairline">
             <div
-                v-for="subject in subjects"
-                :key="subject.id"
-                class="
-                    bg-white
-                    dark:bg-gray-900
-                    rounded-xl
-                    shadow
-                    p-6
-                    border
-                    border-gray-200
-                    dark:border-gray-800
-                    hover:shadow-lg
-                    transition
-                "
+                class="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-6 md:flex-row md:items-end md:justify-between"
             >
-
-                <!-- SUBJECT ICON -->
-
-                <div
-                    class="
-                        w-12
-                        h-12
-                        rounded-lg
-                        bg-blue-100
-                        dark:bg-blue-900/30
-                        flex
-                        items-center
-                        justify-center
-                        text-2xl
-                        mb-4
-                    "
-                >
-                    📚
-                </div>
-
-
-                <!-- NAME -->
-
-                <h2
-                    class="
-                        text-xl
-                        font-bold
-                        mb-1
-                    "
-                >
-                    {{ subject.name }}
-                </h2>
-
-
-                <!-- CODE -->
-
-                <p
-                    class="
-                        text-sm
-                        text-blue-600
-                        dark:text-blue-400
-                        font-medium
-                        mb-4
-                    "
-                >
-                    {{ subject.code }}
-                </p>
-
-
-                <!-- DESCRIPTION -->
-
-                <p
-                    class="
-                        text-gray-600
-                        dark:text-gray-400
-                        text-sm
-                        min-h-[40px]
-                        mb-5
-                    "
-                >
-                    {{ subject.description || 'No description available.' }}
-                </p>
-
-
-                <!-- STUDENTS -->
-
-                <div
-                    class="
-                        flex
-                        items-center
-                        justify-between
-                        border-t
-                        border-gray-200
-                        dark:border-gray-800
-                        pt-4
-                    "
-                >
-
-                    <div>
-
-                        <p
-                            class="
-                                text-xs
-                                text-gray-500
-                                dark:text-gray-400
-                            "
-                        >
-                            Students
-                        </p>
-
-                        <p
-                            class="
-                                text-lg
-                                font-bold
-                            "
-                        >
-                            {{ subject.students_count ?? 0 }}
-                        </p>
-
-                    </div>
-
-
+                <div>
                     <button
-                        @click="viewSubject(subject)"
-                        class="
-                            px-4
-                            py-2
-                            rounded-lg
-                            bg-blue-600
-                            text-white
-                            hover:bg-blue-700
-                            transition
-                            text-sm
-                            font-medium
-                        "
+                        @click="router.push('/dashboard')"
+                        class="mb-3 text-sm font-medium text-forest hover:underline"
                     >
-                        View
+                        ← Back to Dashboard
                     </button>
 
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="flex h-12 w-12 shrink-0 items-center justify-center border border-hairline bg-surface text-xl"
+                        >
+                            📚
+                        </div>
+
+                        <div>
+                            <h1
+                                class="font-serif text-4xl font-medium tracking-tight text-ink"
+                            >
+                                My Subjects
+                            </h1>
+
+                            <p
+                                v-if="teacher"
+                                class="mt-1 text-sm text-ink-soft"
+                            >
+                                {{ teacher.name }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
+                <button
+                    @click="logout"
+                    class="border border-sienna px-5 py-2.5 text-sm font-medium text-sienna hover:bg-sienna hover:text-white"
+                >
+                    Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="mx-auto max-w-7xl px-6 py-8">
+            <!-- ERROR -->
+            <div
+                v-if="error"
+                class="mb-6 border border-sienna bg-surface px-5 py-4 text-sm text-sienna"
+            >
+                <div class="flex items-start gap-3">
+                    <span class="font-semibold">Error</span>
+                    <span>{{ error }}</span>
+                </div>
             </div>
 
-        </div>
+            <!-- LOADING -->
+            <div
+                v-if="loading"
+                class="border-y border-hairline py-16 text-center"
+            >
+                <p class="text-sm text-ink-soft">
+                    Loading your subjects...
+                </p>
+            </div>
 
+            <!-- EMPTY -->
+            <div
+                v-else-if="subjects.length === 0"
+                class="border border-hairline bg-surface"
+            >
+                <div class="px-6 py-16 text-center">
+                    <div
+                        class="mx-auto mb-5 flex h-14 w-14 items-center justify-center border border-hairline text-2xl"
+                    >
+                        📚
+                    </div>
 
-        <!-- ================================================= -->
+                    <h2
+                        class="font-serif text-2xl font-medium text-ink"
+                    >
+                        No Subjects Assigned
+                    </h2>
+
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-ink-soft">
+                        You currently don't have any subjects assigned to you.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SUBJECTS -->
+            <div v-else>
+                <!-- SECTION HEADING -->
+                <div
+                    class="mb-4 flex items-end justify-between border-b border-hairline pb-3"
+                >
+                    <div>
+                        <h2
+                            class="font-serif text-2xl font-medium text-ink"
+                        >
+                            Assigned Subjects
+                        </h2>
+
+                        <p class="mt-1 text-sm text-ink-soft">
+                            Your current teaching assignments
+                        </p>
+                    </div>
+
+                    <div
+                        class="text-sm font-medium text-ink-soft"
+                    >
+                        {{ subjects.length }} subject<span
+                            v-if="subjects.length !== 1"
+                        >s</span>
+                    </div>
+                </div>
+
+                <!-- SUBJECT GRID -->
+                <div
+                    class="grid grid-cols-1 gap-px border border-hairline bg-hairline md:grid-cols-2 lg:grid-cols-3"
+                >
+                    <article
+                        v-for="subject in subjects"
+                        :key="subject.id"
+                        class="group flex min-h-[260px] flex-col bg-surface p-6"
+                    >
+                        <!-- SUBJECT MARK -->
+                        <div
+                            class="mb-6 flex items-start justify-between gap-4"
+                        >
+                            <div
+                                class="flex h-11 w-11 items-center justify-center border border-hairline bg-paper text-lg"
+                            >
+                                📚
+                            </div>
+
+                            <span
+                                class="border border-hairline px-2.5 py-1 text-xs font-medium text-ink-soft"
+                            >
+                                {{ subject.code }}
+                            </span>
+                        </div>
+
+                        <!-- NAME -->
+                        <h3
+                            class="font-serif text-2xl font-medium leading-tight text-ink"
+                        >
+                            {{ subject.name }}
+                        </h3>
+
+                        <!-- DESCRIPTION -->
+                        <p
+                            class="mt-3 line-clamp-3 text-sm leading-6 text-ink-soft"
+                        >
+                            {{
+                                subject.description ||
+                                'No description available.'
+                            }}
+                        </p>
+
+                        <!-- FOOTER -->
+                        <div
+                            class="mt-auto flex items-end justify-between border-t border-hairline pt-5"
+                        >
+                            <div>
+                                <p class="text-xs text-ink-soft">
+                                    Students
+                                </p>
+
+                                <p
+                                    class="mt-1 font-serif text-2xl font-medium text-ink"
+                                >
+                                    {{ subject.students_count ?? 0 }}
+                                </p>
+                            </div>
+
+                            <button
+                                @click="viewSubject(subject)"
+                                class="border border-forest px-4 py-2 text-sm font-medium text-forest hover:bg-forest hover:text-white"
+                            >
+                                View
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </main>
+
         <!-- SUBJECT DETAILS MODAL -->
-        <!-- ================================================= -->
-
         <div
             v-if="showModal && selectedSubject"
-            class="
-                fixed
-                inset-0
-                z-50
-                bg-black/50
-                flex
-                items-center
-                justify-center
-                p-4
-            "
+            class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
             @click.self="closeModal"
         >
-
             <div
-                class="
-                    w-full
-                    max-w-3xl
-                    max-h-[90vh]
-                    overflow-y-auto
-                    bg-white
-                    dark:bg-gray-900
-                    rounded-xl
-                    shadow-2xl
-                    p-6
-                "
+                class="max-h-[90vh] w-full max-w-4xl overflow-y-auto border border-hairline bg-surface"
             >
-
                 <!-- MODAL HEADER -->
-
                 <div
-                    class="
-                        flex
-                        items-start
-                        justify-between
-                        gap-4
-                        mb-6
-                    "
+                    class="flex items-start justify-between gap-6 border-b border-hairline px-6 py-5"
                 >
-
                     <div>
+                        <p
+                            class="mb-2 text-xs font-medium text-ink-soft"
+                        >
+                            Subject details
+                        </p>
 
                         <h2
-                            class="
-                                text-2xl
-                                font-bold
-                            "
+                            class="font-serif text-3xl font-medium text-ink"
                         >
                             {{ selectedSubject.name }}
                         </h2>
 
                         <p
-                            class="
-                                text-blue-600
-                                dark:text-blue-400
-                                mt-1
-                            "
+                            class="mt-1 text-sm font-medium text-forest"
                         >
                             {{ selectedSubject.code }}
                         </p>
-
                     </div>
-
 
                     <button
                         @click="closeModal"
-                        class="
-                            text-gray-500
-                            hover:text-gray-900
-                            dark:hover:text-white
-                            text-2xl
-                        "
+                        class="flex h-9 w-9 shrink-0 items-center justify-center border border-hairline text-xl text-ink-soft hover:border-ink hover:text-ink"
+                        aria-label="Close"
                     >
                         ×
                     </button>
-
                 </div>
 
-
-                <!-- DESCRIPTION -->
-
-                <div
-                    class="
-                        mb-6
-                        p-4
-                        rounded-lg
-                        bg-gray-50
-                        dark:bg-gray-800
-                    "
-                >
-
-                    <p
-                        class="
-                            text-sm
-                            text-gray-500
-                            dark:text-gray-400
-                            mb-1
-                        "
-                    >
-                        Description
-                    </p>
-
-                    <p>
-                        {{
-                            selectedSubject.description ||
-                            'No description available.'
-                        }}
-                    </p>
-
-                </div>
-
-
-                <!-- STUDENTS -->
-
-                <div>
-
-                    <div
-                        class="
-                            flex
-                            items-center
-                            justify-between
-                            mb-4
-                        "
-                    >
-
-                        <h3
-                            class="
-                                text-lg
-                                font-semibold
-                            "
+                <div class="px-6 py-6">
+                    <!-- DESCRIPTION -->
+                    <section class="mb-8">
+                        <div
+                            class="mb-3 border-b border-hairline pb-2"
                         >
-                            Students
-                        </h3>
+                            <h3
+                                class="font-serif text-xl font-medium text-ink"
+                            >
+                                Description
+                            </h3>
+                        </div>
 
-                        <span
-                            class="
-                                px-3
-                                py-1
-                                rounded-full
-                                bg-blue-100
-                                dark:bg-blue-900/30
-                                text-blue-700
-                                dark:text-blue-300
-                                text-sm
-                                font-medium
-                            "
+                        <p
+                            class="text-sm leading-7 text-ink-soft"
                         >
                             {{
-                                selectedSubject.students?.length || 0
+                                selectedSubject.description ||
+                                'No description available.'
                             }}
-                        </span>
+                        </p>
+                    </section>
 
-                    </div>
-
-
-                    <div
-                        v-if="
-                            !selectedSubject.students ||
-                            selectedSubject.students.length === 0
-                        "
-                        class="
-                            text-center
-                            py-8
-                            text-gray-500
-                            dark:text-gray-400
-                        "
-                    >
-                        No students assigned to this subject.
-                    </div>
-
-
-                    <div
-                        v-else
-                        class="
-                            overflow-x-auto
-                            border
-                            border-gray-200
-                            dark:border-gray-800
-                            rounded-lg
-                        "
-                    >
-
-                        <table
-                            class="
-                                min-w-full
-                                divide-y
-                                divide-gray-200
-                                dark:divide-gray-800
-                            "
+                    <!-- STUDENTS -->
+                    <section>
+                        <div
+                            class="mb-4 flex items-end justify-between border-b border-hairline pb-3"
                         >
-
-                            <thead
-                                class="
-                                    bg-gray-50
-                                    dark:bg-gray-800
-                                "
-                            >
-
-                                <tr>
-
-                                    <th
-                                        class="
-                                            px-4
-                                            py-3
-                                            text-left
-                                            text-xs
-                                            font-semibold
-                                            uppercase
-                                            tracking-wider
-                                        "
-                                    >
-                                        Student
-                                    </th>
-
-                                    <th
-                                        class="
-                                            px-4
-                                            py-3
-                                            text-left
-                                            text-xs
-                                            font-semibold
-                                            uppercase
-                                            tracking-wider
-                                        "
-                                    >
-                                        Email
-                                    </th>
-
-                                    <th
-                                        class="
-                                            px-4
-                                            py-3
-                                            text-left
-                                            text-xs
-                                            font-semibold
-                                            uppercase
-                                            tracking-wider
-                                        "
-                                    >
-                                        Symbol No.
-                                    </th>
-
-                                    <th
-                                        class="
-                                            px-4
-                                            py-3
-                                            text-left
-                                            text-xs
-                                            font-semibold
-                                            uppercase
-                                            tracking-wider
-                                        "
-                                    >
-                                        Status
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-
-                            <tbody
-                                class="
-                                    divide-y
-                                    divide-gray-200
-                                    dark:divide-gray-800
-                                "
-                            >
-
-                                <tr
-                                    v-for="
-                                        student in selectedSubject.students
-                                    "
-                                    :key="student.id"
-                                    class="
-                                        hover:bg-gray-50
-                                        dark:hover:bg-gray-800
-                                    "
+                            <div>
+                                <h3
+                                    class="font-serif text-xl font-medium text-ink"
                                 >
+                                    Students
+                                </h3>
 
-                                    <td
-                                        class="
-                                            px-4
-                                            py-3
-                                            font-medium
-                                        "
-                                    >
-                                        {{ student.name }}
-                                    </td>
+                                <p
+                                    class="mt-1 text-xs text-ink-soft"
+                                >
+                                    Students currently assigned to this subject
+                                </p>
+                            </div>
 
-                                    <td
-                                        class="
-                                            px-4
-                                            py-3
-                                            text-sm
-                                            text-gray-600
-                                            dark:text-gray-400
-                                        "
-                                    >
-                                        {{ student.email || '—' }}
-                                    </td>
+                            <span
+                                class="font-serif text-xl font-medium text-ink"
+                            >
+                                {{
+                                    selectedSubject.students?.length || 0
+                                }}
+                            </span>
+                        </div>
 
-                                    <td
-                                        class="
-                                            px-4
-                                            py-3
-                                            text-sm
-                                        "
-                                    >
-                                        {{ student.symbol_no || '—' }}
-                                    </td>
+                        <!-- NO STUDENTS -->
+                        <div
+                            v-if="
+                                !selectedSubject.students ||
+                                selectedSubject.students.length === 0
+                            "
+                            class="border border-hairline bg-paper px-5 py-10 text-center"
+                        >
+                            <p
+                                class="text-sm text-ink-soft"
+                            >
+                                No students assigned to this subject.
+                            </p>
+                        </div>
 
-                                    <td
-                                        class="
-                                            px-4
-                                            py-3
-                                        "
-                                    >
-
-                                        <span
-                                            class="
-                                                px-2.5
-                                                py-1
-                                                rounded-full
-                                                text-xs
-                                                font-medium
-                                            "
-                                            :class="
-                                                student.status === 'active'
-                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                                            "
+                        <!-- STUDENT TABLE -->
+                        <div
+                            v-else
+                            class="overflow-x-auto border border-hairline"
+                        >
+                            <table
+                                class="min-w-full divide-y divide-hairline"
+                            >
+                                <thead class="bg-paper">
+                                    <tr>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
                                         >
-                                            {{
-                                                student.status || 'Unknown'
-                                            }}
-                                        </span>
+                                            Student
+                                        </th>
 
-                                    </td>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                                        >
+                                            Email
+                                        </th>
 
-                                </tr>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                                        >
+                                            Symbol No.
+                                        </th>
 
-                            </tbody>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold text-ink-soft"
+                                        >
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
 
-                        </table>
+                                <tbody
+                                    class="divide-y divide-hairline"
+                                >
+                                    <tr
+                                        v-for="student in selectedSubject.students"
+                                        :key="student.id"
+                                        class="hover:bg-paper"
+                                    >
+                                        <td class="px-4 py-4">
+                                            <div
+                                                class="font-medium text-ink"
+                                            >
+                                                {{ student.name }}
+                                            </div>
+                                        </td>
 
-                    </div>
+                                        <td
+                                            class="px-4 py-4 text-sm text-ink-soft"
+                                        >
+                                            {{ student.email || '—' }}
+                                        </td>
 
+                                        <td
+                                            class="px-4 py-4 text-sm text-ink"
+                                        >
+                                            {{ student.symbol_no || '—' }}
+                                        </td>
+
+                                        <td class="px-4 py-4">
+                                            <span
+                                                class="text-sm font-medium"
+                                                :class="
+                                                    student.status === 'active'
+                                                        ? 'text-forest'
+                                                        : 'text-sienna'
+                                                "
+                                            >
+                                                {{
+                                                    student.status || 'Unknown'
+                                                }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
                 </div>
 
-
-                <!-- CLOSE -->
-
+                <!-- MODAL FOOTER -->
                 <div
-                    class="
-                        flex
-                        justify-end
-                        mt-6
-                    "
+                    class="flex justify-end border-t border-hairline px-6 py-4"
                 >
-
                     <button
                         @click="closeModal"
-                        class="
-                            px-5
-                            py-2.5
-                            rounded-lg
-                            bg-gray-200
-                            dark:bg-gray-800
-                            hover:bg-gray-300
-                            dark:hover:bg-gray-700
-                            transition
-                        "
+                        class="border border-hairline px-5 py-2.5 text-sm font-medium text-ink hover:border-ink hover:bg-paper"
                     >
                         Close
                     </button>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </template>

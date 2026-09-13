@@ -4,6 +4,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useTeacherStudentStore } from '../../stores/teachers/teacherStudent'
+import { clearAuthSessions } from '../../services/apiConfig'
 
 
 const router = useRouter()
@@ -169,14 +170,7 @@ const goBack = () => {
 // =========================================================
 
 const logout = () => {
-
-    localStorage.removeItem(
-        'teacher_token'
-    )
-
-    localStorage.removeItem(
-        'teacher_user'
-    )
+    clearAuthSessions()
 
     router.push('/login')
 
@@ -197,518 +191,433 @@ onMounted(() => {
 
 
 <template>
-
-    <div
-        :class="[
-            'min-h-screen p-6 transition-colors duration-300',
-            darkMode
-                ? 'bg-gray-950 text-gray-100'
-                : 'bg-gray-100 text-gray-900'
-        ]"
-    >
-
-        <!-- ================================================= -->
+    <main class="min-h-screen bg-paper">
         <!-- HEADER -->
-        <!-- ================================================= -->
-
-        <div
-            class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-        >
-
-            <div>
-
-                <button
-                    @click="goBack"
-                    class="mb-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400"
+        <header class="border-b border-hairline bg-paper">
+            <div class="mx-auto max-w-7xl px-6 py-6 lg:px-8">
+                <div
+                    class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"
                 >
-                    ← Back to Dashboard
-                </button>
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="flex h-11 w-11 items-center justify-center border border-forest bg-surface text-sm font-semibold text-forest"
+                            >
+                                MS
+                            </div>
 
-                <h1
-                    class="text-3xl font-bold"
-                >
-                    My Students
-                </h1>
+                            <div>
+                                <p class="text-sm font-semibold text-ink">
+                                    Student Portal
+                                </p>
 
-                <p
-                    :class="[
-                        'mt-1',
-                        darkMode
-                            ? 'text-gray-400'
-                            : 'text-gray-600'
-                    ]"
-                >
-                    Students assigned to your subjects
-                </p>
+                                <p class="text-xs text-ink-soft">
+                                    Teacher workspace
+                                </p>
+                            </div>
+                        </div>
 
+                        <div class="mt-7">
+                            <p class="text-sm font-medium text-forest">
+                                Teaching records
+                            </p>
+
+                            <h1
+                                class="mt-2 font-serif text-4xl font-medium tracking-tight text-ink sm:text-5xl"
+                            >
+                                My students
+                            </h1>
+
+                            <p class="mt-2 text-sm text-ink-soft">
+                                Students assigned to your subjects.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <!-- DARK MODE -->
+                        <button
+                            @click="toggleDarkMode"
+                            class="border border-hairline bg-surface px-3 py-2 text-sm font-medium text-ink-soft hover:border-ink-soft hover:text-ink"
+                        >
+                            {{ darkMode ? '☀ Light' : '☾ Dark' }}
+                        </button>
+
+                        <!-- LOGOUT -->
+                        <button
+                            @click="logout"
+                            class="border border-sienna/50 bg-surface px-4 py-2 text-sm font-medium text-sienna hover:border-sienna hover:bg-paper"
+                        >
+                            Sign out
+                        </button>
+                    </div>
+                </div>
             </div>
+        </header>
 
-
-            <div class="flex items-center gap-2">
-
-                <button
-                    @click="toggleDarkMode"
-                    class="px-4 py-2 rounded-lg border transition"
-                    :class="
-                        darkMode
-                            ? 'border-gray-700 bg-gray-900 hover:bg-gray-800'
-                            : 'border-gray-300 bg-white hover:bg-gray-50'
-                    "
-                >
-                    {{ darkMode ? '☀️ Light' : '🌙 Dark' }}
-                </button>
-
-                <button
-                    @click="logout"
-                    class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-                >
-                    Logout
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <!-- ================================================= -->
-        <!-- MAIN CARD -->
-        <!-- ================================================= -->
-
-        <div
-            class="max-w-7xl mx-auto rounded-xl shadow-sm border overflow-hidden"
-            :class="
-                darkMode
-                    ? 'bg-gray-900 border-gray-800'
-                    : 'bg-white border-gray-200'
-            "
-        >
-
-            <!-- ============================================= -->
-            <!-- TOOLBAR -->
-            <!-- ============================================= -->
-
-            <div
-                class="p-4 border-b flex flex-col md:flex-row gap-3 md:items-center md:justify-between"
-                :class="
-                    darkMode
-                        ? 'border-gray-800'
-                        : 'border-gray-200'
-                "
+        <!-- MAIN -->
+        <main class="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+            <!-- BACK -->
+            <button
+                @click="goBack"
+                class="mb-6 text-sm font-medium text-forest hover:underline"
             >
+                Back to dashboard
+            </button>
 
-                <!-- SEARCH -->
+            <!-- TOOLBAR -->
+            <section class="border border-hairline bg-surface">
+                <div
+                    class="flex flex-col gap-5 px-5 py-5 sm:flex-row sm:items-end sm:justify-between"
+                >
+                    <div>
+                        <h2
+                            class="font-serif text-2xl font-medium text-ink"
+                        >
+                            Student records
+                        </h2>
 
-                <div class="flex-1">
+                        <p class="mt-1 text-sm text-ink-soft">
+                            Search and filter the students assigned to you.
+                        </p>
+                    </div>
 
-                    <input
-                        v-model="searchQuery"
-                        type="text"
-                        placeholder="Search students..."
-                        class="w-full px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500"
-                        :class="
-                            darkMode
-                                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
-                                : 'bg-white border-gray-300 text-gray-900'
-                        "
-                    />
+                    <div
+                        class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row"
+                    >
+                        <!-- SEARCH -->
+                        <div class="w-full sm:w-72">
+                            <label
+                                for="student-search"
+                                class="mb-2 block text-xs font-medium text-ink-soft"
+                            >
+                                Search
+                            </label>
 
+                            <input
+                                id="student-search"
+                                v-model="searchQuery"
+                                type="text"
+                                placeholder="Search students..."
+                                class="w-full border border-hairline bg-surface px-4 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/50 focus:border-forest focus:ring-1 focus:ring-forest"
+                            />
+                        </div>
+
+                        <!-- STATUS -->
+                        <div class="w-full sm:w-40">
+                            <label
+                                for="status-filter"
+                                class="mb-2 block text-xs font-medium text-ink-soft"
+                            >
+                                Status
+                            </label>
+
+                            <select
+                                id="status-filter"
+                                v-model="statusFilter"
+                                class="w-full border border-hairline bg-surface px-4 py-2.5 text-sm text-ink outline-none focus:border-forest focus:ring-1 focus:ring-forest"
+                            >
+                                <option value="all">
+                                    All status
+                                </option>
+
+                                <option value="active">
+                                    Active
+                                </option>
+
+                                <option value="inactive">
+                                    Inactive
+                                </option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- SUMMARY LEDGER -->
+                <div class="grid border-t border-hairline sm:grid-cols-3">
+                    <div
+                        class="border-b border-hairline px-5 py-4 sm:border-b-0 sm:border-r"
+                    >
+                        <p class="text-xs text-ink-soft">
+                            Students shown
+                        </p>
 
-                <!-- STATUS -->
+                        <p class="mt-1 font-serif text-2xl text-ink">
+                            {{ teacherStudentStore.students.length }}
+                        </p>
+                    </div>
 
-                <select
-                    v-model="statusFilter"
-                    class="px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-blue-500"
-                    :class="
-                        darkMode
-                            ? 'bg-gray-800 border-gray-700 text-white'
-                            : 'bg-white border-gray-300 text-gray-900'
-                    "
-                >
+                    <div
+                        class="border-b border-hairline px-5 py-4 sm:border-b-0 sm:border-r"
+                    >
+                        <p class="text-xs text-ink-soft">
+                            Current page
+                        </p>
 
-                    <option value="all">
-                        All Status
-                    </option>
+                        <p class="mt-1 font-serif text-2xl text-ink">
+                            {{ teacherStudentStore.pagination.currentPage }}
+                        </p>
+                    </div>
 
-                    <option value="active">
-                        Active
-                    </option>
+                    <div class="px-5 py-4">
+                        <p class="text-xs text-ink-soft">
+                            Total students
+                        </p>
 
-                    <option value="inactive">
-                        Inactive
-                    </option>
+                        <p class="mt-1 font-serif text-2xl text-ink">
+                            {{ teacherStudentStore.pagination.totalStudents }}
+                        </p>
+                    </div>
+                </div>
+            </section>
 
-                </select>
-
-            </div>
-
-
-            <!-- ============================================= -->
             <!-- ERROR -->
-            <!-- ============================================= -->
-
             <div
                 v-if="teacherStudentStore.error"
-                class="m-4 p-4 rounded-lg bg-red-100 text-red-700 border border-red-200"
+                class="mt-6 border border-sienna/30 bg-surface px-4 py-3 text-sm leading-5 text-sienna"
             >
                 {{ teacherStudentStore.error }}
             </div>
 
-
-            <!-- ============================================= -->
             <!-- LOADING -->
-            <!-- ============================================= -->
-
             <div
                 v-if="teacherStudentStore.loading"
-                class="p-10 text-center"
-                :class="
-                    darkMode
-                        ? 'text-gray-400'
-                        : 'text-gray-500'
-                "
+                class="mt-6 border border-hairline bg-surface px-6 py-14 text-center text-sm text-ink-soft"
             >
                 Loading your students...
             </div>
 
-
-            <!-- ============================================= -->
             <!-- TABLE -->
-            <!-- ============================================= -->
-
-            <div
+            <section
                 v-else
-                class="overflow-x-auto"
+                class="mt-6 border border-hairline bg-surface"
             >
-
-                <table class="w-full">
-
-                    <thead
-                        :class="
-                            darkMode
-                                ? 'bg-gray-800'
-                                : 'bg-gray-50'
-                        "
-                    >
-
-                        <tr>
-
-                            <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                Student
-                            </th>
-
-                            <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                Class
-                            </th>
-
-                            <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                Symbol No.
-                            </th>
-
-                            <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                Subjects
-                            </th>
-
-                            <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                Status
-                            </th>
-
-                            <th
-                                class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider"
-                            >
-                                Action
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody
-                        class="divide-y"
-                        :class="
-                            darkMode
-                                ? 'divide-gray-800'
-                                : 'divide-gray-200'
-                        "
-                    >
-
-                        <tr
-                            v-for="student in teacherStudentStore.students"
-                            :key="student.id"
-                            class="transition"
-                            :class="
-                                darkMode
-                                    ? 'hover:bg-gray-800'
-                                    : 'hover:bg-gray-50'
-                            "
-                        >
-
-                            <!-- STUDENT -->
-
-                            <td class="px-6 py-4">
-
-                                <div
-                                    class="font-medium"
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[950px]">
+                        <thead class="border-b border-hairline bg-paper">
+                            <tr>
+                                <th
+                                    class="px-5 py-4 text-left text-xs font-medium text-ink-soft"
                                 >
-                                    {{ student.name }}
-                                </div>
+                                    Student
+                                </th>
 
-                                <div
-                                    class="text-sm"
-                                    :class="
-                                        darkMode
-                                            ? 'text-gray-400'
-                                            : 'text-gray-500'
-                                    "
+                                <th
+                                    class="px-5 py-4 text-left text-xs font-medium text-ink-soft"
                                 >
-                                    {{ student.email }}
-                                </div>
+                                    Class
+                                </th>
 
-                            </td>
-
-
-                            <!-- CLASS -->
-
-                            <td class="px-6 py-4">
-
-                                {{ student.class }}
-
-                            </td>
-
-
-                            <!-- SYMBOL -->
-
-                            <td class="px-6 py-4">
-
-                                {{ student.symbol_no || '—' }}
-
-                            </td>
-
-
-                            <!-- SUBJECTS -->
-
-                            <td class="px-6 py-4">
-
-                                <div
-                                    v-if="student.subjects?.length"
-                                    class="flex flex-wrap gap-1"
+                                <th
+                                    class="px-5 py-4 text-left text-xs font-medium text-ink-soft"
                                 >
+                                    Symbol no.
+                                </th>
+
+                                <th
+                                    class="px-5 py-4 text-left text-xs font-medium text-ink-soft"
+                                >
+                                    Subjects
+                                </th>
+
+                                <th
+                                    class="px-5 py-4 text-left text-xs font-medium text-ink-soft"
+                                >
+                                    Status
+                                </th>
+
+                                <th
+                                    class="px-5 py-4 text-right text-xs font-medium text-ink-soft"
+                                >
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr
+                                v-for="student in teacherStudentStore.students"
+                                :key="student.id"
+                                class="border-b border-hairline last:border-b-0 hover:bg-paper/60"
+                            >
+                                <!-- STUDENT -->
+                                <td class="px-5 py-4">
+                                    <div
+                                        class="font-serif text-lg text-ink"
+                                    >
+                                        {{ student.name }}
+                                    </div>
+
+                                    <div
+                                        class="mt-0.5 text-sm text-ink-soft"
+                                    >
+                                        {{ student.email }}
+                                    </div>
+                                </td>
+
+                                <!-- CLASS -->
+                                <td
+                                    class="px-5 py-4 text-sm text-ink"
+                                >
+                                    {{ student.class }}
+                                </td>
+
+                                <!-- SYMBOL -->
+                                <td
+                                    class="px-5 py-4 text-sm text-ink-soft"
+                                >
+                                    {{ student.symbol_no || '—' }}
+                                </td>
+
+                                <!-- SUBJECTS -->
+                                <td class="px-5 py-4">
+                                    <div
+                                        v-if="student.subjects?.length"
+                                        class="divide-y divide-hairline border-y border-hairline"
+                                    >
+                                        <div
+                                            v-for="subject in student.subjects"
+                                            :key="`${student.id}-${subject.id}-${subject.name}`"
+                                            class="py-1.5 text-sm text-ink"
+                                        >
+                                            {{ subject.name }}
+
+                                            <span
+                                                v-if="subject.code"
+                                                class="ml-1 text-xs text-ink-soft"
+                                            >
+                                                ({{ subject.code }})
+                                            </span>
+                                        </div>
+                                    </div>
 
                                     <span
-                                        v-for="subject in student.subjects"
-                                        :key="`${student.id}-${subject.id}-${subject.name}`"
-                                        class="px-2 py-1 rounded-md text-xs font-medium"
-                                        :class="
-                                            darkMode
-                                                ? 'bg-blue-900/40 text-blue-300'
-                                                : 'bg-blue-100 text-blue-700'
-                                        "
+                                        v-else
+                                        class="text-sm text-ink-soft"
                                     >
-                                        {{ subject.name }}
+                                        —
+                                    </span>
+                                </td>
+
+                                <!-- STATUS -->
+                                <td class="px-5 py-4">
+                                    <span
+                                        v-if="student.status === 'active'"
+                                        class="border border-forest/40 px-2.5 py-1 text-xs font-medium text-forest"
+                                    >
+                                        Active
                                     </span>
 
-                                </div>
+                                    <span
+                                        v-else
+                                        class="border border-sienna/40 px-2.5 py-1 text-xs font-medium text-sienna"
+                                    >
+                                        Inactive
+                                    </span>
+                                </td>
 
-                                <span
-                                    v-else
-                                    :class="
-                                        darkMode
-                                            ? 'text-gray-500'
-                                            : 'text-gray-400'
-                                    "
+                                <!-- ACTION -->
+                                <td
+                                    class="px-5 py-4 text-right"
                                 >
-                                    —
-                                </span>
+                                    <button
+                                        @click="viewStudent(student)"
+                                        class="border border-forest bg-surface px-3 py-1.5 text-sm font-medium text-forest hover:bg-paper"
+                                    >
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
 
-                            </td>
-
-
-                            <!-- STATUS -->
-
-                            <td class="px-6 py-4">
-
-                                <span
-                                    class="px-2.5 py-1 rounded-full text-xs font-semibold"
-                                    :class="
-                                        student.status === 'active'
-                                            ? (
-                                                darkMode
-                                                    ? 'bg-green-900/40 text-green-300'
-                                                    : 'bg-green-100 text-green-700'
-                                            )
-                                            : (
-                                                darkMode
-                                                    ? 'bg-red-900/40 text-red-300'
-                                                    : 'bg-red-100 text-red-700'
-                                            )
-                                    "
-                                >
-                                    {{
-                                        student.status === 'active'
-                                            ? 'Active'
-                                            : 'Inactive'
-                                    }}
-                                </span>
-
-                            </td>
-
-
-                            <!-- ACTION -->
-
-                            <td
-                                class="px-6 py-4 text-right"
-                            >
-
-                                <button
-                                    @click="viewStudent(student)"
-                                    class="px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm"
-                                >
-                                    View
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-
-                        <!-- EMPTY -->
-
-                        <tr
-                            v-if="
-                                teacherStudentStore.students.length === 0 &&
-                                !teacherStudentStore.loading
-                            "
-                        >
-
-                            <td
-                                colspan="6"
-                                class="px-6 py-12 text-center"
-                                :class="
-                                    darkMode
-                                        ? 'text-gray-400'
-                                        : 'text-gray-500'
+                            <!-- EMPTY -->
+                            <tr
+                                v-if="
+                                    teacherStudentStore.students.length === 0 &&
+                                    !teacherStudentStore.loading
                                 "
                             >
+                                <td
+                                    colspan="6"
+                                    class="px-6 py-14 text-center"
+                                >
+                                    <p
+                                        class="font-serif text-2xl text-ink"
+                                    >
+                                        No students assigned
+                                    </p>
 
-                                No students assigned to you.
+                                    <p
+                                        class="mt-2 text-sm text-ink-soft"
+                                    >
+                                        No students match the current
+                                        search or status filter.
+                                    </p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-
-            <!-- ============================================= -->
-            <!-- PAGINATION -->
-            <!-- ============================================= -->
-
-            <div
-                v-if="
-                    teacherStudentStore.pagination.lastPage > 1
-                "
-                class="px-6 py-4 border-t flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-                :class="
-                    darkMode
-                        ? 'border-gray-800'
-                        : 'border-gray-200'
-                "
-            >
-
+                <!-- PAGINATION -->
                 <div
-                    class="text-sm"
-                    :class="
-                        darkMode
-                            ? 'text-gray-400'
-                            : 'text-gray-500'
+                    v-if="
+                        teacherStudentStore.pagination.lastPage > 1
                     "
+                    class="flex flex-col gap-4 border-t border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
                 >
-
-                    Showing
-                    {{ teacherStudentStore.pagination.from }}
-                    –
-                    {{ teacherStudentStore.pagination.to }}
-                    of
-                    {{ teacherStudentStore.pagination.totalStudents }}
-                    students
-
-                </div>
-
-
-                <div class="flex items-center gap-2">
-
-                    <button
-                        @click="
-                            goToPage(
-                                teacherStudentStore.pagination.currentPage - 1
-                            )
-                        "
-                        :disabled="
-                            teacherStudentStore.pagination.currentPage === 1
-                        "
-                        class="px-3 py-2 rounded-lg border disabled:opacity-40"
-                        :class="
-                            darkMode
-                                ? 'border-gray-700 hover:bg-gray-800'
-                                : 'border-gray-300 hover:bg-gray-50'
-                        "
-                    >
-                        Previous
-                    </button>
-
-
-                    <span
-                        class="px-3 py-2 text-sm"
-                    >
-                        Page
-                        {{ teacherStudentStore.pagination.currentPage }}
+                    <div class="text-sm text-ink-soft">
+                        Showing
+                        {{ teacherStudentStore.pagination.from }}
+                        –
+                        {{ teacherStudentStore.pagination.to }}
                         of
-                        {{ teacherStudentStore.pagination.lastPage }}
-                    </span>
+                        {{ teacherStudentStore.pagination.totalStudents }}
+                        students
+                    </div>
 
+                    <div class="flex items-center gap-1">
+                        <button
+                            @click="
+                                goToPage(
+                                    teacherStudentStore.pagination.currentPage - 1
+                                )
+                            "
+                            :disabled="
+                                teacherStudentStore.pagination.currentPage ===
+                                1
+                            "
+                            class="border border-hairline bg-surface px-3 py-1.5 text-sm text-ink-soft hover:border-ink-soft hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                            Previous
+                        </button>
 
-                    <button
-                        @click="
-                            goToPage(
-                                teacherStudentStore.pagination.currentPage + 1
-                            )
-                        "
-                        :disabled="
-                            teacherStudentStore.pagination.currentPage ===
-                            teacherStudentStore.pagination.lastPage
-                        "
-                        class="px-3 py-2 rounded-lg border disabled:opacity-40"
-                        :class="
-                            darkMode
-                                ? 'border-gray-700 hover:bg-gray-800'
-                                : 'border-gray-300 hover:bg-gray-50'
-                        "
-                    >
-                        Next
-                    </button>
+                        <span
+                            class="px-3 py-1.5 text-sm text-ink-soft"
+                        >
+                            Page
+                            {{ teacherStudentStore.pagination.currentPage }}
+                            of
+                            {{ teacherStudentStore.pagination.lastPage }}
+                        </span>
 
+                        <button
+                            @click="
+                                goToPage(
+                                    teacherStudentStore.pagination.currentPage + 1
+                                )
+                            "
+                            :disabled="
+                                teacherStudentStore.pagination.currentPage ===
+                                teacherStudentStore.pagination.lastPage
+                            "
+                            class="border border-hairline bg-surface px-3 py-1.5 text-sm text-ink-soft hover:border-ink-soft hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
-
-            </div>
-
-        </div>
-
+            </section>
+        </main>
 
         <!-- ================================================= -->
         <!-- VIEW STUDENT MODAL -->
@@ -716,332 +625,226 @@ onMounted(() => {
 
         <div
             v-if="showViewModal && selectedStudent"
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4 py-6"
             @click.self="closeViewModal"
         >
-
             <div
-                class="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl"
-                :class="
-                    darkMode
-                        ? 'bg-gray-900 text-white'
-                        : 'bg-white text-gray-900'
-                "
+                class="max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-hairline bg-surface"
             >
-
                 <!-- MODAL HEADER -->
-
                 <div
-                    class="p-6 border-b flex items-center justify-between"
-                    :class="
-                        darkMode
-                            ? 'border-gray-800'
-                            : 'border-gray-200'
-                    "
+                    class="flex items-center justify-between border-b border-hairline px-6 py-5"
                 >
-
                     <div>
+                        <p class="text-xs font-medium text-ink-soft">
+                            Student record
+                        </p>
 
                         <h2
-                            class="text-2xl font-bold"
+                            class="mt-2 font-serif text-3xl font-medium text-ink"
                         >
                             {{ selectedStudent.name }}
                         </h2>
 
-                        <p
-                            class="text-sm mt-1"
-                            :class="
-                                darkMode
-                                    ? 'text-gray-400'
-                                    : 'text-gray-500'
-                            "
-                        >
-                            Student Details
+                        <p class="mt-1 text-sm text-ink-soft">
+                            Student details
                         </p>
-
                     </div>
-
 
                     <button
                         @click="closeViewModal"
-                        class="text-2xl opacity-70 hover:opacity-100"
+                        class="text-2xl leading-none text-ink-soft hover:text-ink"
+                        aria-label="Close"
                     >
                         ×
                     </button>
-
                 </div>
 
-
                 <!-- MODAL BODY -->
-
-                <div class="p-6 space-y-6">
-
+                <div class="p-6">
                     <!-- BASIC INFORMATION -->
-
-                    <div>
-
+                    <section>
                         <h3
-                            class="text-sm font-semibold uppercase tracking-wide mb-3"
+                            class="font-serif text-xl font-medium text-ink"
                         >
-                            Basic Information
+                            Basic information
                         </h3>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                            <div>
-
-                                <p
-                                    class="text-xs"
-                                    :class="
-                                        darkMode
-                                            ? 'text-gray-400'
-                                            : 'text-gray-500'
-                                    "
-                                >
+                        <div
+                            class="mt-4 grid grid-cols-1 divide-y divide-hairline border-y border-hairline md:grid-cols-2 md:divide-y-0"
+                        >
+                            <div
+                                class="border-b border-hairline py-4 md:border-r md:pr-5"
+                            >
+                                <p class="text-xs text-ink-soft">
                                     Email
                                 </p>
 
-                                <p class="font-medium">
+                                <p
+                                    class="mt-1 text-sm font-medium text-ink"
+                                >
                                     {{ selectedStudent.email || '—' }}
                                 </p>
-
                             </div>
 
-
-                            <div>
-
-                                <p
-                                    class="text-xs"
-                                    :class="
-                                        darkMode
-                                            ? 'text-gray-400'
-                                            : 'text-gray-500'
-                                    "
-                                >
+                            <div
+                                class="border-b border-hairline py-4 md:pl-5"
+                            >
+                                <p class="text-xs text-ink-soft">
                                     Phone
                                 </p>
 
-                                <p class="font-medium">
+                                <p
+                                    class="mt-1 text-sm font-medium text-ink"
+                                >
                                     {{ selectedStudent.phone || '—' }}
                                 </p>
-
                             </div>
 
-
-                            <div>
-
-                                <p
-                                    class="text-xs"
-                                    :class="
-                                        darkMode
-                                            ? 'text-gray-400'
-                                            : 'text-gray-500'
-                                    "
-                                >
+                            <div
+                                class="border-b border-hairline py-4 md:border-r md:pr-5"
+                            >
+                                <p class="text-xs text-ink-soft">
                                     Class
                                 </p>
 
-                                <p class="font-medium">
+                                <p
+                                    class="mt-1 text-sm font-medium text-ink"
+                                >
                                     {{ selectedStudent.class || '—' }}
                                 </p>
-
                             </div>
 
-
-                            <div>
-
-                                <p
-                                    class="text-xs"
-                                    :class="
-                                        darkMode
-                                            ? 'text-gray-400'
-                                            : 'text-gray-500'
-                                    "
-                                >
-                                    Symbol No.
+                            <div
+                                class="border-b border-hairline py-4 md:pl-5"
+                            >
+                                <p class="text-xs text-ink-soft">
+                                    Symbol no.
                                 </p>
 
-                                <p class="font-medium">
+                                <p
+                                    class="mt-1 text-sm font-medium text-ink"
+                                >
                                     {{ selectedStudent.symbol_no || '—' }}
                                 </p>
-
                             </div>
 
-
-                            <div>
+                            <div
+                                class="border-b border-hairline py-4 md:border-r md:pr-5"
+                            >
+                                <p class="text-xs text-ink-soft">
+                                    Date of birth
+                                </p>
 
                                 <p
-                                    class="text-xs"
-                                    :class="
-                                        darkMode
-                                            ? 'text-gray-400'
-                                            : 'text-gray-500'
-                                    "
+                                    class="mt-1 text-sm font-medium text-ink"
                                 >
-                                    Date of Birth
+                                    {{
+                                        selectedStudent.date_of_birth || '—'
+                                    }}
                                 </p>
-
-                                <p class="font-medium">
-                                    {{ selectedStudent.date_of_birth || '—' }}
-                                </p>
-
                             </div>
 
-
-                            <div>
-
-                                <p
-                                    class="text-xs"
-                                    :class="
-                                        darkMode
-                                            ? 'text-gray-400'
-                                            : 'text-gray-500'
-                                    "
-                                >
+                            <div
+                                class="border-b border-hairline py-4 md:pl-5"
+                            >
+                                <p class="text-xs text-ink-soft">
                                     Status
                                 </p>
 
-                                <p class="font-medium">
+                                <p
+                                    class="mt-1 text-sm font-medium text-ink"
+                                >
                                     {{
                                         selectedStudent.status || '—'
                                     }}
                                 </p>
-
                             </div>
-
                         </div>
-
-                    </div>
-
+                    </section>
 
                     <!-- SUBJECTS -->
-
-                    <div>
-
+                    <section class="mt-8">
                         <h3
-                            class="text-sm font-semibold uppercase tracking-wide mb-3"
+                            class="font-serif text-xl font-medium text-ink"
                         >
-                            Assigned Subjects
+                            Assigned subjects
                         </h3>
 
                         <div
                             v-if="selectedStudent.subjects?.length"
-                            class="flex flex-wrap gap-2"
+                            class="mt-4 divide-y divide-hairline border-y border-hairline"
                         >
-
-                            <span
+                            <div
                                 v-for="subject in selectedStudent.subjects"
                                 :key="`${subject.id}-${subject.name}`"
-                                class="px-3 py-2 rounded-lg text-sm"
-                                :class="
-                                    darkMode
-                                        ? 'bg-blue-900/40 text-blue-300'
-                                        : 'bg-blue-100 text-blue-700'
-                                "
+                                class="flex items-center justify-between gap-4 py-3"
                             >
-
-                                {{ subject.name }}
+                                <span
+                                    class="text-sm font-medium text-ink"
+                                >
+                                    {{ subject.name }}
+                                </span>
 
                                 <span
                                     v-if="subject.code"
-                                    class="opacity-70"
+                                    class="text-xs text-ink-soft"
                                 >
-                                    ({{ subject.code }})
+                                    {{ subject.code }}
                                 </span>
-
-                            </span>
-
+                            </div>
                         </div>
 
                         <p
                             v-else
-                            :class="
-                                darkMode
-                                    ? 'text-gray-500'
-                                    : 'text-gray-400'
-                            "
+                            class="mt-3 text-sm text-ink-soft"
                         >
                             No subjects assigned.
-
                         </p>
-
-                    </div>
-
+                    </section>
 
                     <!-- PARENT -->
-
-                    <div
+                    <section
                         v-if="selectedStudent.parent"
+                        class="mt-8"
                     >
-
                         <h3
-                            class="text-sm font-semibold uppercase tracking-wide mb-3"
+                            class="font-serif text-xl font-medium text-ink"
                         >
                             Parent
                         </h3>
 
                         <div
-                            class="rounded-xl p-4"
-                            :class="
-                                darkMode
-                                    ? 'bg-gray-800'
-                                    : 'bg-gray-50'
-                            "
+                            class="mt-4 border border-hairline bg-paper px-4 py-4"
                         >
-
-                            <p class="font-medium">
+                            <p class="font-medium text-ink">
                                 {{
-                                    selectedStudent.parent.name
-                                    || '—'
+                                    selectedStudent.parent.name || '—'
                                 }}
                             </p>
 
-                            <p
-                                class="text-sm mt-1"
-                                :class="
-                                    darkMode
-                                        ? 'text-gray-400'
-                                        : 'text-gray-500'
-                                "
-                            >
+                            <p class="mt-1 text-sm text-ink-soft">
                                 {{
-                                    selectedStudent.parent.email
-                                    || '—'
+                                    selectedStudent.parent.email || '—'
                                 }}
                             </p>
-
                         </div>
-
-                    </div>
-
+                    </section>
                 </div>
 
-
                 <!-- MODAL FOOTER -->
-
                 <div
-                    class="px-6 py-4 border-t flex justify-end"
-                    :class="
-                        darkMode
-                            ? 'border-gray-800'
-                            : 'border-gray-200'
-                    "
+                    class="flex justify-end border-t border-hairline px-6 py-4"
                 >
-
                     <button
                         @click="closeViewModal"
-                        class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                        class="border border-ink bg-ink px-4 py-2.5 text-sm font-medium text-white hover:bg-ink/90"
                     >
                         Close
                     </button>
-
                 </div>
-
             </div>
-
         </div>
-
-    </div>
-
+    </main>
 </template>
 

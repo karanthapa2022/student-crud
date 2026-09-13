@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -18,6 +18,10 @@ const roleLabel = {
   student: 'Student',
   parent: 'Parent',
 }
+
+const roleInitial = computed(() =>
+  (roleLabel[dashboard.value.role] || 'D').charAt(0)
+)
 
 const loadDashboard = async () => {
   loading.value = true
@@ -71,114 +75,802 @@ const goToProfile = () => router.push('/profile')
 onMounted(loadDashboard)
 </script>
 
+
 <template>
-  <div class="min-h-screen bg-slate-100 text-slate-800">
-    <header class="border-b border-slate-200 bg-white shadow-sm">
-      <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Role-Based Access</p>
-          <h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">
-            {{ roleLabel[dashboard.role] || 'Dashboard' }} Dashboard
-          </h1>
+  <div class="min-h-screen bg-[#F4F6F1] text-[#1C2B24]">
+
+    <!-- ===================================================== -->
+    <!-- TOP NAVIGATION -->
+    <!-- ===================================================== -->
+
+    <header class="border-b border-[#D8DDD3] bg-white">
+      <div
+        class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-6"
+      >
+
+        <!-- BRAND / USER -->
+        <div class="flex items-center gap-3">
+          <div
+            class="flex h-10 w-10 items-center justify-center bg-[#2F6F4E] text-sm font-semibold text-white"
+          >
+            {{ roleInitial }}
+          </div>
+
+          <div>
+            <p class="text-sm font-semibold text-[#1C2B24]">
+              {{ roleLabel[dashboard.role] || 'Dashboard' }}
+            </p>
+
+            <p class="text-xs text-[#6B776F]">
+              School Management System
+            </p>
+          </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <button @click="goToProfile" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+
+        <!-- ACTIONS -->
+        <div class="flex items-center gap-2">
+
+          <button
+            @click="goToProfile"
+            class="hidden border border-[#D8DDD3] bg-white px-4 py-2 text-sm font-medium text-[#1C2B24] transition hover:bg-[#F4F6F1] sm:block"
+          >
             Profile
           </button>
-          <button @click="logout" class="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
-            Logout
+
+          <button
+            @click="logout"
+            class="border border-[#B5563C]/30 px-4 py-2 text-sm font-medium text-[#B5563C] transition hover:bg-[#B5563C]/5"
+          >
+            Sign out
           </button>
+
         </div>
       </div>
     </header>
 
-    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
-      <div v-if="loading" class="py-10 text-center text-slate-500">Loading dashboard...</div>
-      <div v-else-if="error" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        {{ error }}
+
+    <!-- ===================================================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ===================================================== -->
+
+    <main class="mx-auto max-w-7xl px-5 py-7 sm:px-6 sm:py-9">
+
+      <!-- LOADING -->
+
+      <div
+        v-if="loading"
+        class="flex min-h-[60vh] items-center justify-center"
+      >
+        <div class="text-center">
+
+          <div
+            class="mx-auto h-8 w-8 animate-spin border-2 border-[#D8DDD3] border-t-[#2F6F4E]"
+          ></div>
+
+          <p class="mt-4 text-sm text-[#6B776F]">
+            Loading your dashboard...
+          </p>
+
+        </div>
       </div>
 
-      <div v-else class="space-y-6">
-        <section class="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-500 p-6 text-white shadow-lg sm:p-8">
-          <p class="text-sm uppercase tracking-[0.2em] text-indigo-100">Welcome back</p>
-          <h2 class="mt-3 text-2xl font-bold sm:text-3xl">{{ dashboard.user?.name || 'User' }}</h2>
-          <p class="mt-2 text-sm text-indigo-100">{{ dashboard.user?.email }}</p>
+
+      <!-- ERROR -->
+
+      <div
+        v-else-if="error"
+        class="border border-[#B5563C]/30 bg-white p-5"
+      >
+        <div class="flex items-start gap-3">
+
+          <div
+            class="flex h-8 w-8 shrink-0 items-center justify-center bg-[#B5563C]/10 font-semibold text-[#B5563C]"
+          >
+            !
+          </div>
+
+          <div>
+            <p class="text-sm font-semibold text-[#8A3E2A]">
+              Something went wrong
+            </p>
+
+            <p class="mt-1 text-sm text-[#8A3E2A]">
+              {{ error }}
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- ===================================================== -->
+      <!-- DASHBOARD -->
+      <!-- ===================================================== -->
+
+      <div
+        v-else
+        class="space-y-7"
+      >
+
+        <!-- ================================================= -->
+        <!-- WELCOME PANEL -->
+        <!-- ================================================= -->
+
+        <section
+          class="relative overflow-hidden border border-[#D8DDD3] bg-white text-black"
+        >
+
+          <div class="absolute right-0 top-0 h-full w-1/3 bg-white/5"></div>
+
+          <div
+            class="relative flex flex-col justify-between gap-7 px-6 py-8 sm:px-8 sm:py-10 lg:flex-row lg:items-end"
+          >
+
+            <div>
+
+              <div class="mb-4 flex items-center gap-2">
+
+                
+
+                <span class="text-sm text-black/60">
+                  Dashboard
+                </span>
+
+              </div>
+
+
+              <h1
+                class="text-3xl font-semibold sm:text-4xl"
+              >
+                Welcome back, {{ dashboard.user?.name || 'User' }}
+              </h1>
+
+
+              <p
+                class="mt-3 max-w-xl text-sm leading-6 text-black/75"
+              >
+                Manage your school activities, records and academic
+                information from one place.
+              </p>
+
+            </div>
+
+
+            <!-- USER INFO -->
+
+            <div
+              class="border border-white/15 bg-black/10 px-5 py-4 lg:min-w-[260px]"
+            >
+
+              <p class="text-xs text-black/55">
+                Signed in as
+              </p>
+
+              <p class="mt-1 text-sm font-semibold">
+                {{ dashboard.user?.name || 'Unnamed user' }}
+              </p>
+
+              <p
+                v-if="dashboard.user?.email"
+                class="mt-1 break-all text-xs text-black/65"
+              >
+                {{ dashboard.user.email }}
+              </p>
+
+            </div>
+
+          </div>
+
         </section>
 
-        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div v-if="dashboard.role === 'admin' || dashboard.role === 'teacher' || dashboard.role === 'student'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">Subjects</p>
-            <p class="mt-3 text-3xl font-bold text-slate-900">{{ dashboard.stats.subjects ?? 0 }}</p>
+
+        <!-- ================================================= -->
+        <!-- OVERVIEW -->
+        <!-- ================================================= -->
+
+        <section>
+
+          <div class="mb-4">
+            <h2 class="text-lg font-semibold">
+              Overview
+            </h2>
+
+            <p class="mt-1 text-sm text-[#6B776F]">
+              Your current records.
+            </p>
           </div>
 
-          <div v-if="dashboard.role === 'admin'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">Students</p>
-            <p class="mt-3 text-3xl font-bold text-slate-900">{{ dashboard.stats.totalStudents ?? 0 }}</p>
-          </div>
 
-          <div v-if="dashboard.role === 'admin'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">Teachers</p>
-            <p class="mt-3 text-3xl font-bold text-slate-900">{{ dashboard.stats.totalTeachers ?? 0 }}</p>
-          </div>
+          <div
+            class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          >
 
-          <div v-if="dashboard.role === 'admin'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">Parents</p>
-            <p class="mt-3 text-3xl font-bold text-slate-900">{{ dashboard.stats.totalParents ?? 0 }}</p>
-          </div>
+            <!-- SUBJECTS -->
 
-          <div v-if="dashboard.role === 'teacher'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">Students</p>
-            <p class="mt-3 text-3xl font-bold text-slate-900">{{ dashboard.stats.students ?? 0 }}</p>
-          </div>
+            <div
+              v-if="
+                dashboard.role === 'admin' ||
+                dashboard.role === 'teacher' ||
+                dashboard.role === 'student'
+              "
+              class="border border-[#D8DDD3] bg-white p-5"
+            >
 
-          <div v-if="dashboard.role === 'student'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">Status</p>
-            <p class="mt-3 text-3xl font-bold uppercase text-slate-900">{{ dashboard.stats.status || 'Active' }}</p>
-          </div>
+              <div class="flex items-start justify-between">
 
-          <div v-if="dashboard.role === 'student'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">Marksheets</p>
-            <p class="mt-3 text-3xl font-bold text-slate-900">{{ dashboard.stats.marksheets ?? 0 }}</p>
-          </div>
+                <div>
+                  <p class="text-sm text-[#6B776F]">
+                    Subjects
+                  </p>
 
-          <div v-if="dashboard.role === 'parent'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">Children</p>
-            <p class="mt-3 text-3xl font-bold text-slate-900">{{ dashboard.stats.children ?? 0 }}</p>
-          </div>
+                  <p class="mt-3 text-3xl font-semibold">
+                    {{ dashboard.stats.subjects ?? 0 }}
+                  </p>
+                </div>
 
-          <div v-if="dashboard.role === 'parent'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">Marksheets</p>
-            <p class="mt-3 text-3xl font-bold text-slate-900">{{ dashboard.stats.marksheets ?? 0 }}</p>
+                
+
+              </div>
+
+              <div class="mt-5 h-1 bg-[#EFF1EA]">
+                <div class="h-full w-2/3 bg-[#2F6F4E]"></div>
+              </div>
+
+            </div>
+
+
+            <!-- ADMIN STUDENTS -->
+
+            <div
+              v-if="dashboard.role === 'admin'"
+              class="border border-[#D8DDD3] bg-white p-5"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div>
+                  <p class="text-sm text-[#6B776F]">
+                    Students
+                  </p>
+
+                  <p class="mt-3 text-3xl font-semibold">
+                    {{ dashboard.stats.totalStudents ?? 0 }}
+                  </p>
+                </div>
+
+              </div>
+
+              <p class="mt-4 text-xs text-[#6B776F]">
+                Total registered students
+              </p>
+
+            </div>
+
+
+            <!-- ADMIN TEACHERS -->
+
+            <div
+              v-if="dashboard.role === 'admin'"
+              class="border border-[#D8DDD3] bg-white p-5"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div>
+                  <p class="text-sm text-[#6B776F]">
+                    Teachers
+                  </p>
+
+                  <p class="mt-3 text-3xl font-semibold">
+                    {{ dashboard.stats.totalTeachers ?? 0 }}
+                  </p>
+                </div>
+
+              </div>
+
+              <p class="mt-4 text-xs text-[#6B776F]">
+                Teaching staff
+              </p>
+
+            </div>
+
+
+            <!-- ADMIN PARENTS -->
+
+            <div
+              v-if="dashboard.role === 'admin'"
+              class="border border-[#D8DDD3] bg-white p-5"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div>
+                  <p class="text-sm text-[#6B776F]">
+                    Parents
+                  </p>
+
+                  <p class="mt-3 text-3xl font-semibold">
+                    {{ dashboard.stats.totalParents ?? 0 }}
+                  </p>
+                </div>
+
+              </div>
+
+              <p class="mt-4 text-xs text-[#6B776F]">
+                Registered parents
+              </p>
+
+            </div>
+
+
+            <!-- TEACHER STUDENTS -->
+
+            <div
+              v-if="dashboard.role === 'teacher'"
+              class="border border-[#D8DDD3] bg-white p-5"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div>
+                  <p class="text-sm text-[#6B776F]">
+                    Students
+                  </p>
+
+                  <p class="mt-3 text-3xl font-semibold">
+                    {{ dashboard.stats.students ?? 0 }}
+                  </p>
+                </div>
+
+                <div
+                  class="flex h-9 w-9 items-center justify-center bg-[#EFF1EA] text-sm font-semibold text-[#2F6F4E]"
+                >
+                  ST
+                </div>
+
+              </div>
+
+              <p class="mt-4 text-xs text-[#6B776F]">
+                Assigned students
+              </p>
+
+            </div>
+
+
+            <!-- STUDENT STATUS -->
+
+            <div
+              v-if="dashboard.role === 'student'"
+              class="border border-[#D8DDD3] bg-white p-5"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div>
+                  <p class="text-sm text-[#6B776F]">
+                    Status
+                  </p>
+
+                  <p
+                    class="mt-3 text-2xl font-semibold capitalize text-[#2F6F4E]"
+                  >
+                    {{ dashboard.stats.status || 'Active' }}
+                  </p>
+                </div>
+
+                <div
+                  class="flex h-9 w-9 items-center justify-center bg-[#EFF1EA] text-sm font-semibold text-[#2F6F4E]"
+                >
+                  ✓
+                </div>
+
+              </div>
+
+              <p class="mt-4 text-xs text-[#6B776F]">
+                Current student status
+              </p>
+
+            </div>
+
+
+            <!-- STUDENT MARKSHEETS -->
+
+            <div
+              v-if="dashboard.role === 'student'"
+              class="border border-[#D8DDD3] bg-white p-5"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div>
+                  <p class="text-sm text-[#6B776F]">
+                    Marksheets
+                  </p>
+
+                  <p class="mt-3 text-3xl font-semibold">
+                    {{ dashboard.stats.marksheets ?? 0 }}
+                  </p>
+                </div>
+
+                <div
+                  class="flex h-9 w-9 items-center justify-center bg-[#EFF1EA] text-sm font-semibold text-[#2F6F4E]"
+                >
+                  M
+                </div>
+
+              </div>
+
+              <p class="mt-4 text-xs text-[#6B776F]">
+                Academic records
+              </p>
+
+            </div>
+
+
+            <!-- PARENT CHILDREN -->
+
+            <div
+              v-if="dashboard.role === 'parent'"
+              class="border border-[#D8DDD3] bg-white p-5"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div>
+                  <p class="text-sm text-[#6B776F]">
+                    Children
+                  </p>
+
+                  <p class="mt-3 text-3xl font-semibold">
+                    {{ dashboard.stats.children ?? 0 }}
+                  </p>
+                </div>
+
+                <div
+                  class="flex h-9 w-9 items-center justify-center bg-[#EFF1EA] text-sm font-semibold text-[#2F6F4E]"
+                >
+                  C
+                </div>
+
+              </div>
+
+              <p class="mt-4 text-xs text-[#6B776F]">
+                Linked children
+              </p>
+
+            </div>
+
+
+            <!-- PARENT MARKSHEETS -->
+
+            <div
+              v-if="dashboard.role === 'parent'"
+              class="border border-[#D8DDD3] bg-white p-5"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div>
+                  <p class="text-sm text-[#6B776F]">
+                    Marksheets
+                  </p>
+
+                  <p class="mt-3 text-3xl font-semibold">
+                    {{ dashboard.stats.marksheets ?? 0 }}
+                  </p>
+                </div>
+
+                <div
+                  class="flex h-9 w-9 items-center justify-center bg-[#EFF1EA] text-sm font-semibold text-[#2F6F4E]"
+                >
+                  M
+                </div>
+
+              </div>
+
+              <p class="mt-4 text-xs text-[#6B776F]">
+                Academic records
+              </p>
+
+            </div>
+
           </div>
         </section>
 
-        <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <h3 class="text-xl font-semibold text-slate-900">Quick actions</h3>
-          <div class="mt-4 flex flex-wrap gap-3">
-            <button v-if="dashboard.role === 'admin'" @click="goToStudents" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
-              Manage Students
+
+        <!-- ================================================= -->
+        <!-- QUICK ACCESS -->
+        <!-- ================================================= -->
+
+        <section>
+
+          <div class="mb-4">
+            <h2 class="text-lg font-semibold">
+              Quick access
+            </h2>
+
+            <p class="mt-1 text-sm text-[#6B776F]">
+              Go directly to the areas you use most.
+            </p>
+          </div>
+
+
+          <div
+            class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
+
+            <!-- STUDENTS -->
+
+            <button
+              v-if="dashboard.role === 'admin'"
+              @click="goToStudents"
+              class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <span
+                  class="text-lg text-[#9AA59E] transition group-hover:translate-x-1 group-hover:text-[#2F6F4E]"
+                >
+                  →
+                </span>
+
+              </div>
+
+              <h3 class="mt-5 text-sm font-semibold">
+                Manage students
+              </h3>
+
+              <p class="mt-1 text-xs leading-5 text-[#6B776F]">
+                Add, edit and manage student records.
+              </p>
+
             </button>
-            <button v-if="dashboard.role === 'admin'" @click="goToTeachers" class="rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-900">
-              Manage Teachers
+
+
+            <!-- TEACHERS -->
+
+            <button
+              v-if="dashboard.role === 'admin'"
+              @click="goToTeachers"
+              class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+            >
+
+              <div class="flex items-start justify-between">
+
+
+                <span
+                  class="text-lg text-[#9AA59E] transition group-hover:translate-x-1 group-hover:text-[#2F6F4E]"
+                >
+                  →
+                </span>
+
+              </div>
+
+              <h3 class="mt-5 text-sm font-semibold">
+                Manage teachers
+              </h3>
+
+              <p class="mt-1 text-xs leading-5 text-[#6B776F]">
+                Manage teachers and teaching staff.
+              </p>
+
             </button>
-            <button v-if="dashboard.role === 'admin'" @click="goToUsers" class="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700">
-              Manage Users
+
+
+            <!-- USERS -->
+
+            <button
+              v-if="dashboard.role === 'admin'"
+              @click="goToUsers"
+              class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+            >
+
+              <div class="flex items-start justify-between">
+
+                
+                <span
+                  class="text-lg text-[#9AA59E] transition group-hover:translate-x-1 group-hover:text-[#2F6F4E]"
+                >
+                  →
+                </span>
+
+              </div>
+
+              <h3 class="mt-5 text-sm font-semibold">
+                Manage users
+              </h3>
+
+              <p class="mt-1 text-xs leading-5 text-[#6B776F]">
+                Manage accounts and access.
+              </p>
+
             </button>
-            <button v-if="dashboard.role === 'admin' || dashboard.role === 'teacher'" @click="goToSubjects" class="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
-              Subjects
+
+
+            <!-- SUBJECTS -->
+
+            <button
+              v-if="
+                dashboard.role === 'admin' ||
+                dashboard.role === 'teacher'
+              "
+              @click="goToSubjects"
+              class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <span
+                  class="text-lg text-[#9AA59E] transition group-hover:translate-x-1 group-hover:text-[#2F6F4E]"
+                >
+                  →
+                </span>
+
+              </div>
+
+              <h3 class="mt-5 text-sm font-semibold">
+                Subjects
+              </h3>
+
+              <p class="mt-1 text-xs leading-5 text-[#6B776F]">
+                View and manage academic subjects.
+              </p>
+
             </button>
-            <button v-if="dashboard.role === 'admin' || dashboard.role === 'teacher'" @click="goToMarksheets" class="rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-600">
-              {{ dashboard.role === 'teacher' ? 'View / Edit Marksheets' : 'Manage Marksheets' }}
+
+
+            <!-- MARKSHEETS -->
+
+            <button
+              v-if="
+                dashboard.role === 'admin' ||
+                dashboard.role === 'teacher'
+              "
+              @click="goToMarksheets"
+              class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <span
+                  class="text-lg text-[#9AA59E] transition group-hover:translate-x-1 group-hover:text-[#2F6F4E]"
+                >
+                  →
+                </span>
+
+              </div>
+
+              <h3 class="mt-5 text-sm font-semibold">
+                {{
+                  dashboard.role === 'teacher'
+                    ? 'View and edit marksheets'
+                    : 'Manage marksheets'
+                }}
+              </h3>
+
+              <p class="mt-1 text-xs leading-5 text-[#6B776F]">
+                Access academic performance records.
+              </p>
+
             </button>
-            <button v-if="dashboard.role === 'student'" @click="goToMarksheets" class="rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-600">
-              View My Marksheets
+
+
+            <!-- STUDENT MARKSHEETS -->
+
+            <button
+              v-if="dashboard.role === 'student'"
+              @click="goToMarksheets"
+              class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div
+                  class="flex h-11 w-11 items-center justify-center bg-[#EFF1EA] text-sm font-semibold text-[#2F6F4E]"
+                >
+                  M
+                </div>
+
+                <span
+                  class="text-lg text-[#9AA59E] transition group-hover:translate-x-1 group-hover:text-[#2F6F4E]"
+                >
+                  →
+                </span>
+
+              </div>
+
+              <h3 class="mt-5 text-sm font-semibold">
+                View my marksheets
+              </h3>
+
+              <p class="mt-1 text-xs leading-5 text-[#6B776F]">
+                Review your academic performance.
+              </p>
+
             </button>
-            <button v-if="dashboard.role === 'parent'" @click="router.push('/parents/marksheet/' + (dashboard.children?.[0]?.id || ''))" class="rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-600">
-              View Child Marksheets
+
+
+            <!-- PARENT MARKSHEETS -->
+
+            <button
+              v-if="dashboard.role === 'parent'"
+              @click="router.push('/parents/marksheet/' + (dashboard.children?.[0]?.id || ''))"
+              class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+            >
+
+              <div class="flex items-start justify-between">
+
+                <div
+                  class="flex h-11 w-11 items-center justify-center bg-[#EFF1EA] text-sm font-semibold text-[#2F6F4E]"
+                >
+                  M
+                </div>
+
+                <span
+                  class="text-lg text-[#9AA59E] transition group-hover:translate-x-1 group-hover:text-[#2F6F4E]"
+                >
+                  →
+                </span>
+
+              </div>
+
+              <h3 class="mt-5 text-sm font-semibold">
+                View child's marksheets
+              </h3>
+
+              <p class="mt-1 text-xs leading-5 text-[#6B776F]">
+                Review your child's academic records.
+              </p>
+
             </button>
+
           </div>
         </section>
+
+
+        <!-- ================================================= -->
+        <!-- BOTTOM PROFILE STRIP -->
+        <!-- ================================================= -->
+
+        <section
+          class="flex flex-col gap-4 border border-[#D8DDD3] bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+
+          <div class="flex items-center gap-3">
+
+            <div
+              class="flex h-9 w-9 items-center justify-center bg-[#EFF1EA] text-sm font-semibold text-[#2F6F4E]"
+            >
+              {{ roleInitial }}
+            </div>
+
+            <div>
+              <p class="text-sm font-medium">
+                {{ dashboard.user?.name || 'Unnamed user' }}
+              </p>
+
+              <p
+                v-if="dashboard.user?.email"
+                class="text-xs text-[#6B776F]"
+              >
+                {{ dashboard.user.email }}
+              </p>
+            </div>
+
+          </div>
+
+
+          <button
+            @click="goToProfile"
+            class="border border-[#D8DDD3] px-4 py-2 text-sm font-medium transition hover:bg-[#F4F6F1]"
+          >
+            View profile
+          </button>
+
+        </section>
+
       </div>
     </main>
   </div>
