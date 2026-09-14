@@ -80,6 +80,8 @@ export const getStudents = (
 
 }
 
+export const getStudent = (id) => api.get(`/students/${id}`)
+
 
 // =========================================================
 // CREATE STUDENT

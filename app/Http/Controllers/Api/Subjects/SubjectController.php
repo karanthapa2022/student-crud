@@ -40,9 +40,11 @@ class SubjectController extends Controller
 
     }
 
+    $perPage = min(max((int) $request->input('per_page', 5), 1), 100);
+
     $subjects = $query
         ->latest()
-        ->paginate(5);
+        ->paginate($perPage);
 
     return response()->json($subjects);
 }
@@ -56,6 +58,7 @@ class SubjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:subjects,code',
+            'class' => 'required|integer|between:1,10',
             'description' => 'nullable|string',
         ]);
 
@@ -92,6 +95,8 @@ class SubjectController extends Controller
             'name' => 'required|string|max:255',
 
             'code' => 'required|string|max:50|unique:subjects,code,' . $subject->id,
+
+            'class' => 'required|integer|between:1,10',
 
             'description' => 'nullable|string',
         ]);

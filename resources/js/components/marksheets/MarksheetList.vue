@@ -1,7 +1,7 @@
 <script setup>
 
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { downloadMarksheetPdf } from '../../utils/marksheetPdf'
 import { clearAuthSessions } from '../../services/apiConfig'
 
@@ -17,6 +17,8 @@ const loading = ref(false)
 const error = ref('')
 const successMessage = ref('')
 const router= useRouter()
+const route = useRoute()
+const studentFilter = computed(() => route.query.student_id || null)
 
 // =========================================================
 // CURRENT USER
@@ -84,7 +86,7 @@ const fetchMarksheets = async () => {
 
     try {
 
-        const response = await getMarksheets()
+        const response = await getMarksheets(studentFilter.value)
 
         marksheets.value = response.data
 

@@ -72,6 +72,13 @@ class TeacherController extends Controller
                 'max:30',
             ],
 
+            'class' => [
+                'required',
+                'integer',
+                'between:1,10',
+                'unique:teachers,class',
+            ],
+
             'password' => [
                 'required',
                 'string',
@@ -89,6 +96,7 @@ class TeacherController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
+                'class' => $validated['class'],
             ]);
 
 
@@ -166,6 +174,13 @@ class TeacherController extends Controller
                 'max:30',
             ],
 
+            'class' => [
+                'required',
+                'integer',
+                'between:1,10',
+                Rule::unique('teachers', 'class')->ignore($teacher->id),
+            ],
+
             /*
              * Optional while editing.
              * Empty means keep the existing password.
@@ -193,6 +208,7 @@ class TeacherController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
+                'class' => $validated['class'],
             ]);
 
 

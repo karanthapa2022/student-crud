@@ -8,11 +8,7 @@ const route = useRoute()
 const router = useRouter()
 
 const goBackToMarksheets = () => {
-    if (localStorage.getItem('teacher_token')) {
-        router.push('/teacher/marksheets')
-    } else {
-        router.push('/marksheets')
-    }
+    router.push('/marksheets')
 }
 
 const marksheet = ref(null)

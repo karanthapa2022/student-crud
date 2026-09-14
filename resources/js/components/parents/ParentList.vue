@@ -3,6 +3,7 @@
 
 import { ref, onMounted, watch } from 'vue'
 import { useParentStore } from '../../stores/parents/parent'
+import { useAddressStore } from '../../stores/addresses/address'
 import {
     getParent,
     updateParentChildren,
@@ -10,6 +11,7 @@ import {
 } from '../../services/parents/parentApi'
 
 const parentStore = useParentStore()
+const addressStore = useAddressStore()
 
 // =========================================================
 // SEARCH & FILTER
@@ -63,10 +65,21 @@ const form = ref({
     email: '',
     phone: '',
     relationship: '',
+    address_id: null,
     password: ''
 })
 
 const errorMessage = ref('')
+const showNewAddress = ref(false)
+const savingAddress = ref(false)
+const newAddress = ref({
+    province: '',
+    district: '',
+    municipality: '',
+    ward: '',
+    city: '',
+    street: ''
+})
 
 
 // =========================================================
@@ -116,6 +129,7 @@ const openAddModal = () => {
         email: '',
         phone: '',
         relationship: '',
+        address_id: null,
         password: ''
     }
 
@@ -138,6 +152,7 @@ const openEditModal = (parent) => {
         email: parent.email || '',
         phone: parent.phone || '',
         relationship: parent.relationship || '',
+        address_id: parent.address_id || null,
         password: ''
     }
 
@@ -158,13 +173,33 @@ const closeModal = () => {
     editingParent.value = null
 
     errorMessage.value = ''
+    showNewAddress.value = false
 
     form.value = {
         name: '',
         email: '',
         phone: '',
         relationship: '',
+        address_id: null,
         password: ''
+    }
+}
+
+const createAndSelectAddress = async () => {
+    savingAddress.value = true
+    errorMessage.value = ''
+
+    try {
+        const address = await addressStore.addAddress(newAddress.value)
+        form.value.address_id = address.id
+        showNewAddress.value = false
+        newAddress.value = {
+            province: '', district: '', municipality: '', ward: '', city: '', street: ''
+        }
+    } catch (error) {
+        errorMessage.value = error.response?.data?.message || 'Unable to create address.'
+    } finally {
+        savingAddress.value = false
     }
 }
 
@@ -185,7 +220,8 @@ const saveParent = async () => {
                 name: form.value.name,
                 email: form.value.email,
                 phone: form.value.phone,
-                relationship: form.value.relationship
+                relationship: form.value.relationship,
+                address_id: form.value.address_id
             }
 
             await parentStore.editParent(
@@ -517,6 +553,8 @@ const changePage = async (page) => {
 // =========================================================
 
 onMounted(() => {
+
+    addressStore.fetchAddresses(1, '', 'all', 100)
 
     const savedTheme =
         localStorage.getItem('theme')
@@ -1087,6 +1125,47 @@ onMounted(() => {
                                 Other
                             </option>
                         </select>
+                    </div>
+
+                    <!-- ADDRESS -->
+                    <div class="mb-5">
+                        <label class="mb-1.5 block text-sm font-medium text-ink">Address</label>
+                        <select v-model="form.address_id" class="w-full border border-hairline bg-paper px-3 py-2.5 text-sm text-ink outline-none focus:border-forest">
+                            <option :value="null">No address assigned</option>
+                            <option v-for="address in addressStore.addresses" :key="address.id" :value="address.id">
+                                {{ address.province }} - {{ address.district }} - {{ address.municipality }} - Ward {{ address.ward }}
+                            </option>
+                        </select>
+                        <div class="mt-2 flex items-center justify-between gap-3">
+                            <p class="text-xs text-ink-soft">This address is automatically copied to this parent's students.</p>
+                            <button
+                                type="button"
+                                @click="showNewAddress = !showNewAddress"
+                                class="shrink-0 text-xs font-medium text-forest hover:underline"
+                            >
+                                {{ showNewAddress ? 'Use existing address' : '+ New address' }}
+                            </button>
+                        </div>
+
+                        <div v-if="showNewAddress" class="mt-4 space-y-3 border border-hairline bg-paper p-4">
+                            <p class="text-xs font-semibold text-ink">Create address here</p>
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <input v-model="newAddress.province" required placeholder="Province" class="w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest" />
+                                <input v-model="newAddress.district" required placeholder="District" class="w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest" />
+                                <input v-model="newAddress.municipality" required placeholder="Municipality" class="w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest" />
+                                <input v-model="newAddress.ward" required placeholder="Ward" class="w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest" />
+                                <input v-model="newAddress.city" placeholder="City (optional)" class="w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest" />
+                                <input v-model="newAddress.street" placeholder="Street (optional)" class="w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest" />
+                            </div>
+                            <button
+                                type="button"
+                                @click="createAndSelectAddress"
+                                :disabled="savingAddress"
+                                class="border border-forest bg-forest px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+                            >
+                                {{ savingAddress ? 'Creating...' : 'Create and use this address' }}
+                            </button>
+                        </div>
                     </div>
 
                     <!-- PASSWORD -->

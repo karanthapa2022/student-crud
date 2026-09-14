@@ -53,7 +53,8 @@ export const useAddressStore = defineStore('address', {
 
         async fetchAddresses(page = 1,
             search='',
-            provinceFilter='all'
+            provinceFilter='all',
+            perPage = 5
         ) {
 
             this.loading = true
@@ -65,7 +66,8 @@ export const useAddressStore = defineStore('address', {
                 const response =
                     await getAddresses(page,
                         search,
-                        provinceFilter
+                        provinceFilter,
+                        perPage
                     )
 
                 console.log(

@@ -7,6 +7,8 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\StudentSubject;
+use App\Models\StudentParent;
+use Illuminate\Validation\Rule;
 
 class StudentController extends Controller
 {
@@ -19,6 +21,7 @@ class StudentController extends Controller
         $query = Student::with([
             'parent',
             'address',
+            'teachers',
             'subjects',
             'studentSubjectAssignments.subject',
         ]);
@@ -73,7 +76,7 @@ class StudentController extends Controller
 
             'name' => 'required|string|max:255',
 
-            'class' => 'required|string|max:100',
+            'class' => 'required|integer|between:1,10',
 
             'symbol_no' => 'nullable|string|max:100|unique:students,symbol_no',
 
@@ -89,11 +92,31 @@ class StudentController extends Controller
 
             'parent_id' => 'nullable|exists:parents,id',
 
+            'teacher_ids' => 'required|array|size:1',
+
+            'teacher_ids.*' => [
+                'required',
+                'integer',
+                Rule::exists('teachers', 'id')->where(
+                    fn ($query) => $query->where('class', $request->input('class'))
+                ),
+            ],
+
             'address_id' => 'nullable|exists:addresses,id',
 
-            'subjects' => 'nullable|array',
+            'subjects' => 'required|array|min:3',
 
-            'subjects.*' => 'exists:subjects,id',
+            'subjects.*' => [
+                'required',
+                'integer',
+                'distinct',
+                Rule::exists('subjects', 'id')->where(
+                    fn ($query) => $query->where(function ($query) use ($request) {
+                        $query->where('class', $request->input('class'))
+                            ->orWhereNull('class');
+                    })
+                ),
+            ],
         ]);
 
 
@@ -105,22 +128,24 @@ class StudentController extends Controller
                     ->store('students', 'public');
         }
 
+        $parent = !empty($validated['parent_id'])
+            ? StudentParent::find($validated['parent_id'])
+            : null;
+        $validated['address_id'] = $parent?->address_id;
+
 
         $student = Student::create($validated);
 
 
-        // Attach subjects
-        if ($request->has('subjects')) {
+        $student->subjects()->sync($validated['subjects']);
 
-            $student->subjects()->sync(
-                $request->subjects
-            );
-        }
+        $student->teachers()->sync($request->input('teacher_ids', []));
 
 
         $student->load([
             'parent',
             'address',
+            'teachers',
             'subjects'
         ]);
 
@@ -141,6 +166,7 @@ class StudentController extends Controller
         $student->load([
             'parent',
             'address',
+            'teachers',
             'subjects',
             'studentSubjectAssignments.subject',
         ]);
@@ -166,7 +192,7 @@ class StudentController extends Controller
                 'required|string|max:255',
 
             'class' =>
-                'required|string|max:100',
+                'required|integer|between:1,10',
 
             'symbol_no' =>
                 'nullable|string|max:100|unique:students,symbol_no,' . $student->id,
@@ -189,20 +215,34 @@ class StudentController extends Controller
             'parent_id' =>
                 'nullable|exists:parents,id',
 
+            'teacher_ids' =>
+                'required|array|size:1',
+
+            'teacher_ids.*' => [
+                'required',
+                'integer',
+                Rule::exists('teachers', 'id')->where(
+                    fn ($query) => $query->where('class', $request->input('class'))
+                ),
+            ],
+
             'address_id' =>
                 'nullable|exists:addresses,id',
 
             'subjects' =>
-                'nullable|array',
+                'required|array|min:3',
 
-            'subjects.*.subject_id' =>
-                'nullable|integer|exists:subjects,id',
-
-            'subjects.*.subject_name' =>
-                'required|string|max:255',
-
-            'subjects.*.subject_code' =>
-                'nullable|string|max:100',
+            'subjects.*' => [
+                'required',
+                'integer',
+                'distinct',
+                Rule::exists('subjects', 'id')->where(
+                    fn ($query) => $query->where(function ($query) use ($request) {
+                        $query->where('class', $request->input('class'))
+                            ->orWhereNull('class');
+                    })
+                ),
+            ],
         ]);
 
 
@@ -229,6 +269,11 @@ class StudentController extends Controller
             $validated['parent_id'] = $request->input('parent_id') ?: null;
         }
 
+        $parent = $validated['parent_id']
+            ? StudentParent::find($validated['parent_id'])
+            : null;
+        $validated['address_id'] = $parent?->address_id;
+
 
         // =====================================================
         // UPDATE STUDENT
@@ -241,26 +286,9 @@ class StudentController extends Controller
         // UPDATE SUBJECTS
         // =====================================================
 
-        if ($request->has('subjects')) {
+        $student->subjects()->sync($validated['subjects']);
 
-            // Remove existing assignments
-            $student->studentSubjectAssignments()->delete();
-
-            // Add updated assignments
-            foreach ($validated['subjects'] ?? [] as $subjectData) {
-
-                StudentSubject::create([
-                    'student_id' => $student->id,
-                    'subject_id' => $subjectData['subject_id'] ?? null,
-                    'subject_name' => $subjectData['subject_name'],
-                    'subject_code' => $subjectData['subject_code'] ?? null,
-                ]);
-            }
-        } else {
-
-            // No subjects submitted
-            $student->studentSubjectAssignments()->delete();
-        }
+        $student->teachers()->sync($request->input('teacher_ids', []));
 
 
         // =====================================================
@@ -270,6 +298,7 @@ class StudentController extends Controller
         $student->load([
             'parent',
             'address',
+            'teachers',
             'studentSubjectAssignments.subject',
         ]);
 
@@ -291,8 +320,13 @@ class StudentController extends Controller
             'parent_id' => ['nullable', 'integer', 'exists:parents,id'],
         ]);
 
+        $parent = !empty($validated['parent_id'])
+            ? StudentParent::find($validated['parent_id'])
+            : null;
+
         $student->update([
-            'parent_id' => $validated['parent_id'] ?? null,
+            'parent_id' => $parent?->id,
+            'address_id' => $parent?->address_id,
         ]);
 
         return response()->json([
@@ -539,8 +573,11 @@ class StudentController extends Controller
 
     private function formatStudentSubjects(Student $student)
     {
+        $teacherName = $student->teachers->first()?->name;
+
         return $student->studentSubjectAssignments
-            ->map(function ($assignment) {
+            ->unique('subject_id')
+            ->map(function ($assignment) use ($teacherName) {
 
                 return [
                     'id' => $assignment->subject_id,
@@ -549,6 +586,8 @@ class StudentController extends Controller
                         ?: ($assignment->subject?->name ?? ''),
 
                     'code' => $assignment->subject?->code,
+
+                    'teacher' => $teacherName,
 
                     'description' => $assignment->subject?->description,
 

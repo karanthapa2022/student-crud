@@ -68,6 +68,8 @@ const logout = () => {
 const goToStudents = () => router.push('/students')
 const goToTeachers = () => router.push('/teachers')
 const goToUsers = () => router.push('/users')
+const goToParents = () => router.push('/parents')
+const goToAddresses = () => router.push('/addresses')
 const goToSubjects = () => router.push(dashboard.value.role === 'teacher' ? '/teacher/subjects' : '/subjects')
 const goToMarksheets = () => router.push('/marksheets')
 const goToProfile = () => router.push('/profile')
@@ -285,6 +287,28 @@ onMounted(loadDashboard)
           <div
             class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
           >
+
+            <!-- SUBJECTS -->
+
+            <button
+              v-if="dashboard.role === 'admin'"
+              @click="goToParents"
+              class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+            >
+              <span class="text-lg text-[#9AA59E]">→</span>
+              <h3 class="mt-5 text-sm font-semibold">Manage parents</h3>
+              <p class="mt-1 text-xs leading-5 text-[#6B776F]">Assign parent addresses and children.</p>
+            </button>
+
+            <button
+              v-if="dashboard.role === 'admin'"
+              @click="goToAddresses"
+              class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+            >
+              <span class="text-lg text-[#9AA59E]">→</span>
+              <h3 class="mt-5 text-sm font-semibold">Manage addresses</h3>
+              <p class="mt-1 text-xs leading-5 text-[#6B776F]">Create and maintain family addresses.</p>
+            </button>
 
             <!-- SUBJECTS -->
 

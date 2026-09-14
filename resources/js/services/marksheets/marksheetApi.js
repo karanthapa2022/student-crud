@@ -37,9 +37,11 @@ api.interceptors.request.use(config => {
 // GET ALL MARKSHEETS
 // =========================================================
 
-export const getMarksheets = () => {
+export const getMarksheets = (studentId = null) => {
 
-    return api.get('/marksheets')
+    return api.get('/marksheets', {
+        params: studentId ? { student_id: studentId } : {}
+    })
 
 }
 

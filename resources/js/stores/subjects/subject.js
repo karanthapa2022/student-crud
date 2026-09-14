@@ -58,7 +58,8 @@ export const useSubjectStore = defineStore('subject', {
 
         async fetchSubjects(page = 1,
             search='',
-            teacherFilter='all'
+            teacherFilter='all',
+            perPage = 5
         ) {
 
             this.loading = true
@@ -71,7 +72,8 @@ export const useSubjectStore = defineStore('subject', {
                 const response =
                     await getSubjects(page,
                         search,
-                        teacherFilter
+                        teacherFilter,
+                        perPage
                     )
 
 

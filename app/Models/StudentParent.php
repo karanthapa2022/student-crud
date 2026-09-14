@@ -14,6 +14,7 @@ class StudentParent extends Model
         'email',
         'phone',
         'relationship',
+        'address_id',
     ];
 
     public function students()
@@ -24,4 +25,9 @@ class StudentParent extends Model
 {
     return $this->hasOne(User::class, 'parent_id');
 }
+
+        public function address()
+        {
+            return $this->belongsTo(Address::class, 'address_id');
+        }
 }

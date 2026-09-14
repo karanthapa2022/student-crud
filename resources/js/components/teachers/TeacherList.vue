@@ -77,6 +77,7 @@ const form = ref({
     name: '',
     email: '',
     phone: '',
+    class: '',
     password: ''
 })
 
@@ -197,6 +198,7 @@ const openAddModal = () => {
         name: '',
         email: '',
         phone: '',
+        class: '',
         password: ''
     }
 
@@ -233,6 +235,7 @@ const openEditModal = async (teacher) => {
             name: data.name ?? '',
             email: data.email ?? '',
             phone: data.phone ?? '',
+            class: data.class ?? '',
             password: ''
         }
 
@@ -267,6 +270,7 @@ const closeFormModal = () => {
         name: '',
         email: '',
         phone: '',
+        class: '',
         password: ''
     }
 
@@ -299,7 +303,8 @@ const saveTeacher = async () => {
             const teacherData = {
                 name: form.value.name,
                 email: form.value.email,
-                phone: form.value.phone
+                phone: form.value.phone,
+                class: form.value.class
             }
 
             /*
@@ -335,6 +340,7 @@ const saveTeacher = async () => {
                 name: form.value.name,
                 email: form.value.email,
                 phone: form.value.phone,
+                class: form.value.class,
                 password: form.value.password
             })
 
@@ -904,6 +910,10 @@ onMounted(() => {
                                     Phone
                                 </th>
 
+                                <th class="px-5 py-4 text-left text-xs font-medium text-ink-soft">
+                                    Class
+                                </th>
+
                                 <th
                                     class="px-5 py-4 text-right text-xs font-medium text-ink-soft"
                                 >
@@ -946,6 +956,10 @@ onMounted(() => {
                                     class="px-5 py-4 text-sm text-ink-soft"
                                 >
                                     {{ teacher.phone }}
+                                </td>
+
+                                <td class="px-5 py-4 text-sm text-ink-soft">
+                                    {{ teacher.class ? `Class ${teacher.class}` : 'Not assigned' }}
                                 </td>
 
                                 <td class="px-5 py-4">
@@ -1153,6 +1167,26 @@ onMounted(() => {
                         >
                             {{ formErrors.phone[0] }}
                         </p>
+                    </div>
+
+                    <!-- CLASS -->
+                    <div>
+                        <label for="teacher-class" class="mb-2 block text-xs font-medium text-ink-soft">
+                            Assigned class
+                        </label>
+                        <select
+                            id="teacher-class"
+                            v-model="form.class"
+                            required
+                            class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none focus:border-forest focus:ring-1 focus:ring-forest"
+                        >
+                            <option value="" disabled>Select class</option>
+                            <option v-for="classNumber in 10" :key="classNumber" :value="classNumber">
+                                Class {{ classNumber }}
+                            </option>
+                        </select>
+                        <p class="mt-1.5 text-xs text-ink-soft">Only one teacher can be assigned to each class from 1 to 10.</p>
+                        <p v-if="formErrors.class" class="mt-1.5 text-sm text-sienna">{{ formErrors.class[0] }}</p>
                     </div>
 
                     <!-- PASSWORD -->

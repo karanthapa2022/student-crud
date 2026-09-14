@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Marksheets;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -62,14 +63,16 @@ class MarksheetController extends Controller
         // Admin and teacher can view all marksheets
         if (in_array($user->role, ['admin', 'teacher'])) {
 
-            $marksheets = Marksheet::with([
+            $query = Marksheet::with([
                 'student',
                 'items'
             ])
-            ->latest()
-            ->get();
+            ->when($request->filled('student_id'), function ($query) use ($request) {
+                $query->where('student_id', $request->integer('student_id'));
+            })
+            ->latest();
 
-            return response()->json($marksheets);
+            return response()->json($query->get());
         }
 
         return response()->json([
@@ -154,6 +157,15 @@ class MarksheetController extends Controller
             'student_id' => 'required|exists:students,id',
 
             'items' => 'required|array|min:1',
+
+            'items.*.subject_id' => [
+                'required',
+                'integer',
+                'distinct',
+                Rule::exists('student_subject', 'subject_id')->where(
+                    fn ($query) => $query->where('student_id', $request->input('student_id'))
+                ),
+            ],
 
             'items.*.subject_name' => 'required|string|max:255',
 
@@ -293,7 +305,7 @@ class MarksheetController extends Controller
         foreach ($validated['items'] as $item) {
 
             $marksheet->items()->create([
-                'subject_id' => null,
+                'subject_id' => $item['subject_id'],
                 'subject_name' => trim($item['subject_name']),
                 'full_marks' => $item['full_marks'],
                 'pass_marks' => $item['pass_marks'],
@@ -331,6 +343,15 @@ class MarksheetController extends Controller
             'student_id' => 'required|exists:students,id',
 
             'items' => 'required|array|min:1',
+
+            'items.*.subject_id' => [
+                'required',
+                'integer',
+                'distinct',
+                Rule::exists('student_subject', 'subject_id')->where(
+                    fn ($query) => $query->where('student_id', $request->input('student_id'))
+                ),
+            ],
 
             'items.*.subject_name' => 'required|string|max:255',
 
@@ -469,7 +490,7 @@ class MarksheetController extends Controller
         foreach ($validated['items'] as $item) {
 
             $marksheet->items()->create([
-                'subject_id' => null,
+                'subject_id' => $item['subject_id'],
                 'subject_name' => trim($item['subject_name']),
                 'full_marks' => $item['full_marks'],
                 'pass_marks' => $item['pass_marks'],

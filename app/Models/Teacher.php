@@ -12,6 +12,7 @@ class Teacher extends Model
         'name',
         'email',
         'phone',
+        'class',
     ];
 
     public function subjects()
@@ -21,6 +22,16 @@ class Teacher extends Model
             'subject_teacher',
             'teacher_id',
             'subject_id'
+        );
+    }
+
+    public function students()
+    {
+        return $this->belongsToMany(
+            Student::class,
+            'student_teacher',
+            'teacher_id',
+            'student_id'
         );
     }
 }

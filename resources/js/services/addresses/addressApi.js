@@ -11,7 +11,8 @@ const api = axios.create({
 
 export const getAddresses = (page = 1,
     search='',
-    provinceFilter='all'
+    provinceFilter='all',
+    perPage = 5
 ) => {
 
     const token = getAuthToken('admin')
@@ -20,7 +21,8 @@ export const getAddresses = (page = 1,
         params: {
             page,
             search,
-            province_filter:provinceFilter
+            province_filter:provinceFilter,
+            per_page: perPage
         },
         headers: {
             Authorization: `Bearer ${token}`,

@@ -17,7 +17,7 @@ class ParentController extends Controller
 
     public function index(Request $request)
     {
-        $query = StudentParent::with('students');
+        $query = StudentParent::with(['students', 'address']);
 
         // SEARCH
         if ($request->filled('search')) {
@@ -64,6 +64,7 @@ class ParentController extends Controller
             'email' => 'required|email|max:255|unique:users,email',
             'phone' => 'required|string|max:20',
             'relationship' => 'required|string|max:100',
+            'address_id' => 'nullable|exists:addresses,id',
             'password' => 'required|string|min:8',
         ]);
 
@@ -72,6 +73,7 @@ class ParentController extends Controller
             'email' => $validated['email'],
             'phone' => $validated['phone'],
             'relationship' => $validated['relationship'],
+            'address_id' => $validated['address_id'] ?? null,
         ]);
 
         $user = User::create([
@@ -95,7 +97,7 @@ class ParentController extends Controller
 
     public function show(StudentParent $parent)
     {
-        $parent->load('students');
+        $parent->load(['students', 'address']);
 
         return response()->json($parent);
     }
@@ -112,9 +114,14 @@ class ParentController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:20',
             'relationship' => 'required|string|max:100',
+            'address_id' => 'nullable|exists:addresses,id',
         ]);
 
         $parent->update($validated);
+
+        Student::where('parent_id', $parent->id)->update([
+            'address_id' => $parent->address_id,
+        ]);
 
         return response()->json([
             'message' => 'Parent updated successfully.',
@@ -139,7 +146,8 @@ class ParentController extends Controller
         // Remove this parent from all currently assigned students
         Student::where('parent_id', $parent->id)
             ->update([
-                'parent_id' => null
+                'parent_id' => null,
+                'address_id' => null,
             ]);
 
         // Assign selected students to this parent
@@ -149,11 +157,12 @@ class ParentController extends Controller
                 'id',
                 $validated['student_ids']
             )->update([
-                'parent_id' => $parent->id
+                'parent_id' => $parent->id,
+                'address_id' => $parent->address_id,
             ]);
         }
 
-        $parent->load('students');
+        $parent->load(['students', 'address']);
 
         return response()->json([
             'message' => 'Children updated successfully.',

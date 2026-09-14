@@ -20,6 +20,8 @@ import { useStudentStore } from '../../stores/students/student'
 import { useParentStore } from '../../stores/parents/parent'
 import { useAddressStore } from '../../stores/addresses/address'
 import { useSubjectStore } from '../../stores/subjects/subject'
+import { getTeachers } from '../../services/teachers/teacherApi'
+import { getStudent } from '../../services/students/studentApi'
 
 
 import {
@@ -61,6 +63,11 @@ const studentStore = useStudentStore()
 const parentStore =useParentStore()
 const addressStore = useAddressStore()
 const subjectStore = useSubjectStore()
+const teachers = ref([])
+
+const classTeachers = computed(() =>
+    teachers.value.filter(teacher => Number(teacher.class) === Number(newStudent.value.class))
+)
 
 
 // =========================================================
@@ -132,7 +139,8 @@ const newStudent = ref({
     parent_id: null,
     address_id: null,
     photo: null,
-    subjects:[]
+    subjects:[],
+    teacher_id: null
 
 })
 
@@ -210,6 +218,30 @@ const tableHeaders = [
 const editingStudent = ref(null)
 
 const viewingStudent = ref(null)
+const actionMessage = ref('')
+const actionError = ref('')
+const newPhotoPreview = ref('')
+
+const editingSubjectsValid = computed(() =>
+    Boolean(editingStudent.value && editingStudent.value.subjects?.length >= 3)
+)
+
+watch(
+    () => newStudent.value.parent_id,
+    (parentId) => {
+        const parent = parentStore.parents.find(item => Number(item.id) === Number(parentId))
+        newStudent.value.address_id = parent?.address_id || null
+    }
+)
+
+watch(
+    () => editingStudent.value?.parent_id,
+    (parentId) => {
+        if (!editingStudent.value) return
+        const parent = parentStore.parents.find(item => Number(item.id) === Number(parentId))
+        editingStudent.value.address_id = parent?.address_id || null
+    }
+)
 
 
 const editStudent = (student) => {
@@ -218,30 +250,38 @@ const editStudent = (student) => {
 
         ...student,
 
-        // Keep subject ID and name so subjects can be edited manually
-       subjects: student.subjects
-    ? student.subjects.map(subject => ({
-        subject_id: subject.id ?? null,
-        subject_name: subject.pivot?.subject_name || subject.name || '',
-        subject_code: subject.pivot?.subject_code || ''
-    }))
-    : [],
+        teacher_id: student.teachers?.[0]?.id || null,
+        subjects: (student.subjects || []).map(subject => subject.id),
 
         newPhoto: null
 
     }
 
+    newPhotoPreview.value = ''
+
+}
+
+const handleNewPhoto = (event) => {
+    const file = event.target.files?.[0] || null
+    editingStudent.value.newPhoto = file
+    newPhotoPreview.value = file ? URL.createObjectURL(file) : ''
 }
 
 
-const viewStudent = (student) => {
-
-    viewingStudent.value = {
-
-        ...student
-
+const viewStudent = async (student) => {
+    actionError.value = ''
+    try {
+        const response = await getStudent(student.id)
+        viewingStudent.value = response.data
+    } catch (error) {
+        actionError.value = error.response?.data?.message || 'Unable to load student details.'
     }
+}
 
+
+const editFromView = () => {
+    editStudent(viewingStudent.value)
+    viewingStudent.value = null
 }
 
 
@@ -730,6 +770,13 @@ const addStudent = async () => {
 
     try {
 
+    actionError.value = ''
+
+        if (newStudent.value.subjects.length < 3) {
+            alert('Assign at least 3 registered subjects.')
+            return
+        }
+
         const formData = new FormData()
 
 
@@ -778,6 +825,10 @@ const addStudent = async () => {
         // Always send subjects
 const selectedSubjects = newStudent.value.subjects || []
 
+        if (newStudent.value.teacher_id) {
+            formData.append('teacher_ids[]', newStudent.value.teacher_id)
+        }
+
 console.log('SELECTED SUBJECTS:', selectedSubjects)
 
 selectedSubjects.forEach(subjectId => {
@@ -810,7 +861,7 @@ selectedSubjects.forEach(subjectId => {
         }
 
 
-        await studentStore.addStudent(
+        const createdStudent = await studentStore.addStudent(
             formData
         )
 
@@ -830,7 +881,8 @@ selectedSubjects.forEach(subjectId => {
             photo: null,
             parent_id: null,
             address_id: null,
-            subjects:[]
+            subjects:[],
+            teacher_id: null
 
         }
 
@@ -848,11 +900,9 @@ selectedSubjects.forEach(subjectId => {
 
 
         await studentStore.fetchStatistics()
-
-
-        alert(
-            'Student added successfully!'
-        )
+        const createdResponse = await getStudent(createdStudent.id)
+        viewingStudent.value = createdResponse.data
+        actionMessage.value = 'Student created successfully.'
 
 
     } catch (error) {
@@ -865,10 +915,7 @@ console.log('VALIDATION ERRORS:', error.response?.data?.errors)
         )
 
 
-        alert(
-            error.response?.data?.message ||
-            'Error adding student.'
-        )
+        actionError.value = error.response?.data?.message || 'Error adding student.'
 
     }
 
@@ -891,6 +938,12 @@ const updateStudent = async () => {
 
 
     try {
+
+        actionError.value = ''
+
+        if (!editingSubjectsValid.value) {
+            return
+        }
 
         const formData = new FormData()
 
@@ -935,6 +988,10 @@ const updateStudent = async () => {
             editingStudent.value.parent_id || ''
         )
 
+        if (editingStudent.value.teacher_id) {
+            formData.append('teacher_ids[]', editingStudent.value.teacher_id)
+        }
+
 if (editingStudent.value.address_id) {
 
     formData.append(
@@ -954,23 +1011,8 @@ console.log(
 
 if (Array.isArray(editingStudent.value.subjects)) {
 
-    editingStudent.value.subjects.forEach((subject, index) => {
-
-        formData.append(
-            `subjects[${index}][subject_id]`,
-            subject.subject_id ?? ''
-        )
-
-        formData.append(
-            `subjects[${index}][subject_name]`,
-            subject.subject_name
-        )
-
-        formData.append(
-            `subjects[${index}][subject_code]`,
-            subject.subject_code ?? ''
-        )
-
+    editingStudent.value.subjects.forEach(subjectId => {
+        formData.append('subjects[]', subjectId)
     })
 
 }
@@ -987,7 +1029,7 @@ if (Array.isArray(editingStudent.value.subjects)) {
         }
 
 
-        await updateStudentWithPhoto(
+        const updatedResponse = await updateStudentWithPhoto(
 
         
             editingStudent.value.id,
@@ -1016,9 +1058,9 @@ if (Array.isArray(editingStudent.value.subjects)) {
         await studentStore.fetchStatistics()
 
 
-        alert(
-            'Student updated successfully!'
-        )
+        const refreshedStudent = await getStudent(updatedResponse.data.student.id)
+        viewingStudent.value = refreshedStudent.data
+        actionMessage.value = 'Student updated successfully.'
 
 
     } catch (error) {
@@ -1036,10 +1078,7 @@ if (Array.isArray(editingStudent.value.subjects)) {
     error.response?.data?.errors
 )
 
-        alert(
-            error.response?.data?.message ||
-            'Error updating student.'
-        )
+        actionError.value = error.response?.data?.message || 'Error updating student.'
 
     }
 
@@ -1313,7 +1352,10 @@ onMounted(async () => {
         await studentStore.fetchStatistics()
         await parentStore.fetchParents(1, '', 'all', 100)
         await addressStore.fetchAddresses()
-        await subjectStore.fetchSubjects()
+        await subjectStore.fetchSubjects(1, '', 'all', 100)
+
+    const teacherResponse = await getTeachers(1, '')
+    teachers.value = teacherResponse.data.data || []
 
 
         await nextTick()
@@ -1437,6 +1479,14 @@ onBeforeUnmount(() => {
             class="mt-6 rounded-md border border-[#B5563C]/30 bg-[#B5563C]/5 px-4 py-3 text-sm text-[#8A3E2A]"
         >
             {{ studentStore.error }}
+        </div>
+
+        <div v-if="actionMessage" class="mt-6 rounded-md border border-[#2F6F4E]/30 bg-[#2F6F4E]/5 px-4 py-3 text-sm text-[#2F6F4E]">
+            {{ actionMessage }}
+        </div>
+
+        <div v-if="actionError" class="mt-6 rounded-md border border-[#B5563C]/30 bg-[#B5563C]/5 px-4 py-3 text-sm text-[#8A3E2A]">
+            {{ actionError }}
         </div>
 
 
@@ -1899,12 +1949,10 @@ onBeforeUnmount(() => {
                                     Class
                                 </label>
 
-                                <input
-                                    v-model="newStudent.class"
-                                    type="text"
-                                    placeholder="e.g. 7"
-                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
-                                />
+                                <select v-model="newStudent.class" class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none focus:border-forest focus:ring-1 focus:ring-forest">
+                                    <option value="" disabled>Select class</option>
+                                    <option v-for="classNumber in 10" :key="classNumber" :value="classNumber">Class {{ classNumber }}</option>
+                                </select>
 
                             </div>
 
@@ -2125,6 +2173,7 @@ onBeforeUnmount(() => {
 
                                 <select
                                     v-model="newStudent.address_id"
+                                    disabled
                                     class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none transition focus:border-forest focus:ring-1 focus:ring-forest"
                                 >
 
@@ -2154,6 +2203,34 @@ onBeforeUnmount(() => {
 
                     </div>
 
+
+                    <!-- ================================================= -->
+                    <!-- ACADEMIC ASSIGNMENTS -->
+                    <!-- ================================================= -->
+
+                    <div class="mb-7 border-t border-hairline pt-6">
+                        <h3 class="mb-1 font-bold">Academic assignments</h3>
+                        <p class="mb-4 text-xs text-ink-soft">Choose the teachers and subjects connected to this student.</p>
+
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                            <label class="block text-sm font-medium">
+                                Teachers
+                                <select v-model="newStudent.teacher_id" class="mt-2 h-12 w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest">
+                                    <option :value="null">Select class teacher</option>
+                                    <option v-for="teacher in classTeachers" :key="teacher.id" :value="teacher.id">{{ teacher.name }} (Class {{ teacher.class }})</option>
+                                </select>
+                            </label>
+
+                            <label class="block text-sm font-medium">
+                                Subjects
+                                <select v-model="newStudent.subjects" multiple class="mt-2 h-32 w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest">
+                                    <option v-for="subject in subjectStore.subjects.filter(item => item.class == null || Number(item.class) === Number(newStudent.class))" :key="subject.id" :value="subject.id">
+                                        {{ subject.name }}{{ subject.code ? ` (${subject.code})` : '' }}{{ subject.class == null ? ' (all classes)' : '' }}
+                                    </option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
 
                     <!-- ================================================= -->
                     <!-- PHOTO -->
@@ -2500,46 +2577,50 @@ onBeforeUnmount(() => {
     </div>
 
 
-    <div
-        v-if="viewingStudent.subjects?.length"
-        class="flex flex-wrap justify-end gap-2"
-    >
+    <div v-if="viewingStudent.subjects?.length" class="space-y-2">
 
         <div
-    v-for="(subject, index) in viewingStudent.subjects"
-    :key="index"
-    class="grid grid-cols-12 gap-3 items-center border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3"
+            v-for="subject in viewingStudent.subjects"
+            :key="subject.id"
+            class="flex items-center justify-between gap-4 border border-gray-200 px-4 py-3 dark:border-gray-700"
 >
-    <!-- SUBJECT -->
-
-    <div class="col-span-6">
-        <p class="font-medium text-gray-800 dark:text-white">
-            {{ subject.name }}
-        </p>
-    </div>
-
-    <!-- SUBJECT CODE -->
-
-    <div class="col-span-5">
-        <p class="text-gray-600 dark:text-gray-300">
-            {{ subject.pivot?.subject_code || '—' }}
-        </p>
-    </div>
-
-    <!-- EMPTY -->
-
-    <div class="col-span-1"></div>
+            <span class="font-medium text-gray-800 dark:text-white">{{ subject.name }}</span>
+            <span class="text-right text-gray-600 dark:text-gray-300">{{ subject.teacher || 'No teacher assigned' }}</span>
 </div>
 
     </div>
 
+</div>
+
+<div class="mt-4 flex flex-col gap-3 sm:flex-row">
+    <button
+        type="button"
+        @click="router.push({ path: '/marksheets', query: { student_id: viewingStudent.id } })"
+        class="flex-1 rounded-xl bg-gray-800 px-5 py-3 font-medium text-white"
+    >
+        View marksheets
+    </button>
+    <button
+        type="button"
+        @click="editFromView"
+        class="flex-1 rounded-xl border border-forest px-5 py-3 font-medium text-forest"
+    >
+        Edit student
+    </button>
+    <button
+        type="button"
+        @click="viewingStudent = null"
+        class="flex-1 rounded-xl border border-gray-300 px-5 py-3 font-medium text-gray-700 dark:border-gray-700 dark:text-gray-200"
+    >
+        Close
+    </button>
 </div>
 
 
 
 
                         <div
-                            class="flex justify-between"
+                            class="hidden"
                         >
 
                             <span
@@ -2563,14 +2644,6 @@ onBeforeUnmount(() => {
 
                     </div>
 
-
-                    <button
-                        type="button"
-                        @click="viewingStudent = null"
-                        class="w-full mt-6 mb-2 bg-gray-800 text-white px-5 py-3 rounded-xl font-medium"
-                    >
-                        Close
-                    </button>
 
                 </div>
 
@@ -2897,6 +2970,7 @@ onBeforeUnmount(() => {
 
                             <select
                                 v-model="editingStudent.address_id"
+                                disabled
                                 class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none focus:border-forest"
                             >
 
@@ -2921,6 +2995,24 @@ onBeforeUnmount(() => {
 
                 </div>
 
+
+                <!-- ================================================= -->
+                <!-- TEACHER ASSIGNMENTS -->
+                <!-- ================================================= -->
+
+                <div class="mb-7 border-t border-hairline pt-6">
+                    <h3 class="mb-1 text-sm font-semibold text-ink">Teacher assignments</h3>
+                    <p class="mb-4 text-xs text-ink-soft">The teacher assigned to class {{ editingStudent.class || '-' }} is shown here.</p>
+                    <select
+                        v-model="editingStudent.teacher_id"
+                        class="h-32 w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest"
+                    >
+                        <option :value="null">No class teacher assigned</option>
+                        <option v-for="teacher in teachers.filter(item => Number(item.class) === Number(editingStudent.class))" :key="teacher.id" :value="teacher.id">
+                            {{ teacher.name }} (Class {{ teacher.class }})
+                        </option>
+                    </select>
+                </div>
 
                 <!-- ================================================= -->
                 <!-- SUBJECTS -->
@@ -2953,136 +3045,23 @@ onBeforeUnmount(() => {
 
                         <!-- ADD SUBJECT -->
 
-                        <button
-                            type="button"
-                            @click="editingStudent.subjects.push({
-                                subject_id: null,
-                                subject_name: '',
-                                subject_code: ''
-                            })"
-                            class="shrink-0 border border-forest px-4 py-2 text-sm font-medium text-forest transition hover:bg-forest hover:text-white"
-                        >
-                            + Add Subject
-                        </button>
-
                     </div>
 
 
-                    <!-- SUBJECT HEADER -->
-
-                    <div
-                        v-if="editingStudent.subjects.length"
-                        class="mb-2 hidden grid-cols-12 gap-3 px-1 md:grid"
+                    <select
+                        v-model="editingStudent.subjects"
+                        multiple
+                        class="h-40 w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest"
                     >
+                        <option v-for="subject in subjectStore.subjects.filter(item => item.class == null || Number(item.class) === Number(editingStudent.class))" :key="subject.id" :value="subject.id">
+                            {{ subject.name }}{{ subject.code ? ` (${subject.code})` : '' }}{{ subject.class == null ? ' (all classes)' : '' }}
+                        </option>
+                    </select>
 
-                        <div
-                            class="col-span-6 text-sm font-medium text-ink-soft"
-                        >
-                            Subject
-                        </div>
-
-                        <div
-                            class="col-span-5 text-sm font-medium text-ink-soft"
-                        >
-                            Subject Code
-                        </div>
-
-                        <div
-                            class="col-span-1"
-                        ></div>
-
-                    </div>
-
-
-                    <!-- SUBJECT ROWS -->
-
-                    <div
-                        v-if="editingStudent.subjects.length"
-                        class="space-y-3"
-                    >
-
-                        <div
-                            v-for="(subject, index) in editingStudent.subjects"
-                            :key="index"
-                            class="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-center"
-                        >
-
-                            <!-- SUBJECT NAME -->
-
-                            <div class="md:col-span-6">
-
-                                <label
-                                    class="mb-1 block text-xs text-ink-soft md:hidden"
-                                >
-                                    Subject
-                                </label>
-
-                                <input
-                                    v-model="subject.subject_name"
-                                    type="text"
-                                    placeholder="Enter subject name"
-                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
-                                />
-
-                            </div>
-
-
-                            <!-- SUBJECT CODE -->
-
-                            <div class="md:col-span-5">
-
-                                <label
-                                    class="mb-1 block text-xs text-ink-soft md:hidden"
-                                >
-                                    Subject Code
-                                </label>
-
-                                <input
-                                    v-model="subject.subject_code"
-                                    type="text"
-                                    placeholder="Subject code"
-                                    class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft focus:border-forest"
-                                />
-
-                            </div>
-
-
-                            <!-- REMOVE -->
-
-                            <button
-                                type="button"
-                                @click="editingStudent.subjects.splice(index, 1)"
-                                class="flex h-11 items-center justify-center border border-hairline px-4 text-sm text-sienna transition hover:bg-sienna hover:text-white md:col-span-1"
-                                title="Remove subject"
-                            >
-                                Remove
-                            </button>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- NO SUBJECTS -->
-
-                    <div
-                        v-else
-                        class="border border-dashed border-hairline bg-surface px-5 py-8 text-center"
-                    >
-
-                        <p
-                            class="text-sm text-ink-soft"
-                        >
-                            No subjects assigned.
-                        </p>
-
-                        <p
-                            class="mt-1 text-xs text-ink-soft"
-                        >
-                            Click "Add Subject" to assign one.
-                        </p>
-
-                    </div>
+                    <p class="mt-2 text-xs text-ink-soft">Select at least 3 registered subjects. New subjects must be created in Subjects first.</p>
+                    <p v-if="!editingSubjectsValid" class="mt-2 text-sm text-sienna">
+                        Select at least 3 subjects before updating this student.
+                    </p>
 
                 </div>
 
@@ -3108,7 +3087,7 @@ onBeforeUnmount(() => {
                     >
 
                         <img
-                            :src="`http://127.0.0.1:8000/storage/${editingStudent.photo}`"
+                            :src="newPhotoPreview || `http://127.0.0.1:8000/storage/${editingStudent.photo}`"
                             :alt="editingStudent.name"
                             class="h-16 w-16 object-cover"
                         />
@@ -3149,6 +3128,13 @@ onBeforeUnmount(() => {
                         Replace Photo
                     </h3>
 
+                    <img
+                        v-if="newPhotoPreview"
+                        :src="newPhotoPreview"
+                        alt="New student photo preview"
+                        class="mb-4 h-24 w-24 object-cover"
+                    />
+
 
                     <label
                         class="flex cursor-pointer items-center justify-between border border-dashed border-hairline bg-surface px-4 py-4 transition hover:border-forest"
@@ -3181,7 +3167,7 @@ onBeforeUnmount(() => {
                         <input
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
-                            @change="editingStudent.newPhoto = $event.target.files[0] || null"
+                            @change="handleNewPhoto"
                             class="hidden"
                         />
 
@@ -3216,7 +3202,8 @@ onBeforeUnmount(() => {
                 <button
                     type="button"
                     @click="updateStudent"
-                    class="w-full bg-forest px-6 py-3 text-sm font-medium text-white transition hover:opacity-90 sm:w-auto"
+                    :disabled="!editingSubjectsValid"
+                    class="w-full bg-forest px-6 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
                 >
                     Update Student
                 </button>

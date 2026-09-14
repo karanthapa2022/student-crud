@@ -43,9 +43,11 @@ if (
     );
 }
             
+        $perPage = min(max((int) $request->input('per_page', 5), 1), 100);
+
         $addresses = $query
             ->latest()
-            ->paginate(5);
+            ->paginate($perPage);
 
         return response()->json($addresses);
     }

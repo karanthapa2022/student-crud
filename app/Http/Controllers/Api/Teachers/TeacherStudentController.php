@@ -50,19 +50,16 @@ class TeacherStudentController extends Controller
         $query = Student::with([
             'parent',
             'address',
+            'teachers',
             'studentSubjectAssignments.subject',
         ])
-        ->whereHas(
-            'studentSubjectAssignments',
-            function ($query) use ($subjectIds) {
-
-                $query->whereIn(
-                    'subject_id',
-                    $subjectIds
-                );
-
-            }
-        );
+        ->where(function ($query) use ($subjectIds, $teacher) {
+            $query->whereHas('teachers', function ($query) use ($teacher) {
+                $query->where('teachers.id', $teacher->id);
+            })->orWhereHas('studentSubjectAssignments', function ($query) use ($subjectIds) {
+                $query->whereIn('subject_id', $subjectIds);
+            });
+        });
 
 
         // -----------------------------------------------------
@@ -232,14 +229,15 @@ class TeacherStudentController extends Controller
         // CHECK WHETHER STUDENT IS ASSIGNED
         // -----------------------------------------------------
 
-        $isAssigned = $student
-            ->studentSubjectAssignments()
-            ->whereIn(
-                'subject_id',
-                $teacher->subjects()
-                    ->pluck('subjects.id')
-            )
-            ->exists();
+        $isAssigned = $student->teachers()
+            ->where('teachers.id', $teacher->id)
+            ->exists()
+            || $student->studentSubjectAssignments()
+                ->whereIn(
+                    'subject_id',
+                    $teacher->subjects()->pluck('subjects.id')
+                )
+                ->exists();
 
 
         if (!$isAssigned) {
@@ -259,6 +257,7 @@ class TeacherStudentController extends Controller
         $student->load([
             'parent',
             'address',
+            'teachers',
             'studentSubjectAssignments.subject',
         ]);
 

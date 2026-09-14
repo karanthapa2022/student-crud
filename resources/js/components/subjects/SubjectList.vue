@@ -37,6 +37,7 @@ const viewingSubject = ref(null)
 const form = ref({
     name: '',
     code: '',
+    class: '',
     description: ''
 })
 
@@ -63,6 +64,7 @@ const openAddModal = () => {
     form.value = {
         name: '',
         code: '',
+        class: '',
         description: ''
     }
 
@@ -83,6 +85,7 @@ const openEditModal = (subject) => {
     form.value = {
         name: subject.name || '',
         code: subject.code || '',
+        class: subject.class || '',
         description: subject.description || ''
     }
 
@@ -889,6 +892,14 @@ onMounted(() => {
                             class="w-full border border-hairline bg-surface px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
                         />
 
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="mb-1.5 block text-xs font-medium text-ink-soft">Class</label>
+                        <select v-model="form.class" required class="w-full border border-hairline bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-forest focus:ring-1 focus:ring-forest">
+                            <option value="" disabled>Select class</option>
+                            <option v-for="classNumber in 10" :key="classNumber" :value="classNumber">Class {{ classNumber }}</option>
+                        </select>
                     </div>
 
 

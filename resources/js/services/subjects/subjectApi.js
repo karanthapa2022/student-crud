@@ -17,7 +17,8 @@ const api = axios.create({
 export const getSubjects = (
     page = 1,
     search = '',
-    teacherFilter = 'all'
+    teacherFilter = 'all',
+    perPage = 5
 ) => {
 
     const token = getAuthToken()
@@ -27,7 +28,8 @@ export const getSubjects = (
         params: {
             page,
             search,
-            teacher_filter: teacherFilter
+            teacher_filter: teacherFilter,
+            per_page: perPage
         },
 
         headers: {

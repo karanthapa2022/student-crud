@@ -39,7 +39,7 @@ const totalMarks = computed(() => {
 })
 
 const totalSubjects = computed(() => {
-    return subjectStore.subjects.length
+    return marksheet.value?.items?.length || 0
 })
 
 const percentage = computed(() => {
@@ -142,20 +142,23 @@ const saveChanges = async () => {
     error.value = ''
     successMessage.value = ''
 
-    const items = Object.entries(marks.value)
-        .filter(([_, mark]) => mark !== '' && mark !== null && mark !== undefined)
-        .map(([subjectId, mark]) => {
+    const items = marksheet.value.items
+        .filter(item => marks.value[item.subject_id] !== '' && marks.value[item.subject_id] !== null && marks.value[item.subject_id] !== undefined)
+        .map(item => {
 
-            const value = String(mark).trim().toUpperCase()
+            const value = String(marks.value[item.subject_id]).trim().toUpperCase()
 
             return {
-                subject_id: Number(subjectId),
+                subject_id: item.subject_id,
+                subject_name: item.subject_name,
+                full_marks: item.full_marks,
+                pass_marks: item.pass_marks,
                 marks: value === 'A' ? 'A' : Number(value)
             }
 
         })
 
-    if (items.length !== subjectStore.subjects.length) {
+    if (items.length !== totalSubjects.value) {
         error.value = 'Please enter marks for every subject.'
         return
     }

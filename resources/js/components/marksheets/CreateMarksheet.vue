@@ -1,6 +1,6 @@
 <script setup>
 
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useStudentStore } from '../../stores/students/student'
 import { createMarksheet } from '../../services/marksheets/marksheetApi'
 
@@ -10,6 +10,7 @@ const selectedStudent = ref(null)
 
 const subjects = ref([
     {
+        subject_id: null,
         subject_name: '',
         full_marks: 100,
         pass_marks: 40,
@@ -29,6 +30,7 @@ const successMessage = ref('')
 const addSubject = () => {
 
     subjects.value.push({
+        subject_id: null,
         subject_name: '',
         full_marks: 100,
         pass_marks: 40,
@@ -36,6 +38,22 @@ const addSubject = () => {
     })
 
 }
+
+const loadAssignedSubjects = (student) => {
+    subjects.value = (student?.subjects || []).map(subject => ({
+        subject_id: subject.id,
+        subject_name: subject.name,
+        full_marks: 100,
+        pass_marks: 40,
+        marks: ''
+    }))
+
+    if (!subjects.value.length) {
+        addSubject()
+    }
+}
+
+watch(selectedStudent, loadAssignedSubjects)
 
 
 // =========================================================
@@ -199,6 +217,11 @@ const validateSubjects = () => {
 
         const name = String(subject.subject_name).trim()
 
+        if (!subject.subject_id) {
+            error.value = `Please select an assigned subject for row ${subjectNumber}.`
+            return false
+        }
+
         if (!name) {
             error.value =
                 `Please enter the subject name for subject ${subjectNumber}.`
@@ -343,6 +366,7 @@ const saveMarksheet = async () => {
                 .toUpperCase()
 
             return {
+                subject_id: subject.subject_id,
                 subject_name: String(subject.subject_name).trim(),
                 full_marks: Number(subject.full_marks),
                 pass_marks: Number(subject.pass_marks),
@@ -365,6 +389,7 @@ const saveMarksheet = async () => {
 
         subjects.value = [
             {
+                subject_id: null,
                 subject_name: '',
                 full_marks: 100,
                 pass_marks: 40,
@@ -533,18 +558,10 @@ onMounted(async () => {
                             </h2>
 
                             <p class="mt-1 text-sm text-[#5B6B62] dark:text-[#AEBBB3]">
-                                Add each subject and its marking scheme.
+                                Assigned subjects are loaded from the selected student.
                             </p>
                         </div>
 
-                        <button
-                            type="button"
-                            @click="addSubject"
-                            class="inline-flex items-center justify-center gap-2 bg-[#2F6F4E] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#275E42]"
-                        >
-                            <span class="text-lg leading-none">+</span>
-                            Add subject
-                        </button>
                     </div>
 
                     <!-- TABLE -->
@@ -589,12 +606,9 @@ onMounted(async () => {
                                     </td>
 
                                     <td class="px-4 py-4">
-                                        <input
-                                            v-model="subject.subject_name"
-                                            type="text"
-                                            placeholder="e.g. Mathematics"
-                                            class="w-full border border-[#D8DDD3] bg-white px-3 py-2.5 text-sm text-[#1C2B24] outline-none focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#39483F] dark:bg-[#17221D] dark:text-white"
-                                        >
+                                        <div class="border border-[#D8DDD3] bg-[#EFF1EA] px-3 py-2.5 text-sm text-[#1C2B24] dark:border-[#39483F] dark:bg-[#17221D] dark:text-white">
+                                            {{ subject.subject_name }}
+                                        </div>
                                     </td>
 
                                     <td class="px-4 py-4">

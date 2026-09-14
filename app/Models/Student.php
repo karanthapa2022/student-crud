@@ -47,6 +47,16 @@ class Student extends Model
         return $this->hasMany(Marksheet::class, 'student_id');
     }
 
+    public function teachers()
+    {
+        return $this->belongsToMany(
+            Teacher::class,
+            'student_teacher',
+            'student_id',
+            'teacher_id'
+        );
+    }
+
     // Student can have many subjects
     public function subjects()
 {
