@@ -300,7 +300,10 @@ export const useStudentStore = defineStore('student', {
                 )
 
 
-                return student
+                return {
+                    ...student,
+                    login: response.data.login || null
+                }
 
 
             } catch (error) {

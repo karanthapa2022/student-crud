@@ -736,13 +736,6 @@ onMounted(() => {
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <!-- DARK MODE -->
-                        <button
-                            @click="toggleDarkMode"
-                            class="border border-hairline bg-surface px-3 py-2 text-sm font-medium text-ink-soft hover:border-ink-soft hover:text-ink"
-                        >
-                            {{ darkMode ? '☀ Light' : '☾ Dark' }}
-                        </button>
 
                         <!-- ADD TEACHER -->
                         <button

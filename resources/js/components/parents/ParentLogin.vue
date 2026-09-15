@@ -6,6 +6,7 @@ router.push('/dashboard')
 import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { API_BASE_URL } from '../../services/apiConfig'
 
 const router = useRouter()
 
@@ -19,7 +20,7 @@ const login = async () => {
     loading.value = true
 
     try {
-        const response = await axios.post('http://127.0.0.1:8000/api/parent/login', {
+        const response = await axios.post(`${API_BASE_URL}/parent/login`, {
             email: email.value,
             password: password.value,
         })

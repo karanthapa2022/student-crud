@@ -1,10 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { API_BASE_URL } from '../services/apiConfig'
+import { getUnreadNotificationCount } from '../services/notifications/notificationApi'
 
 const router = useRouter()
 const loading = ref(true)
 const error = ref('')
+const unreadNotificationCount = ref(0)
 const dashboard = ref({
   role: 'admin',
   user: null,
@@ -23,6 +26,19 @@ const roleInitial = computed(() =>
   (roleLabel[dashboard.value.role] || 'D').charAt(0)
 )
 
+const loadUnreadNotificationCount = async () => {
+  try {
+    const response = await getUnreadNotificationCount()
+
+    unreadNotificationCount.value = response.data.count
+  } catch (err) {
+    console.error(
+      'Failed to load unread notification count:',
+      err
+    )
+  }
+}
+
 const loadDashboard = async () => {
   loading.value = true
   error.value = ''
@@ -35,7 +51,7 @@ const loadDashboard = async () => {
       return
     }
 
-    const response = await fetch('http://127.0.0.1:8000/api/dashboard', {
+    const response = await fetch(`${API_BASE_URL}/dashboard`, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${token}`,
@@ -73,8 +89,12 @@ const goToAddresses = () => router.push('/addresses')
 const goToSubjects = () => router.push(dashboard.value.role === 'teacher' ? '/teacher/subjects' : '/subjects')
 const goToMarksheets = () => router.push('/marksheets')
 const goToProfile = () => router.push('/profile')
+const goToNotifications= () => router.push('/notifications')
 
-onMounted(loadDashboard)
+onMounted(()=>{
+  loadDashboard()
+  loadUnreadNotificationCount()
+})
 </script>
 
 
@@ -121,12 +141,26 @@ onMounted(loadDashboard)
           </button>
 
           <button
+          @click="goToNotifications"
+          class="relative border border-[#D8DDD3] bg-white px-4 py-2 text-sm font-medium text-[#1C2B24] transition hover:bg-[#F4F6F1]"
+          >
+            Notifications
+            <span
+            v-if="unreadNotificationCount>0"
+            class="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-[#B5563C] px-1.5 py-0.5 text-xs font-semibold text-white"
+            >
+              {{ unreadNotificationCount }}
+            </span>
+          </button>
+
+          <button
             @click="logout"
             class="border border-[#B5563C]/30 px-4 py-2 text-sm font-medium text-[#B5563C] transition hover:bg-[#B5563C]/5"
           >
             Sign out
           </button>
 
+          
         </div>
       </div>
     </header>
@@ -819,7 +853,7 @@ onMounted(loadDashboard)
             <!-- PARENT MARKSHEETS -->
 
             <button
-              v-if="dashboard.role === 'parent'"
+              v-if="dashboard.role === 'parent' && dashboard.children?.length"
               @click="router.push('/parents/marksheet/' + (dashboard.children?.[0]?.id || ''))"
               class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
             >

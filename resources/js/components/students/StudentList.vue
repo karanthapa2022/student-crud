@@ -218,6 +218,9 @@ const tableHeaders = [
 const editingStudent = ref(null)
 
 const viewingStudent = ref(null)
+
+const createdLogin = ref(null)
+
 const actionMessage = ref('')
 const actionError = ref('')
 const newPhotoPreview = ref('')
@@ -864,6 +867,7 @@ selectedSubjects.forEach(subjectId => {
         const createdStudent = await studentStore.addStudent(
             formData
         )
+        createdLogin.value = createdStudent.login
 
 
         showAddForm.value = false
@@ -1485,6 +1489,29 @@ onBeforeUnmount(() => {
             {{ actionMessage }}
         </div>
 
+        <div
+    v-if="createdLogin"
+    class="mt-3 rounded-md border border-[#D8DDD3] bg-white px-4 py-4 text-sm"
+>
+    <p class="font-semibold text-[#1C2B24]">
+        Student Login
+    </p>
+
+    <p class="mt-2">
+        <span class="font-medium">Email:</span>
+        {{ createdLogin.email }}
+    </p>
+
+    <p class="mt-1">
+        <span class="font-medium">Temporary password:</span>
+        {{ createdLogin.temporary_password }}
+    </p>
+
+    <p class="mt-3 text-xs text-[#8A3E2A]">
+        Give this temporary password to the student.
+        They should change it after their first login.
+    </p>
+</div>
         <div v-if="actionError" class="mt-6 rounded-md border border-[#B5563C]/30 bg-[#B5563C]/5 px-4 py-3 text-sm text-[#8A3E2A]">
             {{ actionError }}
         </div>
@@ -2223,11 +2250,41 @@ onBeforeUnmount(() => {
 
                             <label class="block text-sm font-medium">
                                 Subjects
-                                <select v-model="newStudent.subjects" multiple class="mt-2 h-32 w-full border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-forest">
-                                    <option v-for="subject in subjectStore.subjects.filter(item => item.class == null || Number(item.class) === Number(newStudent.class))" :key="subject.id" :value="subject.id">
-                                        {{ subject.name }}{{ subject.code ? ` (${subject.code})` : '' }}{{ subject.class == null ? ' (all classes)' : '' }}
-                                    </option>
-                                </select>
+                                <span class="mt-1 block text-xs font-normal text-ink-soft">
+                                    Select at least 3 registered subjects.
+                                </span>
+                                <div class="mt-2 max-h-48 space-y-2 overflow-y-auto border border-hairline bg-surface p-3">
+                                    <label
+                                        v-for="subject in subjectStore.subjects.filter(item => item.class == null || Number(item.class) === Number(newStudent.class))"
+                                        :key="subject.id"
+                                        class="flex cursor-pointer items-center gap-3 border-b border-hairline px-2 py-2.5 last:border-b-0 hover:bg-paper"
+                                    >
+                                        <input
+                                            v-model="newStudent.subjects"
+                                            type="checkbox"
+                                            :value="subject.id"
+                                            class="h-4 w-4 accent-[#2F6F4E]"
+                                        />
+                                        <span class="text-sm text-ink">
+                                            {{ subject.name }}{{ subject.code ? ` (${subject.code})` : '' }}{{ subject.class == null ? ' (all classes)' : '' }}
+                                        </span>
+                                    </label>
+                                    <p
+                                        v-if="!newStudent.class"
+                                        class="px-2 py-3 text-xs text-ink-soft"
+                                    >
+                                        Select a class first to see registered subjects.
+                                    </p>
+                                    <p
+                                        v-else-if="!subjectStore.subjects.some(item => item.class == null || Number(item.class) === Number(newStudent.class))"
+                                        class="px-2 py-3 text-xs text-sienna"
+                                    >
+                                        No registered subjects are available for this class.
+                                    </p>
+                                </div>
+                                <p class="mt-2 text-xs text-ink-soft">
+                                    {{ newStudent.subjects.length }} subject(s) selected.
+                                </p>
                             </label>
                         </div>
                     </div>

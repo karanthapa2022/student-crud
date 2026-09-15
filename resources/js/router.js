@@ -20,6 +20,8 @@ import TeacherStudents from './components/teachers/TeacherStudents.vue'
 import TeacherSubjects from './components/teachers/TeacherSubjects.vue'
 import Dashboard from './components/Dashboard.vue'
 import UserManagement from './components/users/UserManagement.vue'
+import StudentComplaint from './components/students/StudentComplaint.vue'
+import Notifications from './components/notifications/Notifications.vue'
 
 const routes = [
 
@@ -110,6 +112,22 @@ const routes = [
             roles: ['admin']
         }
     },
+    {
+    path: '/student/complaint',
+    component: StudentComplaint,
+    meta: {
+        requiresAuth: true,
+        roles: ['student']
+    }
+},
+{
+    path: '/notifications',
+    component: Notifications,
+    meta: {
+        requiresAuth: true,
+        roles: ['admin', 'teacher', 'student', 'parent']
+    }
+},
 
 
     // =====================================================

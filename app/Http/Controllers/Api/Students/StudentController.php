@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api\Students;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\StudentSubject;
 use App\Models\StudentParent;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class StudentController extends Controller
 {
@@ -135,6 +137,14 @@ class StudentController extends Controller
 
 
         $student = Student::create($validated);
+        $temporaryPassword= Str::random(10);
+        User::create([
+    'name' => $student->name,
+    'email' => $student->email,
+    'password' => $temporaryPassword,
+    'role' => 'student',
+    'student_id' => $student->id,
+]);
 
 
         $student->subjects()->sync($validated['subjects']);
@@ -151,9 +161,13 @@ class StudentController extends Controller
 
 
         return response()->json([
-            'message' => 'Student created successfully.',
-            'student' => $student
-        ], 201);
+    'message' => 'Student created successfully.',
+    'student' => $student,
+    'login' => [
+        'email' => $student->email,
+        'temporary_password' => $temporaryPassword,
+    ],
+], 201);
     }
 
 

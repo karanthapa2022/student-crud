@@ -3,6 +3,9 @@
 import { ref, onMounted, watch } from 'vue'
 import { useSubjectStore } from '../../stores/subjects/subject'
 
+const currentUser = JSON.parse(localStorage.getItem('user') || 'null')
+const canManageSubjects = currentUser?.role === 'admin'
+
 const subjectStore = useSubjectStore()
 
 // =========================================================
@@ -281,7 +284,7 @@ onMounted(() => {
 
                         <button
                             type="button"
-                            @click="$router.push('/admin/dashboard')"
+                            @click="$router.push('/dashboard')"
                             class="inline-flex w-fit items-center border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
                         >
                             ← Dashboard
@@ -290,6 +293,7 @@ onMounted(() => {
                         <button
                             type="button"
                             @click="openAddModal"
+                            v-if="canManageSubjects"
                             class="inline-flex w-fit items-center border border-forest bg-forest px-4 py-2.5 text-sm font-medium text-white hover:bg-forest/90"
                         >
                             <span class="mr-2 text-base leading-none">
@@ -656,6 +660,7 @@ onMounted(() => {
                                         <button
                                             type="button"
                                             @click="openEditModal(subject)"
+                                            v-if="canManageSubjects"
                                             class="text-sm font-medium text-forest hover:underline"
                                         >
                                             Edit
@@ -664,6 +669,7 @@ onMounted(() => {
                                         <button
                                             type="button"
                                             @click="removeSubject(subject.id)"
+                                            v-if="canManageSubjects"
                                             class="text-sm font-medium text-sienna hover:underline"
                                         >
                                             Delete

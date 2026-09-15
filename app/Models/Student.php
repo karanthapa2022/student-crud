@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\User;
 
 class Student extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'students';
 
@@ -82,5 +84,13 @@ public function manualSubjects()
         StudentSubject::class,
         'student_id'
     )->whereNull('subject_id');
+}
+public function user()
+{
+    return $this->hasOne(
+        User::class,
+        'email',
+        'email'
+    );
 }
 }

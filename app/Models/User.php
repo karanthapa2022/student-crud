@@ -12,8 +12,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Student;
 
-#[Fillable(['name', 'email', 'password', 'profile_photo','document','role','parent_id'])]
+#[Fillable(['name', 'email', 'password', 'profile_photo','document','role','parent_id','student_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -23,6 +24,11 @@ class User extends Authenticatable
     protected $attributes = [
         'role' => Role::STUDENT,
     ];
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
 
     public function setRoleAttribute($value): void
     {
@@ -51,4 +57,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    
 }
+

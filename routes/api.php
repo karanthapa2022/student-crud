@@ -15,16 +15,21 @@ use App\Http\Controllers\Api\Teachers\TeacherController;
 use App\Http\Controllers\Api\Teachers\TeacherStudentController;
 use App\Http\Controllers\Api\Teachers\TeacherSubjectController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ComplaintController;
+use App\Http\Controllers\Api\NotificationController;
 
 // =========================================================
 // PUBLIC AUTHENTICATION
 // =========================================================
 
-Route::post('/register', [ApiAuthController::class, 'register']);
+Route::post('/register', [ApiAuthController::class, 'register'])
+    ->middleware('throttle:10,1');
 
-Route::post('/login', [ApiAuthController::class, 'login']);
+Route::post('/login', [ApiAuthController::class, 'login'])
+    ->middleware('throttle:10,1');
 
-Route::post('/parent/login', [ParentAuthController::class, 'login']);
+Route::post('/parent/login', [ParentAuthController::class, 'login'])
+    ->middleware('throttle:10,1');
 
 
 // =========================================================
@@ -33,6 +38,35 @@ Route::post('/parent/login', [ParentAuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
+Route::get('/notifications', [
+    NotificationController::class,
+    'index'
+]);
+
+Route::get('/notifications/unread-count', [
+    NotificationController::class,
+    'unreadCount'
+]);
+Route::patch('/notifications/{id}/read', [
+    NotificationController::class,
+    'markAsRead'
+]);
+
+
+
+Route::middleware('role:student')->group(function () {
+
+    Route::post('/complaints', [
+        ComplaintController::class,
+        'store'
+    ]);
+
+    Route::get('/teachers-for-complaint', [
+        \App\Http\Controllers\Api\Teachers\TeacherController::class,
+        'forStudents'
+    ]);
+
+});
 
     // =====================================================
     // COMMON AUTHENTICATED ROUTES
@@ -363,6 +397,7 @@ Route::middleware('auth:sanctum')->group(function () {
             '/parent/profile',
             [ParentAuthController::class, 'updateProfile']
         );
+
 
     });
 

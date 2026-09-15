@@ -40,6 +40,15 @@ class TeacherController extends Controller
         return response()->json($teachers);
     }
 
+    public function forStudents()
+    {
+        $teachers=Teacher::query()
+        ->select('id','name')
+        ->orderBy('name')
+        ->get();
+        return response()->json($teachers);
+    }
+
 
     /**
      * Store a newly created teacher.

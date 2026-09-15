@@ -42,15 +42,22 @@ const totalSubjects = computed(() => {
     return marksheet.value?.items?.length || 0
 })
 
+const totalFullMarks = computed(() =>
+    (marksheet.value?.items || []).reduce(
+        (total, item) => total + (Number(item.full_marks) || 0),
+        0
+    )
+)
+
 const percentage = computed(() => {
 
     if (totalSubjects.value === 0) {
         return 0
     }
 
-    return (
-        (totalMarks.value / (totalSubjects.value * 100)) * 100
-    ).toFixed(2)
+        return totalFullMarks.value > 0
+            ? ((totalMarks.value / totalFullMarks.value) * 100).toFixed(2)
+            : '0.00'
 
 })
 
@@ -78,7 +85,10 @@ const grade = computed(() => {
 
 const result = computed(() => {
 
-    const subjectMarks = Object.values(marks.value)
+    const subjectMarks = (marksheet.value?.items || []).map(item => ({
+        marks: marks.value[item.subject_id],
+        passMarks: Number(item.pass_marks) || 0,
+    }))
 
     if (subjectMarks.length === 0) {
         return 'Fail'
@@ -86,13 +96,13 @@ const result = computed(() => {
 
     const hasFailedSubject = subjectMarks.some(mark => {
 
-        const value = String(mark).trim().toUpperCase()
+        const value = String(mark.marks).trim().toUpperCase()
 
         if (value === 'A') {
             return true
         }
 
-        return Number(value) < 40
+        return Number(value) < mark.passMarks
 
     })
 

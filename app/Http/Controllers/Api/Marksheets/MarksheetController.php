@@ -11,6 +11,9 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Models\Marksheet;
 use App\Models\Student;
+use App\Models\Teacher;
+use App\Models\User;                    
+use App\Notifications\MarksheetPublished;
 
 class MarksheetController extends Controller
 {
@@ -72,6 +75,10 @@ class MarksheetController extends Controller
             })
             ->latest();
 
+            if ($user->role === 'teacher') {
+                $query->whereIn('student_id', $this->teacherStudentIds($user));
+            }
+
             return response()->json($query->get());
         }
 
@@ -126,6 +133,12 @@ class MarksheetController extends Controller
         if (!in_array($user->role, ['admin', 'teacher', 'student', 'parent'])) {
             return response()->json([
                 'message' => 'Unauthorized.'
+            ], 403);
+        }
+
+        if ($user->role === 'teacher' && !$this->teacherCanAccessStudent($user, $marksheet->student_id)) {
+            return response()->json([
+                'message' => 'You are not assigned to this student.',
             ], 403);
         }
 
@@ -197,6 +210,8 @@ class MarksheetController extends Controller
                 },
             ],
         ]);
+
+        $this->ensureTeacherCanWriteStudentMarksheet($user, $validated);
 
         // Validate pass marks and obtained marks against full marks
         foreach ($validated['items'] as $index => $item) {
@@ -298,6 +313,16 @@ class MarksheetController extends Controller
             'result' => $result,
         ]);
 
+        $studentUser = User::where('student_id', $marksheet->student_id)
+    ->where('role', 'student')
+    ->first();
+
+if ($studentUser) {
+    $studentUser->notify(
+        new MarksheetPublished($marksheet)
+    );
+}
+
         // =====================================================
         // CREATE ITEMS
         // =====================================================
@@ -383,6 +408,8 @@ class MarksheetController extends Controller
                 },
             ],
         ]);
+
+        $this->ensureTeacherCanWriteStudentMarksheet($user, $validated);
 
         // Validate pass marks and obtained marks
         foreach ($validated['items'] as $index => $item) {
@@ -506,6 +533,50 @@ class MarksheetController extends Controller
         return response()->json($marksheet);
     }
 
+    private function ensureTeacherCanWriteStudentMarksheet($user, array $validated): void
+    {
+        if ($user->role !== 'teacher') {
+            return;
+        }
+
+        $teacher = Teacher::where('email', $user->email)->first();
+        $student = Student::find($validated['student_id']);
+        $subjectIds = collect($validated['items'])->pluck('subject_id')->filter()->values();
+
+        $canWrite = $teacher
+            && $student
+            && ($student->teachers()->whereKey($teacher->id)->exists()
+                || $teacher->subjects()->whereIn('subjects.id', $subjectIds)->exists());
+
+        if (!$canWrite) {
+            abort(403, 'You are not assigned to this student or these subjects.');
+        }
+    }
+
+    private function teacherStudentIds($user)
+    {
+        $teacher = Teacher::where('email', $user->email)->first();
+
+        if (!$teacher) {
+            return collect();
+        }
+
+        $subjectIds = $teacher->subjects()->pluck('subjects.id');
+
+        return Student::where(function ($query) use ($teacher, $subjectIds) {
+            $query->whereHas('teachers', function ($query) use ($teacher) {
+                $query->where('teachers.id', $teacher->id);
+            })->orWhereHas('studentSubjectAssignments', function ($query) use ($subjectIds) {
+                $query->whereIn('subject_id', $subjectIds);
+            });
+        })->pluck('id');
+    }
+
+    private function teacherCanAccessStudent($user, int $studentId): bool
+    {
+        return $this->teacherStudentIds($user)->contains($studentId);
+    }
+
 
     // =========================================================
     // DESTROY
@@ -583,6 +654,11 @@ class MarksheetController extends Controller
                 continue;
             }
 
+            if ($user->role === 'teacher' && !$this->teacherCanAccessStudent($user, $student->id)) {
+                $errors[] = "Row {$line}: you are not assigned to student {$student->id}.";
+                continue;
+            }
+
             if (!$subjectName || !is_numeric($fullMarks) || (float) $fullMarks <= 0 || !is_numeric($passMarks) || (float) $passMarks < 0) {
                 $errors[] = "Row {$line}: subject and valid full_marks/pass_marks are required.";
                 continue;
@@ -645,6 +721,19 @@ class MarksheetController extends Controller
         $marksheets = $marksheet
             ? collect([$marksheet->load(['student', 'items'])])
             : Marksheet::with(['student', 'items'])->latest()->get();
+
+        if ($user->role === 'teacher') {
+            $allowedStudentIds = $this->teacherStudentIds($user);
+            $marksheets = $marksheets->filter(
+                fn ($item) => $allowedStudentIds->contains($item->student_id)
+            )->values();
+        }
+
+        if ($marksheet && $marksheets->isEmpty()) {
+            return response()->json([
+                'message' => 'You are not assigned to this student.',
+            ], 403);
+        }
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();

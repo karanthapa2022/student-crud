@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { API_BASE_URL } from '../services/apiConfig'
 
 const router = useRouter()
 
@@ -37,7 +38,7 @@ const register = async () => {
   try {
 
     const response = await axios.post(
-      'http://127.0.0.1:8000/api/register',
+    `${API_BASE_URL}/register`,
       {
         name: name.value,
         email: email.value,
