@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Contracts\AuthServiceInterface;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class ApiAuthController extends Controller
 {
+    public function __construct(
+        private readonly AuthServiceInterface $authService
+    ) {
+    }
+
     // =========================================================
     // REGISTER
     // =========================================================
@@ -21,18 +26,12 @@ class ApiAuthController extends Controller
             'password' => 'required|min:8|confirmed',
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        $token = $user->createToken('vue-app')->plainTextToken;
+        $result = $this->authService->register($validated);
 
         return response()->json([
             'message' => 'Registration successful.',
-            'user' => $user,
-            'token' => $token,
+            'user' => $result['user'],
+            'token' => $result['token'],
         ], 201);
     }
 
@@ -48,7 +47,7 @@ class ApiAuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where(
+        $user = \App\Models\User::where(
             'email',
             $validated['email']
         )->first();
@@ -81,17 +80,17 @@ class ApiAuthController extends Controller
     // LOGOUT
     // =========================================================
 
-    public function logout(Request $request)
-    {
-        $request
-            ->user()
-            ->currentAccessToken()
-            ->delete();
+        public function logout(Request $request)
+        {
+            $this->authService->logout(
+                $request->user()
+            );
 
-        return response()->json([
-            'message' => 'Logout successful.',
-        ]);
-    }
+            return response()->json([
+                'message' => 'Logout successful.',
+            ]);
+        }
+
 
 
     // =========================================================
@@ -130,7 +129,6 @@ class ApiAuthController extends Controller
 
     public function updateProfilePhoto(Request $request)
     {
-        
         $request->validate([
             'profile_photo' => [
                 'required',
@@ -142,13 +140,8 @@ class ApiAuthController extends Controller
 
         $user = $request->user();
 
-
-        // -----------------------------------------------------
         // Delete old profile photo
-        // -----------------------------------------------------
-
         if ($user->profile_photo) {
-
             $oldPhoto = public_path(
                 'storage/' . $user->profile_photo
             );
@@ -158,28 +151,17 @@ class ApiAuthController extends Controller
             }
         }
 
-
-        // -----------------------------------------------------
         // Store new profile photo
-        // -----------------------------------------------------
-
         $path = $request
             ->file('profile_photo')
             ->store('profile-photos', 'public');
 
-
-        // -----------------------------------------------------
         // Save photo path
-        // -----------------------------------------------------
-
         $user->update([
             'profile_photo' => $path,
         ]);
 
-
-        // Refresh user data
         $user->refresh();
-
 
         return response()->json([
             'message' => 'Profile photo updated successfully.',
@@ -187,108 +169,119 @@ class ApiAuthController extends Controller
         ]);
     }
 
+
     // =========================================================
-// UPLOAD PDF DOCUMENT
-// =========================================================
+    // UPLOAD PDF DOCUMENT
+    // =========================================================
 
-public function updateDocument(Request $request)
-{
-    $request->validate([
-        'document' => 'required|file|mimes:pdf|max:5120',
-    ]);
+    public function updateDocument(Request $request)
+    {
+        $request->validate([
+            'document' => 'required|file|mimes:pdf|max:5120',
+        ]);
 
-    $user = $request->user();
+        $user = $request->user();
 
-    // Delete old document
-    if ($user->document) {
+        // Delete old document
+        if ($user->document) {
+            $oldDocument = public_path(
+                'storage/' . $user->document
+            );
 
-        $oldDocument = public_path(
-            'storage/' . $user->document
+            if (file_exists($oldDocument)) {
+                unlink($oldDocument);
+            }
+        }
+
+        // Store new PDF
+        $path = $request
+            ->file('document')
+            ->store('documents', 'public');
+
+        // Save document path
+        $user->update([
+            'document' => $path,
+        ]);
+
+        $user->refresh();
+
+        return response()->json([
+            'message' => 'Document uploaded successfully.',
+            'user' => $user,
+        ]);
+    }
+
+
+    // =========================================================
+    // DELETE PDF DOCUMENT
+    // =========================================================
+
+    public function deleteDocument(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user->document) {
+            return response()->json([
+                'message' => 'No document found.',
+            ], 404);
+        }
+
+        $filePath = storage_path(
+            'app/public/' . $user->document
         );
 
-        if (file_exists($oldDocument)) {
-            unlink($oldDocument);
+        // Delete actual file
+        if (file_exists($filePath)) {
+            unlink($filePath);
         }
-    }
 
-    // Store new PDF
-    $path = $request
-        ->file('document')
-        ->store('documents', 'public');
+        // Remove document path from database
+        $user->update([
+            'document' => null,
+        ]);
 
-    // Save document path
-    $user->update([
-        'document' => $path,
-    ]);
+        $user->refresh();
 
-    $user->refresh();
-
-    return response()->json([
-        'message' => 'Document uploaded successfully.',
-        'user' => $user,
-    ]);
-}
-// =========================================================
-// DELETE PDF DOCUMENT
-// =========================================================
-
-public function deleteDocument(Request $request)
-{
-    $user = $request->user();
-
-    if (!$user->document) {
         return response()->json([
-            'message' => 'No document found.'
-        ], 404);
+            'message' => 'Document deleted successfully.',
+            'user' => $user,
+        ]);
     }
 
-    $filePath = storage_path(
-        'app/public/' . $user->document
-    );
 
-    // Delete the actual file
-    if (file_exists($filePath)) {
-        unlink($filePath);
-    }
+    // =========================================================
+    // CHANGE PASSWORD
+    // =========================================================
 
-    // Remove document path from database
-    $user->update([
-        'document' => null,
-    ]);
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
 
-    $user->refresh();
+        $user = $request->user();
 
-    return response()->json([
-        'message' => 'Document deleted successfully.',
-        'user' => $user,
-    ]);
-}
+        // Check current password
+        if (
+            !Hash::check(
+                $request->current_password,
+                $user->password
+            )
+        ) {
+            return response()->json([
+                'message' => 'Current password is incorrect.',
+            ], 422);
+        }
 
-//===================
-// Change Password
-//===================
- 
-public function changePassword(Request $request)
-{
-    $request->validate([
-        'current_password'=>'required',
-        'new_password'=>'required|min:8|confirmed',
+        // Update password
+        $user->update([
+            'password' => Hash::make($request->new_password),
+            'must_change_password' => false,
+        ]);
 
-    ]);
-    $user=$request->user();
-
-    //check current password
-    if(!Hash::check($request->current_password,$user->password)){
         return response()->json([
-            'message'=>'current password is incorrect.',
-        ], 422);
+            'message' => 'Password changed successfully.',
+        ]);
     }
-    //update password
-    $user->update([
-        'password'=>Hash::make($request->new_password),
-    ]);
-    return response()->json([
-        'message'=>'Password changed successfully.',
-    ]);
-}
 }

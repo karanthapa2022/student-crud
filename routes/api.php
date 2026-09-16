@@ -52,6 +52,11 @@ Route::patch('/notifications/{id}/read', [
     'markAsRead'
 ]);
 
+Route::patch('/change-password',[
+    \App\Http\Controllers\Api\UserController::class,
+    'changePassword'
+]);
+
 
 
 Route::middleware('role:student')->group(function () {

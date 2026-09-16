@@ -62,7 +62,11 @@ const login = async () => {
       localStorage.setItem('parent_user', JSON.stringify(user))
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
-      router.push('/dashboard')
+      if (user.must_change_password){
+        router.push('/change-password')
+      } else {
+        router.push('/dashboard')
+      }
       return
     }
 

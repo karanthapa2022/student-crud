@@ -22,6 +22,7 @@ import Dashboard from './components/Dashboard.vue'
 import UserManagement from './components/users/UserManagement.vue'
 import StudentComplaint from './components/students/StudentComplaint.vue'
 import Notifications from './components/notifications/Notifications.vue'
+import ChangePassword from './components/auth/ChangePassword.vue'
 
 const routes = [
 
@@ -37,6 +38,15 @@ const routes = [
     {
         path: '/login',
         component: Login
+    },
+
+    {
+        path: '/change-password',
+        component: ChangePassword,
+        meta: {
+            requiresAuth: true,
+            roles: ['student']
+        }
     },
 
     {

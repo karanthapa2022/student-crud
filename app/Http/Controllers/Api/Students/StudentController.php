@@ -144,6 +144,7 @@ class StudentController extends Controller
     'password' => $temporaryPassword,
     'role' => 'student',
     'student_id' => $student->id,
+    'must_change_password'=>true,
 ]);
 
 
