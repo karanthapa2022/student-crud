@@ -88,6 +88,7 @@ const goToParents = () => router.push('/parents')
 const goToAddresses = () => router.push('/addresses')
 const goToSubjects = () => router.push(dashboard.value.role === 'teacher' ? '/teacher/subjects' : '/subjects')
 const goToMarksheets = () => router.push('/marksheets')
+const goToComplaints= () => router.push('student/complaint')
 const goToProfile = () => router.push('/profile')
 const goToNotifications= () => router.push('/notifications')
 
@@ -848,6 +849,38 @@ onMounted(()=>{
               </p>
 
             </button>
+            <!-- STUDENT COMPLAINT / FEEDBACK -->
+
+<button
+    v-if="dashboard.role === 'student'"
+    @click="goToComplaints"
+    class="group border border-[#D8DDD3] bg-white p-5 text-left transition hover:border-[#2F6F4E]/40 hover:bg-[#EFF1EA]"
+>
+    <div class="flex items-start justify-between">
+
+        <div
+            class="flex h-11 w-11 items-center justify-center bg-[#EFF1EA] text-sm font-semibold text-[#2F6F4E]"
+        >
+            C
+        </div>
+
+        <span
+            class="text-lg text-[#9AA59E] transition group-hover:translate-x-1 group-hover:text-[#2F6F4E]"
+        >
+            →
+        </span>
+
+    </div>
+
+    <h3 class="mt-5 text-sm font-semibold">
+        Submit complaint / feedback
+    </h3>
+
+    <p class="mt-1 text-xs leading-5 text-[#6B776F]">
+        Send a complaint or feedback to your teacher or admin.
+    </p>
+
+</button>
 
 
             <!-- PARENT MARKSHEETS -->

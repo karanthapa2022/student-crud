@@ -10,7 +10,7 @@ use App\Notifications\ComplaintSubmitted;
 class ComplaintController extends Controller
 {
     public function store(Request $request)
-{
+    {
     $validated = $request->validate([
         'teacher_id' => 'nullable|exists:teachers,id',
         'subject' => 'required|string|max:255',
@@ -48,11 +48,46 @@ class ComplaintController extends Controller
             $teacherUser->notify(new ComplaintSubmitted($complaint));
         }
     }
-}
+    }
 
-    return response()->json([
-        'message' => 'Complaint submitted successfully.',
-        'complaint' => $complaint,
-    ], 201);
-}
+        return response()->json([
+            'message' => 'Complaint submitted successfully.',
+            'complaint' => $complaint,
+        ], 201);
+    }
+
+    public function show(Request $request, string $id)
+    {
+        $complaint = \App\Models\Complaint::with(['student', 'teacher'])->find($id);
+
+        if (!$complaint) {
+            return response()->json([
+                'message' => 'Complaint not found.',
+            ], 404);
+        }
+
+        $user = $request->user();
+
+        // Admin can view all complaints
+        if ($user->role === 'admin') {
+            return response()->json($complaint);
+        }
+
+        // Teacher can only view complaints assigned to them
+        if ($user->role === 'teacher') {
+            $teacher = \App\Models\Teacher::where('email', $user->email)->first();
+
+            if ($teacher && $complaint->teacher_id === $teacher->id) {
+                return response()->json($complaint);
+            }
+
+            return response()->json([
+                'message' => 'Unauthorized to view this complaint.',
+            ], 403);
+        }
+
+        return response()->json([
+            'message' => 'Unauthorized.',
+        ], 403);
+    }
 }

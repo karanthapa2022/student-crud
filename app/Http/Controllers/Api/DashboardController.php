@@ -9,6 +9,7 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\Marksheet;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
@@ -123,11 +124,15 @@ class DashboardController extends Controller
 
     public function statistics()
     {
-        return response()->json([
-            'totalStudents' => Student::count(),
-            'totalParents' => StudentParent::count(),
-            'totalTeachers' => Teacher::count(),
-            'totalSubjects' => Subject::count(),
-        ]);
+        $statistics=Cache::remember('dashboard_statistics',60,function(){
+        return[
+            'totalStudents'=> Student::count(),
+            'totalParents'=> StudentParent::count(),
+            'totalTeachers'=> Teacher::count(),
+            'TotalSubjects'=> Subject::count(),
+
+        ];
+        });
+        return response()->json($statistics);
     }
 }

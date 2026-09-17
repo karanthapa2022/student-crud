@@ -21,6 +21,7 @@ import TeacherSubjects from './components/teachers/TeacherSubjects.vue'
 import Dashboard from './components/Dashboard.vue'
 import UserManagement from './components/users/UserManagement.vue'
 import StudentComplaint from './components/students/StudentComplaint.vue'
+import ComplaintDetail from './components/complaints/ComplaintDetail.vue'
 import Notifications from './components/notifications/Notifications.vue'
 import ChangePassword from './components/auth/ChangePassword.vue'
 
@@ -128,6 +129,14 @@ const routes = [
     meta: {
         requiresAuth: true,
         roles: ['student']
+    }
+},
+{
+    path: '/complaint/:id',
+    component: ComplaintDetail,
+    meta: {
+        requiresAuth: true,
+        roles: ['admin', 'teacher']
     }
 },
 {

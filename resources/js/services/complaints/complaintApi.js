@@ -17,7 +17,7 @@ api.interceptors.request.use(
 
     (config) => {
 
-        const token = getAuthToken('student')
+        const token = getAuthToken()
 
         if (token) {
 
@@ -46,4 +46,8 @@ export const createComplaint = (complaint) => {
         complaint
     )
 
+}
+
+export const getComplaint = (id) => {
+    return api.get(`/complaints/${id}`)
 }

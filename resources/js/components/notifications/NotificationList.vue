@@ -1,6 +1,7 @@
 <script setup>
 
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 import {
     getNotifications,
@@ -11,6 +12,7 @@ import {
 
 const notifications = ref([])
 const unreadCount= ref(0)
+const router = useRouter()
 
 
 const loadNotifications = async () => {
@@ -34,7 +36,6 @@ const loadNotifications = async () => {
         )
 
     }
-
 }
 const loadUnreadCount= async ()=>{
     try{
@@ -69,6 +70,44 @@ if (unreadCount.value > 0) {
 
     }
 
+}
+
+const getNotificationLink = (notification) => {
+    const data = notification.data || {}
+    const type = notification.type || data.type
+
+    if (
+    type === 'complaint_submitted' ||
+    type === 'App\\Notifications\\ComplaintSubmitted'
+) {
+        const complaintId = data.complaint_id
+        if (complaintId) {
+            return `/complaint/${complaintId}`
+        }
+    }
+
+    if (type === 'marksheet_published' || type === 'App.Notifications.MarksheetPublished') {
+        const marksheetId = data.marksheet_id
+        if (marksheetId) {
+            return `/marksheets/${marksheetId}`
+        }
+    }
+
+    return null
+}
+
+const handleNotificationClick = async (notification) => {
+    console.log('CLICKED NOTIFICATION:', notification)
+
+    await markAsRead(notification)
+
+    const link = getNotificationLink(notification)
+
+    console.log('NOTIFICATION LINK:', link)
+
+    if (link) {
+        router.push(link)
+    }
 }
 
 
@@ -113,7 +152,7 @@ onMounted(() => {
             <div
                 v-for="notification in notifications"
                 :key="notification.id"
-                @click="markAsRead(notification)"
+                @click="handleNotificationClick(notification)"
                 class="cursor-pointer rounded-xl border border-black/10 bg-white p-4 transition dark:border-white/10 dark:bg-white/5"
                 :class="{
                     'border-blue-500/30 bg-blue-500/5': !notification.read_at,
@@ -124,6 +163,12 @@ onMounted(() => {
                 <div class="font-medium">
                     {{ notification.data.title }}
                 </div>
+
+                <p v-if="notification.data.subject"
+                class="mt-1 text-sm opacity-60">
+                    {{ notification.data.subject }}
+
+                </p>
 
                 <p class="mt-1 text-sm opacity-60">
                     {{ notification.data.message }}
@@ -136,4 +181,3 @@ onMounted(() => {
     </div>
 
 </template>
-

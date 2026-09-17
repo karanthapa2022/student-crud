@@ -36,8 +36,9 @@ class ComplaintSubmitted extends Notification
     {
         return [
             'title'=> 'New Complaint',
-            'message'=>'A new complaint has been submitted.',
+            'message'=>$this->complaint->message,
             'complaint_id'=> $this->complaint->id,
+            'subject'=> $this->complaint->subject,
         ];
     }
 }

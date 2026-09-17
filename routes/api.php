@@ -61,17 +61,23 @@ Route::patch('/change-password',[
 
 Route::middleware('role:student')->group(function () {
 
-    Route::post('/complaints', [
+        Route::post('/complaints', [
+            ComplaintController::class,
+            'store'
+        ])->middleware('throttle:10,1');
+
+        Route::get('/teachers-for-complaint', [
+            \App\Http\Controllers\Api\Teachers\TeacherController::class,
+            'forStudents'
+        ]);
+
+    });
+
+    // Complaint detail - accessible by admin and assigned teacher
+    Route::get('/complaints/{complaint}', [
         ComplaintController::class,
-        'store'
-    ]);
-
-    Route::get('/teachers-for-complaint', [
-        \App\Http\Controllers\Api\Teachers\TeacherController::class,
-        'forStudents'
-    ]);
-
-});
+        'show'
+    ])->middleware('role:admin,teacher');
 
     // =====================================================
     // COMMON AUTHENTICATED ROUTES
