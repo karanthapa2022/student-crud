@@ -26,7 +26,8 @@ import { getStudent } from '../../services/students/studentApi'
 
 import {
     updateStudentWithPhoto,
-    deleteStudent as deleteStudentApi,
+deleteStudent as deleteStudentApi,
+resetStudentPassword,
     bulkDeleteStudents,
     bulkUpdateStudents
 } from '../../services/students/studentApi'
@@ -1170,6 +1171,26 @@ const deleteStudent = async (student) => {
             error.response?.data?.message ||
             'Error deleting student.'
         )
+
+    }
+
+}
+
+const resetPassword = async (student) => {
+
+    try {
+
+        const response = await resetStudentPassword(student.id)
+
+        alert(
+            `Temporary password for ${student.name}: ${response.data.temporary_password}`
+        )
+
+    } catch (error) {
+
+        console.error('Password reset failed:', error)
+
+        alert('Failed to reset student password.')
 
     }
 
@@ -3478,6 +3499,14 @@ onBeforeUnmount(() => {
                                 class="text-[#B5563C] hover:underline"
                             >
                                 Delete
+                            </button>
+
+                            <button
+                                type="button"
+                                @click="resetPassword(student)"
+                                class="text-[#2F6F4E] hover:underline"
+                            >
+                                Reset Password
                             </button>
 
                         </div>

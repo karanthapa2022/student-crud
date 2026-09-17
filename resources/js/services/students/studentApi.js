@@ -236,6 +236,18 @@ export const forceDeleteStudent = (id) => {
 
 }
 
+// =========================================================
+// RESET STUDENT PASSWORD
+// =========================================================
+
+export const resetStudentPassword = (id) => {
+
+    return api.post(
+        `/students/${id}/reset-password`
+    )
+
+}
+
 
 // =========================================================
 // EXPORT AXIOS INSTANCE

@@ -347,6 +347,7 @@ Route::middleware('role:student')->group(function () {
             'update',
             'destroy',
         ]);
+        Route::post('/students/{id}/reset-password', [StudentController::class, 'resetPassword']);
 
     });
 

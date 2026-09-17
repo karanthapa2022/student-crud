@@ -11,6 +11,7 @@ use App\Models\StudentSubject;
 use App\Models\StudentParent;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class StudentController extends Controller
 {
@@ -615,4 +616,21 @@ class StudentController extends Controller
             })
             ->values();
     }
+    public function resetPassword($id)
+{
+    $student = Student::findOrFail($id);
+
+    $temporaryPassword = Str::random(10);
+
+    $user = $student->user;
+
+$user->password = Hash::make($temporaryPassword);
+$user->must_change_password = true;
+$user->save();
+
+    return response()->json([
+        'message' => 'Student password reset successfully.',
+        'temporary_password' => $temporaryPassword,
+    ]);
+}
 }
