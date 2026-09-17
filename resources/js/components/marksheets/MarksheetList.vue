@@ -230,7 +230,7 @@ onMounted(() => {
                         </button>
 
                         <button
-                            v-if="isAdmin"
+                            
                             type="button"
                             @click="$router.push('/dashboard')"
                             class="border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-semibold hover:border-[#2F6F4E] hover:text-[#2F6F4E] dark:border-[#39483F] dark:bg-[#202D26]"

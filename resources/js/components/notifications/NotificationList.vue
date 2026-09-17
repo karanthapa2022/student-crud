@@ -120,6 +120,15 @@ onMounted(() => {
 
 <template>
 
+    <div>
+       <router-link
+       v-if="user?.role==='admin' || user?.role==='teacher'"
+       to="/dashboard"
+       class="mb-6 inline-flex items-center gap-2 rounded-lg border border-hairline bg-white px-4 py-2 text-sm font-medium text-ink transition hover:bg-paper">
+        ←Back to Dashboard
+       </router-link>
+    </div>
+
     <div class="mt-8">
 
         <div class="mb-4 flex items-center justify-between">
