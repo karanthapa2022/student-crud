@@ -36,7 +36,7 @@ Route::post('/parent/login', [ParentAuthController::class, 'login'])
 // AUTHENTICATED ROUTES
 // =========================================================
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
 Route::get('/notifications', [
     NotificationController::class,
