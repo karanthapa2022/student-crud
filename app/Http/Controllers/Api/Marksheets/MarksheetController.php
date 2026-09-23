@@ -12,7 +12,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Models\Marksheet;
 use App\Models\Student;
 use App\Models\Teacher;
-use App\Models\User;                    
+use App\Models\User;
 use App\Notifications\MarksheetPublished;
 
 class MarksheetController extends Controller
@@ -144,7 +144,7 @@ class MarksheetController extends Controller
 
         $marksheet->load([
             'student',
-            'items'
+            'items.subject'
         ]);
 
         return response()->json($marksheet);
@@ -870,7 +870,7 @@ if ($studentUser) {
 
         return response()->json($marksheet);
     }
-    
+
 // =========================================================
 // PARENT STUDENT MARKSHEET
 // =========================================================

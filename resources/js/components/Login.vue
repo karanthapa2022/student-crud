@@ -192,7 +192,7 @@ const login = async () => {
                                     v-model="email"
                                     type="email"
                                     autocomplete="email"
-                                    placeholder="you@example.com"
+                                    placeholder="_______@gmail.com"
                                     class="w-full border border-hairline bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-ink-soft/50 focus:border-forest focus:ring-1 focus:ring-forest"
                                 />
                             </div>
