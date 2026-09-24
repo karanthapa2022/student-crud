@@ -595,7 +595,7 @@ onMounted(() => {
                     </div>
 
                     <h1
-                        class="font-serif text-4xl font-medium tracking-tight text-ink"
+                        class=" text-4xl font-medium tracking-tight text-ink"
                     >
                         Parents
                     </h1>
@@ -606,13 +606,6 @@ onMounted(() => {
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <!-- DARK MODE -->
-                    <button
-                        @click="toggleDarkMode"
-                        class="border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:bg-paper"
-                    >
-                        {{ darkMode ? '☀️ Light' : '🌙 Dark' }}
-                    </button>
 
                     <!-- ADD PARENT -->
                     <button
@@ -694,7 +687,7 @@ onMounted(() => {
                     </p>
 
                     <p
-                        class="mt-1 font-serif text-2xl font-medium text-ink"
+                        class="mt-1 text-2xl font-medium text-ink"
                     >
                         {{ parentStore.parents.length }}
                     </p>
@@ -708,7 +701,7 @@ onMounted(() => {
                     </p>
 
                     <p
-                        class="mt-1 font-serif text-2xl font-medium text-ink"
+                        class="mt-1 text-2xl font-medium text-ink"
                     >
                         {{ parentStore.pagination.totalParents }}
                     </p>
@@ -722,7 +715,7 @@ onMounted(() => {
                     </p>
 
                     <p
-                        class="mt-1 font-serif text-2xl font-medium text-ink"
+                        class="mt-1 text-2xl font-medium text-ink"
                     >
                         {{ parentStore.pagination.currentPage }}
                     </p>
@@ -734,7 +727,7 @@ onMounted(() => {
                     </p>
 
                     <p
-                        class="mt-1 font-serif text-2xl font-medium text-ink"
+                        class="mt-1 text-2xl font-medium text-ink"
                     >
                         {{ parentStore.pagination.lastPage }}
                     </p>
