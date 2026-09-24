@@ -22,6 +22,7 @@ import { useAddressStore } from '../../stores/addresses/address'
 import { useSubjectStore } from '../../stores/subjects/subject'
 import { getTeachers } from '../../services/teachers/teacherApi'
 import { getStudent } from '../../services/students/studentApi'
+import BaseCard from '../BaseCard.vue'
 
 
 import {
@@ -1036,7 +1037,7 @@ if (Array.isArray(editingStudent.value.subjects)) {
 
         const updatedResponse = await updateStudentWithPhoto(
 
-        
+
             editingStudent.value.id,
 
             formData
@@ -1421,9 +1422,7 @@ onBeforeUnmount(() => {
 
 <template>
 
-<div
-    class="min-h-screen bg-[#EFF1EA] dark:bg-[#141F19] p-4 text-[#1C2B24] dark:text-[#E8EBE4] transition-colors duration-300 sm:p-6 lg:p-8"
->
+<div class="mt-8">
     <div
         class="w-full max-w-7xl mx-auto"
     >
@@ -1864,7 +1863,7 @@ onBeforeUnmount(() => {
             </div>
         </Teleport>
 
-    
+
 <Teleport to="body">
 
     <div
@@ -1897,7 +1896,7 @@ onBeforeUnmount(() => {
                             <div
                                 class="mb-2 flex items-center gap-3"
                             >
-                                
+
 
                             </div>
 
@@ -2734,7 +2733,7 @@ onBeforeUnmount(() => {
         <!-- EDIT MODAL -->
         <!-- ================================================= -->
 
-        
+
 <Teleport to="body">
 
     <div
