@@ -230,153 +230,177 @@ onMounted(() => {
 
 
 <template>
-    <main class="min-h-screen bg-paper px-4 py-8 text-ink sm:px-6 lg:px-8">
+    <div class="mt-8">
         <div class="mx-auto w-full max-w-7xl">
 
-            <!-- =====================================================
-                 LETTERHEAD
-            ====================================================== -->
+            <!-- =========================================
+                 HEADER
+            ========================================== -->
 
-            <header class="border-b border-hairline pb-6">
-                <div
-                    class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"
-                >
-
-                    <div>
-                        <div class="flex items-center gap-3">
-
-                            <div
-                                class="flex h-10 w-10 items-center justify-center border border-forest bg-surface text-sm font-semibold text-forest"
-                            >
-                                SB
-                            </div>
-
-                            <div>
-                                <p class="text-sm font-semibold text-ink">
-                                    Student Records
-                                </p>
-
-                                <p class="text-xs text-ink-soft">
-                                    Academic administration
-                                </p>
-                            </div>
-
-                        </div>
-
-                        <h1
-                            class="mt-6 text-4xl font-medium tracking-tight text-ink sm:text-5xl"
-                        >
-                            Subjects
-                        </h1>
-
-                        <p
-                            class="mt-2 max-w-2xl text-sm leading-6 text-ink-soft"
-                        >
-                            Manage subjects, course information, and teacher
-                            assignments across the student management system.
-                        </p>
-                    </div>
-
-
-                    <!-- HEADER ACTIONS -->
-
-                    <div class="flex flex-col gap-2 sm:flex-row">
-
-                        <button
-                            type="button"
-                            @click="$router.push('/dashboard')"
-                            class="inline-flex w-fit items-center border border-hairline bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
-                        >
-                            ← Dashboard
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="openAddModal"
-                            v-if="canManageSubjects"
-                            class="inline-flex w-fit items-center border border-forest bg-forest px-4 py-2.5 text-sm font-medium text-white hover:bg-forest/90"
-                        >
-                            <span class="mr-2 text-base leading-none">
-                                +
-                            </span>
-
-                            Add subject
-                        </button>
-
-                    </div>
-
-                </div>
-            </header>
-
-
-            <!-- =====================================================
-                 SEARCH & FILTER
-            ====================================================== -->
-
-            <section
-                class="mt-8 border border-hairline bg-surface"
+            <div
+                class="flex flex-col gap-5 border-b border-[#D8DDD3] pb-6 dark:border-[#2E3B33] lg:flex-row lg:items-center lg:justify-between"
             >
+                <div>
+                    <p
+                        class="text-sm font-medium text-[#2F6F4E] dark:text-[#2F6F4E]"
+                    >
+                        Academic management
+                    </p>
 
-                <div
-                    class="border-b border-hairline px-5 py-5"
-                >
-                    <h2 class="text-2xl font-medium text-ink">
-                        Find subjects
-                    </h2>
+                    <h1
+                        class="mt-1 text-2xl text-[#1C2B24] dark:text-[#E8EBE4] sm:text-3xl"
+                    >
+                        Manage subjects
+                    </h1>
 
-                    <p class="mt-1 text-sm text-ink-soft">
-                        Search by subject name or code and filter by teacher
-                        assignment.
+                    <p
+                        class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
+                    >
+                        Manage subjects, course information, and teacher
+                        assignments.
                     </p>
                 </div>
 
+                <div class="flex items-center gap-3">
+                    <button
+                        type="button"
+                        @click="openAddModal"
+                        v-if="canManageSubjects"
+                        class="border border-[#2F6F4E] bg-[#2F6F4E] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#2F6F4E]/90"
+                    >
+                        + Add subject
+                    </button>
+                </div>
+            </div>
 
-                <div
-                    class="grid gap-5 p-5 md:grid-cols-[1fr_280px]"
-                >
+            <!-- =========================================
+                 ERROR
+            ========================================== -->
 
-                    <!-- SEARCH -->
+            <div
+                v-if="subjectStore.error"
+                class="mt-6 border border-[#B5563C]/30 bg-white px-4 py-3 dark:bg-[#1E2B24]"
+            >
+                <div class="flex items-start gap-3">
+                    <span class="text-sm font-semibold text-[#B5563C]">
+                        !
+                    </span>
 
-                    <div>
-                        <label
-                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                    <p class="text-sm text-[#B5563C]">
+                        {{ subjectStore.error }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 STATS
+            ========================================== -->
+
+            <section
+                class="mt-8 overflow-hidden rounded-md border border-[#D8DDD3] bg-white dark:border-[#2E3B33] dark:bg-[#1E2B24]"
+            >
+                <div class="grid sm:grid-cols-3">
+
+                    <!-- TOTAL SUBJECTS -->
+
+                    <div
+                        class="border-b border-[#D8DDD3] px-5 py-5 dark:border-[#2E3B33] sm:border-b-0 sm:border-r"
+                    >
+                        <p
+                            class="text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                         >
-                            Search
-                        </label>
+                            Total subjects
+                        </p>
 
-                        <div class="relative">
-
-                            <span
-                                class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-soft"
-                            >
-                                /
-                            </span>
-
-                            <input
-                                v-model="searchQuery"
-                                type="text"
-                                placeholder="Search by subject name or code"
-                                class="w-full border border-hairline bg-surface px-3 py-2.5 pl-8 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
-                            />
-
-                        </div>
+                        <p
+                            class="mt-1 text-2xl text-[#1C2B24] dark:text-[#E8EBE4]"
+                        >
+                            {{
+                                subjectStore.pagination.totalSubjects
+                            }}
+                        </p>
                     </div>
 
+                    <!-- CURRENT PAGE -->
+
+                    <div
+                        class="border-b border-[#D8DDD3] px-5 py-5 dark:border-[#2E3B33] sm:border-b-0 sm:border-r"
+                    >
+                        <p
+                            class="text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
+                        >
+                            Current page
+                        </p>
+
+                        <p
+                            class="mt-1 text-2xl text-[#1C2B24] dark:text-[#E8EBE4]"
+                        >
+                            {{
+                                subjectStore.pagination.currentPage
+                            }}
+                        </p>
+                    </div>
+
+                    <!-- TOTAL PAGES -->
+
+                    <div class="px-5 py-5">
+                        <p
+                            class="text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
+                        >
+                            Total pages
+                        </p>
+
+                        <p
+                            class="mt-1 text-2xl text-[#1C2B24] dark:text-[#E8EBE4]"
+                        >
+                            {{
+                                subjectStore.pagination.lastPage
+                            }}
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =========================================
+                 SEARCH / FILTER
+            ========================================== -->
+
+            <section
+                class="mt-6 rounded-md border border-[#D8DDD3] bg-white p-5 dark:border-[#2E3B33] dark:bg-[#1E2B24]"
+            >
+                <div
+                    class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
+                >
+                    <!-- SEARCH -->
+
+                    <div class="w-full lg:w-96">
+                        <label
+                            class="mb-2 block text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
+                        >
+                            Search subjects
+                        </label>
+
+                        <input
+                            v-model="searchQuery"
+                            type="text"
+                            placeholder="Search by subject name or code"
+                            class="w-full border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm text-[#1C2B24] outline-none placeholder:text-[#5B6B62]/50 transition focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4] dark:placeholder:text-[#9AA79E]/50"
+                        />
+                    </div>
 
                     <!-- TEACHER FILTER -->
 
-                    <div>
+                    <div class="w-full lg:w-72">
                         <label
-                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                            class="mb-2 block text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                         >
                             Teacher assignment
                         </label>
 
                         <select
                             v-model="teacherFilter"
-                            class="w-full border border-hairline bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-forest focus:ring-1 focus:ring-forest"
+                            class="w-full border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm text-[#1C2B24] outline-none transition focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4]"
                         >
-
                             <option value="all">
                                 All subjects
                             </option>
@@ -388,68 +412,40 @@ onMounted(() => {
                             <option value="without_teacher">
                                 Without teacher
                             </option>
-
                         </select>
                     </div>
-
                 </div>
-
             </section>
 
-
-            <!-- =====================================================
-                 ERROR
-            ====================================================== -->
-
-            <div
-                v-if="subjectStore.error"
-                class="mt-6 border border-sienna/30 bg-surface px-4 py-3"
-            >
-
-                <div class="flex items-start gap-3">
-
-                    <span
-                        class="text-sm font-semibold text-sienna"
-                    >
-                        !
-                    </span>
-
-                    <p class="text-sm text-sienna">
-                        {{ subjectStore.error }}
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <!-- =====================================================
-                 SUBJECT LEDGER
-            ====================================================== -->
+            <!-- =========================================
+                 SUBJECT TABLE
+            ========================================== -->
 
             <section
-                class="mt-6 border border-hairline bg-surface"
+                class="mt-6 overflow-hidden rounded-md border border-[#D8DDD3] bg-white dark:border-[#2E3B33] dark:bg-[#1E2B24]"
             >
-
-                <!-- SECTION HEADER -->
+                <!-- TABLE HEADER -->
 
                 <div
-                    class="flex flex-col gap-2 border-b border-hairline px-5 py-5 sm:flex-row sm:items-center sm:justify-between"
+                    class="flex flex-col gap-2 border-b border-[#D8DDD3] px-5 py-5 dark:border-[#2E3B33] sm:flex-row sm:items-center sm:justify-between"
                 >
-
                     <div>
-                        <h2 class="text-2xl font-medium text-ink">
+                        <h2
+                            class="text-lg font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
+                        >
                             Subject register
                         </h2>
 
-                        <p class="mt-1 text-sm text-ink-soft">
+                        <p
+                            class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
+                        >
                             Subjects currently registered in the system.
                         </p>
                     </div>
 
                     <p
                         v-if="!subjectStore.loading"
-                        class="text-xs text-ink-soft"
+                        class="text-xs text-[#5B6B62] dark:text-[#9AA79E]"
                     >
                         {{ subjectStore.pagination.totalSubjects }}
                         subject{{
@@ -458,136 +454,114 @@ onMounted(() => {
                                 : 's'
                         }}
                     </p>
-
                 </div>
-
 
                 <!-- TABLE -->
 
                 <div class="overflow-x-auto">
+                    <table class="w-full min-w-[900px] text-left">
 
-                    <table class="w-full min-w-[850px] text-left">
-
-                        <!-- TABLE HEAD -->
-
-                        <thead>
-                            <tr
-                                class="border-b border-hairline bg-paper/60"
-                            >
-
+                        <thead
+                            class="border-b border-[#D8DDD3] bg-[#F4F6F1] dark:border-[#2E3B33] dark:bg-[#16211B]"
+                        >
+                            <tr>
                                 <th
-                                    class="w-20 px-5 py-3 text-xs font-medium text-ink-soft"
+                                    class="w-20 px-5 py-4 text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                                 >
                                     S.N.
                                 </th>
 
                                 <th
-                                    class="px-5 py-3 text-xs font-medium text-ink-soft"
+                                    class="px-5 py-4 text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                                 >
                                     Subject
                                 </th>
 
                                 <th
-                                    class="px-5 py-3 text-xs font-medium text-ink-soft"
+                                    class="px-5 py-4 text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                                 >
                                     Code
                                 </th>
 
                                 <th
-                                    class="px-5 py-3 text-xs font-medium text-ink-soft"
+                                    class="px-5 py-4 text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                                 >
                                     Description
                                 </th>
 
                                 <th
-                                    class="px-5 py-3 text-xs font-medium text-ink-soft"
+                                    class="px-5 py-4 text-right text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                                 >
                                     Actions
                                 </th>
-
                             </tr>
                         </thead>
 
-
                         <tbody>
 
-                            <!-- =================================================
-                                 LOADING
-                            ================================================== -->
+                            <!-- LOADING -->
 
                             <tr v-if="subjectStore.loading">
-
                                 <td
                                     colspan="5"
-                                    class="px-5 py-12 text-center"
+                                    class="px-5 py-14 text-center"
                                 >
-
                                     <div
-                                        class="mx-auto mb-4 h-7 w-7 animate-spin rounded-full border-2 border-hairline border-t-forest"
+                                        class="mx-auto mb-4 h-7 w-7 animate-spin rounded-full border-2 border-[#D8DDD3] border-t-[#2F6F4E]"
                                     ></div>
 
-                                    <p class="text-sm text-ink-soft">
+                                    <p
+                                        class="text-sm text-[#5B6B62] dark:text-[#9AA79E]"
+                                    >
                                         Loading subjects...
                                     </p>
-
                                 </td>
-
                             </tr>
 
-
-                            <!-- =================================================
-                                 EMPTY
-                            ================================================== -->
+                            <!-- EMPTY -->
 
                             <tr
                                 v-else-if="
                                     subjectStore.subjects.length === 0
                                 "
                             >
-
                                 <td
                                     colspan="5"
                                     class="px-5 py-14 text-center"
                                 >
-
                                     <div
-                                        class="mx-auto flex h-12 w-12 items-center justify-center border border-hairline bg-paper text-lg text-forest"
+                                        class="mx-auto flex h-12 w-12 items-center justify-center border border-[#D8DDD3] bg-[#F4F6F1] text-lg text-[#2F6F4E] dark:border-[#2E3B33] dark:bg-[#16211B]"
                                     >
                                         —
                                     </div>
 
                                     <p
-                                        class="mt-4 text-sm font-medium text-ink"
+                                        class="mt-4 text-sm font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                                     >
                                         No subjects found
                                     </p>
 
                                     <p
-                                        class="mt-1 text-sm text-ink-soft"
+                                        class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                                     >
                                         Try changing your search or filter.
                                     </p>
-
                                 </td>
-
                             </tr>
 
-
-                            <!-- =================================================
-                                 SUBJECT ROWS
-                            ================================================== -->
+                            <!-- SUBJECT ROWS -->
 
                             <tr
                                 v-else
                                 v-for="(subject, index) in subjectStore.subjects"
                                 :key="subject.id"
-                                class="border-b border-hairline last:border-b-0 hover:bg-paper/40"
+                                class="border-b border-[#D8DDD3] last:border-b-0 hover:bg-[#F4F6F1] dark:border-[#2E3B33] dark:hover:bg-[#243329]"
                             >
 
                                 <!-- S.N. -->
 
                                 <td
-                                    class="px-5 py-4 text-sm text-ink-soft"
+                                    class="px-5 py-4 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                                 >
                                     {{
                                         (subjectStore.pagination.currentPage - 1)
@@ -596,134 +570,121 @@ onMounted(() => {
                                     }}
                                 </td>
 
-
                                 <!-- SUBJECT -->
 
                                 <td class="px-5 py-4">
-
                                     <p
-                                        class="text-lg font-medium text-ink"
+                                        class="text-base font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                                     >
                                         {{ subject.name }}
                                     </p>
-
                                 </td>
-
 
                                 <!-- CODE -->
 
                                 <td class="px-5 py-4">
-
                                     <span
-                                        class="inline-flex border border-forest/30 bg-paper px-2.5 py-1 text-xs font-medium text-forest"
+                                        class="inline-flex border border-[#2F6F4E]/30 bg-[#F4F6F1] px-2.5 py-1 text-xs font-medium text-[#2F6F4E] dark:bg-[#16211B]"
                                     >
                                         {{ subject.code }}
                                     </span>
-
                                 </td>
-
 
                                 <!-- DESCRIPTION -->
 
-                                <td
-                                    class="max-w-sm px-5 py-4"
-                                >
-
+                                <td class="max-w-sm px-5 py-4">
                                     <p
-                                        class="truncate text-sm text-ink-soft"
+                                        class="truncate text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                                         :title="
                                             subject.description || '-'
                                         "
                                     >
                                         {{ subject.description || '-' }}
                                     </p>
-
                                 </td>
-
 
                                 <!-- ACTIONS -->
 
                                 <td class="px-5 py-4">
-
                                     <div
-                                        class="flex items-center gap-4"
+                                        class="flex justify-end gap-2"
                                     >
+                                        <!-- VIEW -->
 
                                         <button
                                             type="button"
                                             @click="openViewModal(subject)"
-                                            class="text-sm font-medium text-ink hover:text-forest hover:underline"
+                                            class="border border-[#D8DDD3] bg-white px-3 py-1.5 text-sm font-medium text-[#5B6B62] transition hover:border-[#5B6B62] hover:text-[#1C2B24] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#9AA79E] dark:hover:border-[#9AA79E] dark:hover:text-[#E8EBE4]"
                                         >
                                             View
                                         </button>
+
+                                        <!-- EDIT -->
 
                                         <button
                                             type="button"
                                             @click="openEditModal(subject)"
                                             v-if="canManageSubjects"
-                                            class="text-sm font-medium text-forest hover:underline"
+                                            class="border border-[#2F6F4E]/40 bg-white px-3 py-1.5 text-sm font-medium text-[#2F6F4E] transition hover:border-[#2F6F4E] hover:bg-[#F4F6F1] dark:bg-[#1E2B24] dark:hover:bg-[#243329]"
                                         >
                                             Edit
                                         </button>
+
+                                        <!-- DELETE -->
 
                                         <button
                                             type="button"
                                             @click="removeSubject(subject.id)"
                                             v-if="canManageSubjects"
-                                            class="text-sm font-medium text-sienna hover:underline"
+                                            class="border border-[#B5563C]/40 bg-white px-3 py-1.5 text-sm font-medium text-[#B5563C] transition hover:border-[#B5563C] hover:bg-[#F4F6F1] dark:bg-[#1E2B24] dark:hover:bg-[#243329]"
                                         >
                                             Delete
                                         </button>
-
                                     </div>
-
                                 </td>
-
                             </tr>
-
                         </tbody>
-
                     </table>
-
                 </div>
-
             </section>
 
-
-            <!-- =====================================================
+            <!-- =========================================
                  PAGINATION
-            ====================================================== -->
+            ========================================== -->
 
             <div
                 v-if="subjectStore.pagination.lastPage > 1"
-                class="flex flex-col gap-4 border-b border-hairline py-5 sm:flex-row sm:items-center sm:justify-between"
+                class="flex flex-col gap-4 border-b border-[#D8DDD3] py-5 dark:border-[#2E3B33] sm:flex-row sm:items-center sm:justify-between"
             >
-
-                <p class="text-sm text-ink-soft">
-
+                <p
+                    class="text-sm text-[#5B6B62] dark:text-[#9AA79E]"
+                >
                     Showing
 
-                    <span class="font-medium text-ink">
+                    <span
+                        class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
+                    >
                         {{ subjectStore.pagination.from }}
                     </span>
 
                     -
 
-                    <span class="font-medium text-ink">
+                    <span
+                        class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
+                    >
                         {{ subjectStore.pagination.to }}
                     </span>
 
                     of
 
-                    <span class="font-medium text-ink">
+                    <span
+                        class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
+                    >
                         {{ subjectStore.pagination.totalSubjects }}
                     </span>
-
                 </p>
 
-
                 <div class="flex items-center">
-
                     <button
                         type="button"
                         @click="
@@ -734,25 +695,30 @@ onMounted(() => {
                         :disabled="
                             subjectStore.pagination.currentPage === 1
                         "
-                        class="border border-hairline bg-surface px-3 py-2 text-sm font-medium text-ink hover:border-forest hover:text-forest disabled:cursor-not-allowed disabled:opacity-40"
+                        class="border border-[#D8DDD3] bg-white px-3 py-2 text-sm font-medium text-[#5B6B62] transition hover:border-[#2F6F4E] hover:text-[#2F6F4E] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#9AA79E]"
                     >
                         ← Previous
                     </button>
 
-
                     <span
-                        class="border-y border-hairline bg-paper px-4 py-2 text-sm text-ink-soft"
+                        class="border-y border-[#D8DDD3] bg-[#F4F6F1] px-4 py-2 text-sm text-[#5B6B62] dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#9AA79E]"
                     >
                         Page
-                        <span class="font-medium text-ink">
+
+                        <span
+                            class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
+                        >
                             {{ subjectStore.pagination.currentPage }}
                         </span>
+
                         of
-                        <span class="font-medium text-ink">
+
+                        <span
+                            class="font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
+                        >
                             {{ subjectStore.pagination.lastPage }}
                         </span>
                     </span>
-
 
                     <button
                         type="button"
@@ -765,32 +731,27 @@ onMounted(() => {
                             subjectStore.pagination.currentPage ===
                             subjectStore.pagination.lastPage
                         "
-                        class="border border-hairline bg-surface px-3 py-2 text-sm font-medium text-ink hover:border-forest hover:text-forest disabled:cursor-not-allowed disabled:opacity-40"
+                        class="border border-[#D8DDD3] bg-white px-3 py-2 text-sm font-medium text-[#5B6B62] transition hover:border-[#2F6F4E] hover:text-[#2F6F4E] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#9AA79E]"
                     >
                         Next →
                     </button>
-
                 </div>
-
             </div>
 
-
-            <!-- =====================================================
+            <!-- =========================================
                  FOOTER NOTE
-            ====================================================== -->
+            ========================================== -->
 
-            <div class="border-t border-hairline py-5">
-
-                <p class="text-xs leading-5 text-ink-soft">
+            <div class="border-t border-[#D8DDD3] py-5 dark:border-[#2E3B33]">
+                <p
+                    class="text-xs leading-5 text-[#5B6B62] dark:text-[#9AA79E]"
+                >
                     Subjects define the academic structure of the student
                     management system. Keep subject codes consistent and
                     review teacher assignments regularly.
                 </p>
-
             </div>
-
         </div>
-
 
         <!-- =========================================================
              ADD / EDIT MODAL
@@ -798,27 +759,22 @@ onMounted(() => {
 
         <div
             v-if="showModal"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4 py-6"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-[#1C2B24]/50 px-4 py-6"
         >
-
             <div
-                class="w-full max-w-lg border border-hairline bg-surface"
+                class="w-full max-w-lg border border-[#D8DDD3] bg-white dark:border-[#2E3B33] dark:bg-[#1E2B24]"
             >
-
                 <!-- MODAL HEADER -->
 
                 <div
-                    class="border-b border-hairline px-6 py-5"
+                    class="border-b border-[#D8DDD3] px-6 py-5 dark:border-[#2E3B33]"
                 >
-
                     <div
                         class="flex items-start justify-between gap-4"
                     >
-
                         <div>
-
                             <h2
-                                class="text-2xl font-medium text-ink"
+                                class="text-2xl font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                             >
                                 {{
                                     editingSubject
@@ -828,7 +784,7 @@ onMounted(() => {
                             </h2>
 
                             <p
-                                class="mt-1 text-sm text-ink-soft"
+                                class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                             >
                                 {{
                                     editingSubject
@@ -836,22 +792,17 @@ onMounted(() => {
                                         : 'Add a new subject to the system.'
                                 }}
                             </p>
-
                         </div>
-
 
                         <button
                             type="button"
                             @click="closeModal"
-                            class="text-2xl leading-none text-ink-soft hover:text-ink"
+                            class="text-2xl leading-none text-[#5B6B62] transition hover:text-[#1C2B24] dark:text-[#9AA79E] dark:hover:text-[#E8EBE4]"
                         >
                             ×
                         </button>
-
                     </div>
-
                 </div>
-
 
                 <!-- MODAL BODY -->
 
@@ -861,32 +812,24 @@ onMounted(() => {
 
                     <div
                         v-if="errorMessage"
-                        class="mb-5 border border-sienna/30 bg-paper px-4 py-3"
+                        class="mb-5 border border-[#B5563C]/30 bg-[#F4F6F1] px-4 py-3 dark:bg-[#16211B]"
                     >
-
                         <div class="flex items-start gap-3">
-
-                            <span
-                                class="font-semibold text-sienna"
-                            >
+                            <span class="font-semibold text-[#B5563C]">
                                 !
                             </span>
 
-                            <p class="text-sm text-sienna">
+                            <p class="text-sm text-[#B5563C]">
                                 {{ errorMessage }}
                             </p>
-
                         </div>
-
                     </div>
-
 
                     <!-- NAME -->
 
                     <div class="mb-5">
-
                         <label
-                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                            class="mb-1.5 block text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                         >
                             Subject name
                         </label>
@@ -895,26 +838,43 @@ onMounted(() => {
                             v-model="form.name"
                             type="text"
                             placeholder="Enter subject name"
-                            class="w-full border border-hairline bg-surface px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                            class="w-full border border-[#D8DDD3] bg-white px-3 py-2.5 text-sm text-[#1C2B24] outline-none placeholder:text-[#5B6B62]/60 focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4]"
                         />
-
                     </div>
+
+                    <!-- CLASS -->
 
                     <div class="mb-5">
-                        <label class="mb-1.5 block text-xs font-medium text-ink-soft">Class</label>
-                        <select v-model="form.class" required class="w-full border border-hairline bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-forest focus:ring-1 focus:ring-forest">
-                            <option value="" disabled>Select class</option>
-                            <option v-for="classNumber in 10" :key="classNumber" :value="classNumber">Class {{ classNumber }}</option>
+                        <label
+                            class="mb-1.5 block text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
+                        >
+                            Class
+                        </label>
+
+                        <select
+                            v-model="form.class"
+                            required
+                            class="w-full border border-[#D8DDD3] bg-white px-3 py-2.5 text-sm text-[#1C2B24] outline-none focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4]"
+                        >
+                            <option value="" disabled>
+                                Select class
+                            </option>
+
+                            <option
+                                v-for="classNumber in 10"
+                                :key="classNumber"
+                                :value="classNumber"
+                            >
+                                Class {{ classNumber }}
+                            </option>
                         </select>
                     </div>
-
 
                     <!-- CODE -->
 
                     <div class="mb-5">
-
                         <label
-                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                            class="mb-1.5 block text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                         >
                             Subject code
                         </label>
@@ -923,18 +883,15 @@ onMounted(() => {
                             v-model="form.code"
                             type="text"
                             placeholder="Enter subject code"
-                            class="w-full border border-hairline bg-surface px-3 py-2.5 text-sm uppercase text-ink outline-none placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                            class="w-full border border-[#D8DDD3] bg-white px-3 py-2.5 text-sm uppercase text-[#1C2B24] outline-none placeholder:text-[#5B6B62]/60 focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4]"
                         />
-
                     </div>
-
 
                     <!-- DESCRIPTION -->
 
                     <div class="mb-6">
-
                         <label
-                            class="mb-1.5 block text-xs font-medium text-ink-soft"
+                            class="mb-1.5 block text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                         >
                             Description
                         </label>
@@ -943,32 +900,28 @@ onMounted(() => {
                             v-model="form.description"
                             rows="4"
                             placeholder="Enter subject description"
-                            class="w-full resize-none border border-hairline bg-surface px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-forest focus:ring-1 focus:ring-forest"
+                            class="w-full resize-none border border-[#D8DDD3] bg-white px-3 py-2.5 text-sm text-[#1C2B24] outline-none placeholder:text-[#5B6B62]/60 focus:border-[#2F6F4E] focus:ring-1 focus:ring-[#2F6F4E] dark:border-[#2E3B33] dark:bg-[#16211B] dark:text-[#E8EBE4]"
                         ></textarea>
-
                     </div>
-
 
                     <!-- ACTIONS -->
 
                     <div
-                        class="flex flex-col-reverse gap-2 border-t border-hairline pt-5 sm:flex-row sm:justify-end"
+                        class="flex flex-col-reverse gap-2 border-t border-[#D8DDD3] pt-5 dark:border-[#2E3B33] sm:flex-row sm:justify-end"
                     >
-
                         <button
                             type="button"
                             @click="closeModal"
-                            class="border border-hairline bg-surface px-5 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
+                            class="border border-[#D8DDD3] bg-white px-5 py-2.5 text-sm font-medium text-[#5B6B62] transition hover:border-[#5B6B62] hover:text-[#1C2B24] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#9AA79E] dark:hover:text-[#E8EBE4]"
                         >
                             Cancel
                         </button>
-
 
                         <button
                             type="button"
                             @click="saveSubject"
                             :disabled="subjectStore.loading"
-                            class="border border-forest bg-forest px-5 py-2.5 text-sm font-medium text-white hover:bg-forest/90 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="border border-[#2F6F4E] bg-[#2F6F4E] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#2F6F4E]/90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {{
                                 editingSubject
@@ -976,15 +929,10 @@ onMounted(() => {
                                     : 'Add subject'
                             }}
                         </button>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
 
         <!-- =========================================================
              VIEW SUBJECT MODAL
@@ -992,52 +940,42 @@ onMounted(() => {
 
         <div
             v-if="viewingSubject"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4 py-6"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-[#1C2B24]/50 px-4 py-6"
         >
-
             <div
-                class="w-full max-w-lg border border-hairline bg-surface"
+                class="w-full max-w-lg border border-[#D8DDD3] bg-white dark:border-[#2E3B33] dark:bg-[#1E2B24]"
             >
-
                 <!-- MODAL HEADER -->
 
                 <div
-                    class="border-b border-hairline px-6 py-5"
+                    class="border-b border-[#D8DDD3] px-6 py-5 dark:border-[#2E3B33]"
                 >
-
                     <div
                         class="flex items-start justify-between gap-4"
                     >
-
                         <div>
-
                             <h2
-                                class="text-2xl font-medium text-ink"
+                                class="text-2xl font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                             >
                                 Subject details
                             </h2>
 
                             <p
-                                class="mt-1 text-sm text-ink-soft"
+                                class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                             >
                                 Subject and teacher assignment information.
                             </p>
-
                         </div>
-
 
                         <button
                             type="button"
                             @click="viewingSubject = null"
-                            class="text-2xl leading-none text-ink-soft hover:text-ink"
+                            class="text-2xl leading-none text-[#5B6B62] transition hover:text-[#1C2B24] dark:text-[#9AA79E] dark:hover:text-[#E8EBE4]"
                         >
                             ×
                         </button>
-
                     </div>
-
                 </div>
-
 
                 <!-- MODAL BODY -->
 
@@ -1046,91 +984,78 @@ onMounted(() => {
                     <!-- SUBJECT -->
 
                     <div
-                        class="border-b border-hairline pb-5"
+                        class="border-b border-[#D8DDD3] pb-5 dark:border-[#2E3B33]"
                     >
-
                         <p
-                            class="text-xs font-medium text-ink-soft"
+                            class="text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                         >
                             Subject name
                         </p>
 
                         <p
-                            class="mt-1 text-xl font-medium text-ink"
+                            class="mt-1 text-xl font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                         >
                             {{ viewingSubject.name }}
                         </p>
-
                     </div>
-
 
                     <!-- CODE -->
 
                     <div
-                        class="border-b border-hairline py-5"
+                        class="border-b border-[#D8DDD3] py-5 dark:border-[#2E3B33]"
                     >
-
                         <p
-                            class="text-xs font-medium text-ink-soft"
+                            class="text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                         >
                             Subject code
                         </p>
 
                         <span
-                            class="mt-2 inline-flex border border-forest/30 bg-paper px-2.5 py-1 text-xs font-medium text-forest"
+                            class="mt-2 inline-flex border border-[#2F6F4E]/30 bg-[#F4F6F1] px-2.5 py-1 text-xs font-medium text-[#2F6F4E] dark:bg-[#16211B]"
                         >
                             {{ viewingSubject.code }}
                         </span>
-
                     </div>
-
 
                     <!-- DESCRIPTION -->
 
                     <div
-                        class="border-b border-hairline py-5"
+                        class="border-b border-[#D8DDD3] py-5 dark:border-[#2E3B33]"
                     >
-
                         <p
-                            class="text-xs font-medium text-ink-soft"
+                            class="text-xs font-medium text-[#5B6B62] dark:text-[#9AA79E]"
                         >
                             Description
                         </p>
 
                         <p
-                            class="mt-2 text-sm leading-6 text-ink-soft"
+                            class="mt-2 text-sm leading-6 text-[#5B6B62] dark:text-[#9AA79E]"
                         >
                             {{ viewingSubject.description || '-' }}
                         </p>
-
                     </div>
-
 
                     <!-- TEACHERS -->
 
                     <div class="pt-5">
-
                         <div
                             class="flex items-center justify-between"
                         >
-
                             <p
-                                class="text-sm font-medium text-ink"
+                                class="text-sm font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                             >
                                 Teacher assignment
                             </p>
 
                             <span
-                                class="text-xs text-ink-soft"
+                                class="text-xs text-[#5B6B62] dark:text-[#9AA79E]"
                             >
                                 {{
                                     viewingSubject.teachers?.length || 0
                                 }}
                                 assigned
                             </span>
-
                         </div>
-
 
                         <!-- TEACHERS -->
 
@@ -1139,78 +1064,63 @@ onMounted(() => {
                                 viewingSubject.teachers &&
                                 viewingSubject.teachers.length > 0
                             "
-                            class="mt-4 divide-y divide-hairline border-y border-hairline"
+                            class="mt-4 divide-y divide-[#D8DDD3] border-y border-[#D8DDD3] dark:divide-[#2E3B33] dark:border-[#2E3B33]"
                         >
-
                             <div
                                 v-for="teacher in viewingSubject.teachers"
                                 :key="teacher.id"
                                 class="py-4"
                             >
-
                                 <p
-                                    class="text-sm font-medium text-ink"
+                                    class="text-sm font-medium text-[#1C2B24] dark:text-[#E8EBE4]"
                                 >
                                     {{ teacher.name }}
                                 </p>
 
                                 <p
-                                    class="mt-1 text-sm text-ink-soft"
+                                    class="mt-1 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                                 >
                                     {{ teacher.email }}
                                 </p>
 
                                 <p
                                     v-if="teacher.phone"
-                                    class="mt-0.5 text-sm text-ink-soft"
+                                    class="mt-0.5 text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                                 >
                                     {{ teacher.phone }}
                                 </p>
-
                             </div>
-
                         </div>
-
 
                         <!-- NO TEACHER -->
 
                         <div
                             v-else
-                            class="mt-4 border border-hairline bg-paper px-4 py-4"
+                            class="mt-4 border border-[#D8DDD3] bg-[#F4F6F1] px-4 py-4 dark:border-[#2E3B33] dark:bg-[#16211B]"
                         >
-
                             <p
-                                class="text-sm text-ink-soft"
+                                class="text-sm text-[#5B6B62] dark:text-[#9AA79E]"
                             >
                                 No teacher assigned.
                             </p>
-
                         </div>
-
                     </div>
-
 
                     <!-- CLOSE -->
 
                     <div
-                        class="mt-6 flex justify-end border-t border-hairline pt-5"
+                        class="mt-6 flex justify-end border-t border-[#D8DDD3] pt-5 dark:border-[#2E3B33]"
                     >
-
                         <button
                             type="button"
                             @click="viewingSubject = null"
-                            class="border border-hairline bg-surface px-5 py-2.5 text-sm font-medium text-ink hover:border-forest hover:text-forest"
+                            class="border border-[#D8DDD3] bg-white px-5 py-2.5 text-sm font-medium text-[#5B6B62] transition hover:border-[#2F6F4E] hover:text-[#2F6F4E] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#9AA79E] dark:hover:text-[#2F6F4E]"
                         >
                             Close
                         </button>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
-    </main>
+    </div>
 </template>

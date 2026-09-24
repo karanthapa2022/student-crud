@@ -1465,30 +1465,6 @@ onBeforeUnmount(() => {
         Dashboard
     </button>
 
-                <button
-                    type="button"
-                    @click="router.push('/profile')"
-                    class="w-full rounded-md border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-medium text-[#1C2B24] transition hover:bg-[#EFF1EA] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#E8EBE4] dark:hover:bg-[#243329] sm:w-auto"
-                >
-                    Profile
-                </button>
-
-                <button
-                        type="button"
-                        @click="toggleDarkMode"
-                        class="rounded-md border border-[#D8DDD3] bg-white px-4 py-2.5 text-sm font-medium text-[#1C2B24] transition hover:bg-[#EFF1EA] dark:border-[#2E3B33] dark:bg-[#1E2B24] dark:text-[#E8EBE4] dark:hover:bg-[#243329]"
-                    >
-                        {{ isDark ? 'Light mode' : 'Dark mode' }}
-                    </button>
-
-                <button
-                    type="button"
-                    @click="logout"
-                    class="w-full rounded-md border border-[#B5563C]/35 bg-transparent px-4 py-2.5 text-sm font-medium text-[#B5563C] transition hover:bg-[#B5563C]/5 sm:w-auto"
-                >
-                    Sign out
-                </button>
-
             </div>
 
         </div>

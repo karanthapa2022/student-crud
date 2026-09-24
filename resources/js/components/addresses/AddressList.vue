@@ -294,7 +294,7 @@ const paginationPages = computed(() => {
                     </div>
 
                     <h1
-                        class="font-serif text-4xl font-medium leading-tight text-ink"
+                        class=" text-4xl font-medium leading-tight text-ink"
                     >
                         Addresses
                     </h1>
@@ -462,7 +462,7 @@ const paginationPages = computed(() => {
                         </p>
 
                         <h2
-                            class="mt-1 font-serif text-2xl font-medium text-ink"
+                            class="mt-1 text-2xl font-medium text-ink"
                         >
                             Student Addresses
                         </h2>
@@ -788,7 +788,7 @@ const paginationPages = computed(() => {
                         </p>
 
                         <h2
-                            class="mt-1 font-serif text-2xl font-medium text-ink"
+                            class="mt-1 text-2xl font-medium text-ink"
                         >
                             {{
                                 isEditing

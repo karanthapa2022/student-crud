@@ -23,13 +23,13 @@ use App\Http\Controllers\Api\NotificationController;
 // =========================================================
 
 Route::post('/register', [ApiAuthController::class, 'register'])
-    ->middleware('throttle:10,1');
+    ->middleware('throttle:20,1');
 
 Route::post('/login', [ApiAuthController::class, 'login'])
-    ->middleware('throttle:10,1');
+    ->middleware('throttle:30,1');
 
 Route::post('/parent/login', [ParentAuthController::class, 'login'])
-    ->middleware('throttle:10,1');
+    ->middleware('throttle:30,1');
 
 
 // =========================================================

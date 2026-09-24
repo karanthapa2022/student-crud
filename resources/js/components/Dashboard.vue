@@ -65,8 +65,18 @@ const loadDashboard = async () => {
     }
 
     if (!response.ok) {
-      throw new Error('Failed to load dashboard.')
-    }
+    const responseText = await response.text()
+
+    console.error('Dashboard API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        response: responseText,
+    })
+
+    throw new Error(
+        `Dashboard request failed (${response.status}).`
+    )
+}
 
     dashboard.value = await response.json()
   } catch (err) {
@@ -94,77 +104,12 @@ const goToNotifications= () => router.push('/notifications')
 
 onMounted(()=>{
   loadDashboard()
-  loadUnreadNotificationCount()
 })
 </script>
 
 
 <template>
   <div class="min-h-screen bg-[#F4F6F1] text-[#1C2B24]">
-
-    <!-- ===================================================== -->
-    <!-- TOP NAVIGATION -->
-    <!-- ===================================================== -->
-
-    <header class="border-b border-[#D8DDD3] bg-white">
-      <div
-        class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-6"
-      >
-
-        <!-- BRAND / USER -->
-        <div class="flex items-center gap-3">
-          <div
-            class="flex h-10 w-10 items-center justify-center bg-[#2F6F4E] text-sm font-semibold text-white"
-          >
-            {{ roleInitial }}
-          </div>
-
-          <div>
-            <p class="text-sm font-semibold text-[#1C2B24]">
-              {{ roleLabel[dashboard.role] || 'Dashboard' }}
-            </p>
-
-            <p class="text-xs text-[#6B776F]">
-              School Management System
-            </p>
-          </div>
-        </div>
-
-
-        <!-- ACTIONS -->
-        <div class="flex items-center gap-2">
-
-          <button
-            @click="goToProfile"
-            class="hidden border border-[#D8DDD3] bg-white px-4 py-2 text-sm font-medium text-[#1C2B24] transition hover:bg-[#F4F6F1] sm:block"
-          >
-            Profile
-          </button>
-
-          <button
-          @click="goToNotifications"
-          class="relative border border-[#D8DDD3] bg-white px-4 py-2 text-sm font-medium text-[#1C2B24] transition hover:bg-[#F4F6F1]"
-          >
-            Notifications
-            <span
-            v-if="unreadNotificationCount>0"
-            class="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-[#B5563C] px-1.5 py-0.5 text-xs font-semibold text-white"
-            >
-              {{ unreadNotificationCount }}
-            </span>
-          </button>
-
-          <button
-            @click="logout"
-            class="border border-[#B5563C]/30 px-4 py-2 text-sm font-medium text-[#B5563C] transition hover:bg-[#B5563C]/5"
-          >
-            Sign out
-          </button>
-
-          
-        </div>
-      </div>
-    </header>
 
 
     <!-- ===================================================== -->
@@ -248,9 +193,9 @@ onMounted(()=>{
 
               <div class="mb-4 flex items-center gap-2">
 
-                
 
-                <span class="text-sm text-black/60">
+
+                <span class="mt-5 text-sm dark:text-white font-semibold">
                   Dashboard
                 </span>
 
@@ -258,14 +203,14 @@ onMounted(()=>{
 
 
               <h1
-                class="text-3xl font-semibold sm:text-4xl"
+                class="text-3xl font-semibold dark:text-white sm:text-4xl"
               >
                 Welcome back, {{ dashboard.user?.name || 'User' }}
               </h1>
 
 
               <p
-                class="mt-3 max-w-xl text-sm leading-6 text-black/75"
+                class="mt-3 max-w-xl text-sm dark:text-white leading-6 text-black/75"
               >
                 Manage your school activities, records and academic
                 information from one place.
@@ -280,17 +225,17 @@ onMounted(()=>{
               class="border border-white/15 bg-black/10 px-5 py-4 lg:min-w-[260px]"
             >
 
-              <p class="text-xs text-black/55">
+              <p class="text-xs dark:text-white text-black/55">
                 Signed in as
               </p>
 
-              <p class="mt-1 text-sm font-semibold">
+              <p class="mt-1 text-sm dark:text-white font-semibold">
                 {{ dashboard.user?.name || 'Unnamed user' }}
               </p>
 
               <p
                 v-if="dashboard.user?.email"
-                class="mt-1 break-all text-xs text-black/65"
+                class="mt-1 break-all text-xs dark:text-white text-black/65"
               >
                 {{ dashboard.user.email }}
               </p>
@@ -368,7 +313,7 @@ onMounted(()=>{
                   </p>
                 </div>
 
-                
+
 
               </div>
 
@@ -728,7 +673,7 @@ onMounted(()=>{
 
               <div class="flex items-start justify-between">
 
-                
+
                 <span
                   class="text-lg text-[#9AA59E] transition group-hover:translate-x-1 group-hover:text-[#2F6F4E]"
                 >

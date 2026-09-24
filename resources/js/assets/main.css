@@ -13,3 +13,266 @@ body,
 body {
     font-family: Arial, Helvetica, sans-serif;
 }
+
+/* =========================================
+   GLOBAL DARK MODE
+   ========================================= */
+
+.dark {
+    color-scheme: dark;
+}
+
+/* Main page backgrounds */
+.dark body {
+    background-color: #111815;
+    color: #e8eee9;
+}
+
+/* Common white surfaces */
+.dark .bg-white {
+    background-color: #18211c !important;
+}
+
+/* Common light backgrounds */
+.dark .bg-\[\#F4F6F1\] {
+    background-color: #111815 !important;
+}
+
+/* Common text colors */
+.dark .text-\[\#1C2B24\] {
+    color: #e8eee9 !important;
+}
+
+.dark .text-\[\#6B776F\] {
+    color: #9ba89f !important;
+}
+
+/* Borders */
+.dark .border-\[\#D8DDD3\] {
+    border-color: #36433b !important;
+}
+
+/* Inputs, textareas and selects */
+.dark input,
+.dark textarea,
+.dark select {
+    background-color: #202b25 !important;
+    color: #e8eee9 !important;
+    border-color: #36433b !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: #7f8d84 !important;
+}
+
+/* Tables */
+.dark table {
+    color: #e8eee9;
+}
+
+.dark th,
+.dark td {
+    border-color: #36433b !important;
+}
+
+/* Common hover backgrounds */
+.dark .hover\:bg-\[\#F4F6F1\]:hover {
+    background-color: #29362f !important;
+}
+
+/* Cards / panels using common gray backgrounds */
+.dark .bg-gray-50 {
+    background-color: #202b25 !important;
+}
+
+.dark .bg-gray-100 {
+    background-color: #29362f !important;
+}
+
+/* Common gray text */
+.dark .text-gray-500 {
+    color: #9ba89f !important;
+}
+
+.dark .text-gray-600 {
+    color: #b3beb7 !important;
+}
+
+.dark .text-gray-700 {
+    color: #c8d0ca !important;
+}
+
+.dark .text-gray-800,
+.dark .text-gray-900 {
+    color: #e8eee9 !important;
+}
+
+/* Common gray borders */
+.dark .border-gray-200,
+.dark .border-gray-300 {
+    border-color: #36433b !important;
+}
+
+/* Smooth theme transition */
+body,
+#app,
+header,
+main,
+section,
+article,
+div,
+button,
+input,
+textarea,
+select,
+table,
+tr,
+th,
+td {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+/* =========================================
+   APPLICATION SEMANTIC THEME
+   Matches Manage Students
+   ========================================= */
+
+:root {
+    --color-paper: #f4f6f1;
+    --color-surface: #ffffff;
+    --color-hairline: #d8ddd3;
+
+    --color-ink: #1c2b24;
+    --color-ink-soft: #5b6b62;
+
+    --color-forest: #2f6f4e;
+    --color-sienna: #b5563c;
+}
+
+.dark {
+    --color-paper: #111815;
+    --color-surface: #1e2b24;
+    --color-hairline: #2e3b33;
+
+    --color-ink: #e8ebe4;
+    --color-ink-soft: #9aa79e;
+
+    --color-forest: #2f6f4e;
+    --color-sienna: #b5563c;
+}
+
+/* Backgrounds */
+
+.bg-paper {
+    background-color: var(--color-paper) !important;
+}
+
+.bg-surface {
+    background-color: var(--color-surface) !important;
+}
+
+/* Borders */
+
+.border-hairline {
+    border-color: var(--color-hairline) !important;
+}
+
+/* Text */
+
+.text-ink {
+    color: var(--color-ink) !important;
+}
+
+.text-ink-soft {
+    color: var(--color-ink-soft) !important;
+}
+
+.text-forest {
+    color: var(--color-forest) !important;
+}
+
+.text-sienna {
+    color: var(--color-sienna) !important;
+}
+
+/* Buttons */
+
+.bg-forest {
+    background-color: var(--color-forest) !important;
+}
+
+.bg-sienna {
+    background-color: var(--color-sienna) !important;
+}
+
+/* Inputs */
+
+input.bg-surface,
+textarea.bg-surface,
+select.bg-surface {
+    background-color: var(--color-surface) !important;
+    color: var(--color-ink) !important;
+    border-color: var(--color-hairline) !important;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+    background-color: #16211b !important;
+    color: #e8ebe4 !important;
+    border-color: #2e3b33 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: #9aa79e !important;
+}
+
+/* Select options */
+
+.dark option {
+    background-color: #16211b;
+    color: #e8ebe4;
+}
+
+/* Teacher table hover */
+
+.hover\:bg-paper\/60:hover {
+    background-color: #f7f8f3 !important;
+}
+
+.dark .hover\:bg-paper\/60:hover {
+    background-color: #243329 !important;
+}
+
+/* General paper hover */
+
+.hover\:bg-paper:hover {
+    background-color: #f7f8f3 !important;
+}
+
+.dark .hover\:bg-paper:hover {
+    background-color: #243329 !important;
+}
+
+/* Borders with opacity */
+
+.border-forest\/30 {
+    border-color: rgb(47 111 78 / 30%) !important;
+}
+
+.border-forest\/40 {
+    border-color: rgb(47 111 78 / 40%) !important;
+}
+
+.border-sienna\/30 {
+    border-color: rgb(181 86 60 / 30%) !important;
+}
+
+.border-sienna\/40 {
+    border-color: rgb(181 86 60 / 40%) !important;
+}
