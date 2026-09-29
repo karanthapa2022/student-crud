@@ -55,4 +55,5 @@ test('Admin can open and edit student form', async({ page })=>{
     await expect(
     page.getByRole('cell', {name: updatedName, exact: true})
     ).toBeVisible();
+    
 });
