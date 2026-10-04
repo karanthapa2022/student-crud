@@ -53,9 +53,9 @@ test(
         await page.waitForTimeout(2000);
 
         // Verify Create Marksheet form
-        await expect(
-            page.getByRole('combobox').first()
-        ).toBeVisible();
+        const studentSelect = page.getByRole('combobox').first();
+
+        await expect(studentSelect).toBeVisible();
 
         await expect(
             page.getByPlaceholder('Class will appear here')
@@ -82,12 +82,21 @@ test(
 
         await page.waitForTimeout(1500);
 
-        // Select student
-        await page.getByRole('combobox').first().selectOption({
-            label: 'Test Student 1790675888901'
+        // Select the first real student from the dropdown
+        await studentSelect.selectOption({
+            index: 1
         });
 
         await page.waitForTimeout(2000);
+
+        // Get the selected student's name
+        const selectedStudentName =
+            await studentSelect.locator('option:checked').textContent();
+
+        console.log(
+            'Selected student:',
+            selectedStudentName?.trim()
+        );
 
         // Verify class was populated
         await expect(
@@ -182,41 +191,51 @@ test(
 
         await saveResponse;
 
-        // Temporary inspection after save
+        // Verify success message
         await expect(
-        page.locator('text=Marksheet saved successfully.')
+            page.locator('text=Marksheet saved successfully.')
         ).toBeVisible();
 
         await page.waitForTimeout(2000);
 
+        // Go back to marksheets
         await page.getByRole(
-        'button',
-        { name: 'Back to marksheets', exact: true }
+            'button',
+            { name: 'Back to marksheets', exact: true }
         ).click();
 
         await page.waitForTimeout(2000);
 
+        // Find the marksheet row for the selected student
         const marksheetRow = page.getByRole(
-    'row',
-    { name: /Test Student 1790675888901/ }
-).first();
+            'row',
+            {
+                name: new RegExp(
+                    selectedStudentName?.trim() || ''
+                )
+            }
+        ).first();
 
-await expect(marksheetRow).toBeVisible();
+        await expect(marksheetRow).toBeVisible();
 
-await expect(marksheetRow).toContainText('255');
-await expect(marksheetRow).toContainText('85%');
-await expect(marksheetRow).toContainText('A+');
-await expect(marksheetRow).toContainText('Pass');
+        await page.waitForTimeout(1000);
 
-await page.waitForTimeout(2000);
+        // Verify calculated results
+        await expect(marksheetRow).toContainText('255');
+        await expect(marksheetRow).toContainText('85%');
+        await expect(marksheetRow).toContainText('A+');
+        await expect(marksheetRow).toContainText('Pass');
 
-await page.waitForTimeout(1500);
-// Open saved marksheet
-await marksheetRow
-    .getByRole('button', { name: 'View', exact: true })
-    .click();
+        await page.waitForTimeout(2000);
 
-await page.waitForTimeout(3000);
+        // Open saved marksheet
+        await marksheetRow
+            .getByRole(
+                'button',
+                { name: 'View', exact: true }
+            )
+            .click();
 
+        await page.waitForTimeout(3000);
     }
 );
